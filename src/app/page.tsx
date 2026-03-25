@@ -85,10 +85,10 @@ export default function HomePage() {
               開始使用
             </Link>
             <Link
-              href="#"
+              href="/questions"
               className="inline-block px-8 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-colors"
             >
-              了解更多
+              瀏覽題庫
             </Link>
           </div>
         </div>

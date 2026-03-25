@@ -24,13 +24,22 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchUsers() {
       try {
-        setUsers([]);
+        const res = await fetch("/api/admin/users");
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(data.users || []);
+        } else {
+          const data = await res.json();
+          setError(data.error || "無法載入使用者");
+        }
       } catch (err) {
         console.error(err);
+        setError("載入失敗");
       } finally {
         setLoading(false);
       }
@@ -41,9 +50,20 @@ export default function AdminUsersPage() {
 
   async function handleRoleChange(userId: string, newRole: string) {
     try {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-      );
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, newRole }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsers((prev) =>
+          prev.map((u) => (u.id === data.user.id ? { ...u, role: data.user.role } : u))
+        );
+      } else {
+        const data = await res.json();
+        alert(data.error || "更新失敗");
+      }
     } catch (err) {
       console.error(err);
     }
@@ -51,7 +71,7 @@ export default function AdminUsersPage() {
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
-  if (!session || (role !== "ADMIN" && role !== "TEACHER")) {
+  if (!session || role !== "ADMIN") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p className="text-lg">權限不足</p>
@@ -84,6 +104,12 @@ export default function AdminUsersPage() {
         className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
@@ -93,13 +119,7 @@ export default function AdminUsersPage() {
       ) : filteredUsers.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
           <p className="text-gray-500">
-            {users.length === 0
-              ? "需要建立管理員 API 端點以載入使用者列表"
-              : "找不到符合的使用者"
-            }
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            建議在 /api/admin/users 建立相關 API
+            {search ? "找不到符合的使用者" : "尚無使用者"}
           </p>
         </div>
       ) : (
@@ -132,15 +152,19 @@ export default function AdminUsersPage() {
                       {new Date(user.createdAt).toLocaleDateString("zh-TW")}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="STUDENT">STUDENT</option>
-                        <option value="TEACHER">TEACHER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
+                      {user.id === session.user?.id ? (
+                        <span className="text-xs text-gray-400">目前帳號</span>
+                      ) : (
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="STUDENT">STUDENT</option>
+                          <option value="TEACHER">TEACHER</option>
+                          <option value="ADMIN">ADMIN</option>
+                        </select>
+                      )}
                     </td>
                   </tr>
                 ))}
