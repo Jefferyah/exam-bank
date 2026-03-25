@@ -188,7 +188,18 @@ export default function ImportPage() {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setResult({
+          imported: 0,
+          skipped: 0,
+          errors: [`伺服器回應錯誤 (HTTP ${res.status})，可能是檔案過大或格式有誤`],
+        });
+        return;
+      }
+
       if (res.ok) {
         setResult({
           imported: data.imported,
@@ -200,11 +211,12 @@ export default function ImportPage() {
         setResult({
           imported: 0,
           skipped: 0,
-          errors: [data.error || "匯入失敗"],
+          errors: [data.error || `匯入失敗 (HTTP ${res.status})`],
         });
       }
-    } catch {
-      setResult({ imported: 0, skipped: 0, errors: ["匯入失敗，請重試"] });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "未知錯誤";
+      setResult({ imported: 0, skipped: 0, errors: [`匯入失敗：${msg}`] });
     } finally {
       setImporting(false);
     }

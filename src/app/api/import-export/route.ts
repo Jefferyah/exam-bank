@@ -218,10 +218,10 @@ export async function POST(req: NextRequest) {
       const q = normalizeQuestion(raw);
 
       try {
-        // Validate required fields
-        if (!q.stem || !q.options || !q.answer || !q.explanation) {
+        // Validate required fields (explanation is optional)
+        if (!q.stem || !q.options || !q.answer) {
           results.errors.push(
-            `Question ${i + 1}: Missing required fields (stem/question, options, answer, explanation)`
+            `Question ${i + 1}: Missing required fields (stem/question, options, answer)`
           );
           results.skipped++;
           continue;
@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
                 ? q.options
                 : JSON.stringify(q.options),
             answer: q.answer as string,
-            explanation: q.explanation as string,
+            explanation: (q.explanation as string) || "",
             wrongOptionExplanations: q.wrongOptionExplanations
               ? typeof q.wrongOptionExplanations === "string"
                 ? q.wrongOptionExplanations
