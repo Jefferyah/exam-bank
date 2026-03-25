@@ -232,43 +232,43 @@ export default function ImportPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/questions"
-          className="text-gray-500 hover:text-gray-900"
+          className="text-gray-600 hover:text-gray-900"
         >
           &larr; 返回題庫
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">匯入/匯出題目</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">匯入/匯出題目</h1>
       </div>
 
       {/* Upload area */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯入題目 (JSON)</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setImportMode("new")}
-            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+            className={`rounded-2xl border px-4 py-3 text-left transition-all ${
               importMode === "new"
-                ? "border-blue-400 bg-blue-50"
-                : "border-gray-200 bg-white hover:bg-gray-50"
+                ? "border-gray-900 bg-gray-50"
+                : "border-gray-100 bg-white hover:bg-gray-50 shadow-sm"
             }`}
           >
             <p className="font-medium text-gray-900">建立新題庫</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               把匯入內容放進全新的題庫
             </p>
           </button>
           <button
             type="button"
             onClick={() => setImportMode("existing")}
-            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+            className={`rounded-2xl border px-4 py-3 text-left transition-all ${
               importMode === "existing"
-                ? "border-blue-400 bg-blue-50"
-                : "border-gray-200 bg-white hover:bg-gray-50"
+                ? "border-gray-900 bg-gray-50"
+                : "border-gray-100 bg-white hover:bg-gray-50 shadow-sm"
             }`}
           >
             <p className="font-medium text-gray-900">加入現有題庫</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               把新題目追加到既有題庫中
             </p>
           </button>
@@ -277,7 +277,7 @@ export default function ImportPage() {
         {importMode === "new" ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">
+              <label className="block text-sm font-medium text-gray-600 mb-1">
                 題庫名稱 *
               </label>
               <input
@@ -290,7 +290,7 @@ export default function ImportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">
+              <label className="block text-sm font-medium text-gray-600 mb-1">
                 題庫描述（選填）
               </label>
               <input
@@ -304,7 +304,7 @@ export default function ImportPage() {
           </>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
               選擇現有題庫 *
             </label>
             <select
@@ -322,7 +322,7 @@ export default function ImportPage() {
           </div>
         )}
 
-        <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 text-center">
+        <div className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-8 text-center">
           <input
             type="file"
             accept=".json"
@@ -358,17 +358,18 @@ export default function ImportPage() {
 
         {parseError && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-            <p className="text-red-500 text-sm">{parseError}</p>
+            <p className="text-red-600 text-sm">{parseError}</p>
           </div>
         )}
       </div>
 
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
               預覽匯入題目 ({preview.length} 題)
+
             </h2>
             {detectedFormat && (
               <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">
@@ -382,7 +383,7 @@ export default function ImportPage() {
             {preview.map((q, i) => (
               <div
                 key={i}
-                className="p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                className="p-3 bg-gray-50 border border-gray-100 rounded-xl"
               >
                 <p
                   className="text-sm font-medium text-gray-900 line-clamp-2"
@@ -410,7 +411,7 @@ export default function ImportPage() {
               importing ||
               (importMode === "new" ? !bankName.trim() : !selectedBankId)
             }
-            className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors"
+            className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-all"
           >
             {importing
               ? "匯入中..."
@@ -423,10 +424,10 @@ export default function ImportPage() {
 
       {/* Import result */}
       {result && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">匯入結果</h2>
           {result.questionBankName && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               題庫：{result.questionBankName}
             </p>
           )}
@@ -435,17 +436,17 @@ export default function ImportPage() {
               <p className="text-2xl font-bold text-emerald-500">
                 {result.imported}
               </p>
-              <p className="text-sm text-gray-500">成功匯入</p>
+              <p className="text-sm text-gray-600">成功匯入</p>
             </div>
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
               <p className="text-2xl font-bold text-amber-500">
                 {result.skipped}
               </p>
-              <p className="text-sm text-gray-500">已跳過</p>
+              <p className="text-sm text-gray-600">已跳過</p>
             </div>
           </div>
           {result.errors.length > 0 && (
-            <div className="text-sm text-red-500 space-y-1">
+            <div className="text-sm text-red-600 space-y-1">
               {result.errors.map((err, i) => (
                 <p key={i}>{err}</p>
               ))}
@@ -455,9 +456,9 @@ export default function ImportPage() {
       )}
 
       {/* Export */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯出全部題目</h2>
-        <p className="text-sm text-gray-500">將所有題目匯出為 JSON 檔案</p>
+        <p className="text-sm text-gray-600">將所有題目匯出為 JSON 檔案</p>
         <button
           onClick={handleExport}
           className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium transition-colors"
@@ -467,11 +468,11 @@ export default function ImportPage() {
       </div>
 
       {/* Sample formats */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">
           JSON 格式範例
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           系統支援兩種匯入格式，會自動偵測並轉換。
         </p>
 
@@ -479,9 +480,9 @@ export default function ImportPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setSampleTab("A")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               sampleTab === "A"
-                ? "bg-blue-500 text-white"
+                ? "bg-gray-900 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -489,9 +490,9 @@ export default function ImportPage() {
           </button>
           <button
             onClick={() => setSampleTab("B")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               sampleTab === "B"
-                ? "bg-blue-500 text-white"
+                ? "bg-gray-900 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -568,20 +569,20 @@ export default function ImportPage() {
 
         {/* Field mapping table */}
         <div className="mt-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">
             欄位對照表
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 pr-4 text-gray-500 font-medium">
+                  <th className="text-left py-2 pr-4 text-gray-600 font-medium">
                     簡易格式
                   </th>
-                  <th className="text-left py-2 pr-4 text-gray-500 font-medium">
+                  <th className="text-left py-2 pr-4 text-gray-600 font-medium">
                     完整格式
                   </th>
-                  <th className="text-left py-2 text-gray-500 font-medium">
+                  <th className="text-left py-2 text-gray-600 font-medium">
                     說明
                   </th>
                 </tr>

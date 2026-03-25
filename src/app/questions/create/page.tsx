@@ -268,7 +268,7 @@ function CreateQuestionContent() {
                 <button
                   type="button"
                   onClick={() => setShowBankCreator((current) => !current)}
-                  className="text-sm text-blue-500 hover:text-blue-600"
+                  className="text-sm text-gray-900 hover:text-gray-700 font-medium"
                 >
                   {showBankCreator ? "收起新增題庫" : "+ 新增題庫"}
                 </button>
@@ -285,7 +285,7 @@ function CreateQuestionContent() {
                 ))}
               </select>
               {showBankCreator && (
-                <div className="mt-3 space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
                   <input
                     type="text"
                     value={newBankName}
@@ -501,7 +501,7 @@ function CreateQuestionContent() {
 
         {/* Error & Submit */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
             <p className="text-red-600">{error}</p>
           </div>
         )}
