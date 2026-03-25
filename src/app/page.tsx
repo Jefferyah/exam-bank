@@ -191,7 +191,7 @@ export default function HomePage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">最近測驗</h2>
-          <Link href="/exam" className="text-sm text-blue-500 hover:text-blue-600">
+          <Link href="/analytics" className="text-sm text-blue-500 hover:text-blue-600">
             查看全部
           </Link>
         </div>
