@@ -72,10 +72,9 @@ export default function HomePage() {
     <div className="hero-gradient flex flex-col items-center justify-center px-4 py-16 md:py-24">
       <div className="text-center space-y-8 max-w-3xl mx-auto">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
+        <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
           <span>✨</span>
-          <span>多題庫管理、智慧出題、模擬考</span>
-          <span className="text-gray-400">→</span>
+          <span>多題庫管理・智慧出題・模擬考</span>
         </div>
 
         {/* Hero heading */}

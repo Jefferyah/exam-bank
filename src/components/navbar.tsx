@@ -20,19 +20,10 @@ function Logo({ isDark }: { isDark: boolean }) {
   return (
     <Link href="/" className="flex items-center flex-shrink-0">
       {isDark ? (
-        /* Dark mode: keep icon + cyan text */
-        <span className="flex items-center gap-2">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="8" fill="#38bdf8" />
-            <path d="M9 10.5C9 9.67 9.67 9 10.5 9H14C14.83 9 16 9.67 16 10.5V22.5C16 21.67 14.83 21 14 21H10.5C9.67 21 9 21.67 9 22.5V10.5Z" fill="white" opacity="0.9" />
-            <path d="M23 10.5C23 9.67 22.33 9 21.5 9H18C17.17 9 16 9.67 16 10.5V22.5C16 21.67 17.17 21 18 21H21.5C22.33 21 23 21.67 23 22.5V10.5Z" fill="white" opacity="0.7" />
-            <circle cx="22" cy="11" r="4" fill="#0ea5e9" />
-            <path d="M22 9L22.6 10.4L24 11L22.6 11.6L22 13L21.4 11.6L20 11L21.4 10.4L22 9Z" fill="white" />
-          </svg>
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-[#f1f5f9]">Exam</span>
-            <span className="text-[#38bdf8]">Bank</span>
-          </span>
+        /* Dark mode: text only, cyan gradient */
+        <span className="text-2xl font-bold tracking-tight">
+          <span className="text-[#f1f5f9]">Exam</span>
+          <span className="text-[#38bdf8]">Bank</span>
         </span>
       ) : (
         /* Light mode: no icon, gradient purple text */
