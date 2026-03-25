@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const SAMPLE_JSON = `{
@@ -37,15 +36,37 @@ interface PreviewQuestion {
   options?: { label: string; text: string }[];
 }
 
+interface QuestionBank {
+  id: string;
+  name: string;
+}
+
 export default function ImportPage() {
-  const { data: session } = useSession();
   const [fileContent, setFileContent] = useState("");
+  const [importMode, setImportMode] = useState<"new" | "existing">("new");
   const [bankName, setBankName] = useState("");
   const [bankDescription, setBankDescription] = useState("");
+  const [selectedBankId, setSelectedBankId] = useState("");
+  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
   const [preview, setPreview] = useState<PreviewQuestion[]>([]);
   const [parseError, setParseError] = useState("");
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<{ imported: number; skipped: number; errors: string[]; questionBankName?: string } | null>(null);
+
+  useEffect(() => {
+    async function fetchBanks() {
+      try {
+        const res = await fetch("/api/question-banks");
+        if (!res.ok) return;
+        const data = await res.json();
+        setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+      } catch (err) {
+        console.error("Failed to fetch question banks:", err);
+      }
+    }
+
+    fetchBanks();
+  }, []);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -81,8 +102,12 @@ export default function ImportPage() {
 
   async function handleImport() {
     if (preview.length === 0) return;
-    if (!bankName.trim()) {
+    if (importMode === "new" && !bankName.trim()) {
       setParseError("請輸入題庫名稱");
+      return;
+    }
+    if (importMode === "existing" && !selectedBankId) {
+      setParseError("請選擇要加入的現有題庫");
       return;
     }
 
@@ -96,8 +121,10 @@ export default function ImportPage() {
       const questions = Array.isArray(parsed) ? parsed : parsed.questions;
 
       const body = {
-        questionBankName: bankName.trim(),
-        questionBankDescription: bankDescription.trim() || null,
+        questionBankId: importMode === "existing" ? selectedBankId : undefined,
+        questionBankName: importMode === "new" ? bankName.trim() : undefined,
+        questionBankDescription:
+          importMode === "new" ? bankDescription.trim() || null : undefined,
         questions,
       };
 
@@ -154,28 +181,74 @@ export default function ImportPage() {
       <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯入題目 (JSON)</h2>
 
-        {/* Question bank name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">題庫名稱 *</label>
-          <input
-            type="text"
-            value={bankName}
-            onChange={(e) => setBankName(e.target.value)}
-            placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文N1 文法"
-            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setImportMode("new")}
+            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+              importMode === "new"
+                ? "border-blue-400 bg-blue-50"
+                : "border-gray-200 bg-white hover:bg-gray-50"
+            }`}
+          >
+            <p className="font-medium text-gray-900">建立新題庫</p>
+            <p className="text-sm text-gray-500 mt-1">把匯入內容放進全新的題庫</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setImportMode("existing")}
+            className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+              importMode === "existing"
+                ? "border-blue-400 bg-blue-50"
+                : "border-gray-200 bg-white hover:bg-gray-50"
+            }`}
+          >
+            <p className="font-medium text-gray-900">加入現有題庫</p>
+            <p className="text-sm text-gray-500 mt-1">把新題目追加到既有題庫中</p>
+          </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-1">題庫描述（選填）</label>
-          <input
-            type="text"
-            value={bankDescription}
-            onChange={(e) => setBankDescription(e.target.value)}
-            placeholder="簡短描述這個題庫的內容"
-            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {importMode === "new" ? (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">題庫名稱 *</label>
+              <input
+                type="text"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文 N1 文法"
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-500 mb-1">題庫描述（選填）</label>
+              <input
+                type="text"
+                value={bankDescription}
+                onChange={(e) => setBankDescription(e.target.value)}
+                placeholder="簡短描述這個題庫的內容"
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-1">選擇現有題庫 *</label>
+            <select
+              value={selectedBankId}
+              onChange={(e) => setSelectedBankId(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">選擇題庫</option>
+              {questionBanks.map((bank) => (
+                <option key={bank.id} value={bank.id}>
+                  {bank.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 text-center">
           <input
@@ -228,10 +301,17 @@ export default function ImportPage() {
           </div>
           <button
             onClick={handleImport}
-            disabled={importing || !bankName.trim()}
+            disabled={
+              importing ||
+              (importMode === "new" ? !bankName.trim() : !selectedBankId)
+            }
             className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors"
           >
-            {importing ? "匯入中..." : `確認匯入 ${preview.length} 題到「${bankName || "..."}」`}
+            {importing
+              ? "匯入中..."
+              : importMode === "new"
+                ? `確認匯入 ${preview.length} 題到「${bankName || "..."}」`
+                : `確認匯入 ${preview.length} 題到既有題庫`}
           </button>
         </div>
       )}

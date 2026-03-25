@@ -59,7 +59,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { questionBankName, questionBankDescription, questions } = body;
+    const {
+      questionBankId,
+      questionBankName,
+      questionBankDescription,
+      questions,
+    } = body;
 
     // Support both new format {questionBankName, questions: [...]} and legacy format [...]
     const questionList = Array.isArray(body) ? body : questions;
@@ -79,21 +84,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!bankName) {
-      return NextResponse.json(
-        { error: "Missing required field: questionBankName" },
-        { status: 400 }
-      );
-    }
+    let questionBank:
+      | { id: string; name: string }
+      | null = null;
 
-    // Create the question bank
-    const questionBank = await prisma.questionBank.create({
-      data: {
-        name: bankName,
-        description: questionBankDescription || null,
-        createdById: session.user.id,
-      },
-    });
+    if (questionBankId) {
+      questionBank = await prisma.questionBank.findUnique({
+        where: { id: questionBankId },
+        select: { id: true, name: true },
+      });
+
+      if (!questionBank) {
+        return NextResponse.json(
+          { error: "Question bank not found" },
+          { status: 404 }
+        );
+      }
+    } else {
+      if (!bankName) {
+        return NextResponse.json(
+          { error: "Missing required field: questionBankName or questionBankId" },
+          { status: 400 }
+        );
+      }
+
+      questionBank = await prisma.questionBank.create({
+        data: {
+          name: bankName,
+          description: questionBankDescription || null,
+          createdById: session.user.id,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+    }
 
     const results = {
       imported: 0,

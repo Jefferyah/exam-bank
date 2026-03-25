@@ -2,9 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { DIFFICULTY_LABELS } from "@/lib/utils";
 
 interface Option {
   label: string;
@@ -27,7 +26,6 @@ export default function CreateQuestionPage() {
 function CreateQuestionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
   const editId = searchParams.get("edit");
 
   const [stem, setStem] = useState("");
@@ -50,6 +48,10 @@ function CreateQuestionContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+  const [showBankCreator, setShowBankCreator] = useState(false);
+  const [newBankName, setNewBankName] = useState("");
+  const [newBankDescription, setNewBankDescription] = useState("");
+  const [creatingBank, setCreatingBank] = useState(false);
 
   // Fetch question banks on mount
   useEffect(() => {
@@ -66,6 +68,21 @@ function CreateQuestionContent() {
     }
     fetchBanks();
   }, []);
+
+  async function refreshBanks(nextSelectedId?: string) {
+    try {
+      const res = await fetch("/api/question-banks");
+      if (!res.ok) return;
+      const data = await res.json();
+      const banks = Array.isArray(data) ? data : data.questionBanks || [];
+      setQuestionBanks(banks);
+      if (nextSelectedId) {
+        setQuestionBankId(nextSelectedId);
+      }
+    } catch (err) {
+      console.error("Failed to refresh question banks:", err);
+    }
+  }
 
   // Load question data if editing
   useEffect(() => {
@@ -116,6 +133,43 @@ function CreateQuestionContent() {
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], text };
     setOptions(newOptions);
+  }
+
+  async function handleCreateBank() {
+    if (!newBankName.trim()) {
+      setError("請先輸入題庫名稱");
+      return;
+    }
+
+    setCreatingBank(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/question-banks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newBankName.trim(),
+          description: newBankDescription.trim() || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "建立題庫失敗");
+        return;
+      }
+
+      const createdBank = await res.json();
+      await refreshBanks(createdBank.id);
+      setNewBankName("");
+      setNewBankDescription("");
+      setShowBankCreator(false);
+    } catch {
+      setError("建立題庫失敗，請重試");
+    } finally {
+      setCreatingBank(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -209,7 +263,16 @@ function CreateQuestionContent() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">所屬題庫</label>
+              <div className="flex items-center justify-between mb-1 gap-3">
+                <label className="block text-sm font-medium text-gray-700">所屬題庫</label>
+                <button
+                  type="button"
+                  onClick={() => setShowBankCreator((current) => !current)}
+                  className="text-sm text-blue-500 hover:text-blue-600"
+                >
+                  {showBankCreator ? "收起新增題庫" : "+ 新增題庫"}
+                </button>
+              </div>
               <select
                 value={questionBankId}
                 onChange={(e) => setQuestionBankId(e.target.value)}
@@ -221,6 +284,34 @@ function CreateQuestionContent() {
                   <option key={bank.id} value={bank.id}>{bank.name}</option>
                 ))}
               </select>
+              {showBankCreator && (
+                <div className="mt-3 space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <input
+                    type="text"
+                    value={newBankName}
+                    onChange={(e) => setNewBankName(e.target.value)}
+                    placeholder="新題庫名稱"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={newBankDescription}
+                    onChange={(e) => setNewBankDescription(e.target.value)}
+                    placeholder="題庫描述（選填）"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleCreateBank}
+                      disabled={creatingBank}
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-sm font-medium transition-colors"
+                    >
+                      {creatingBank ? "建立中..." : "建立並選取"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

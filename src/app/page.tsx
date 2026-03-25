@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
   totalExams: number;
@@ -72,10 +72,10 @@ export default function HomePage() {
       <div className="hero-gradient flex flex-col items-center justify-center min-h-[80vh] px-4">
         <div className="text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-            <span className="text-blue-500">萬用</span>題庫系統
+            <span className="text-blue-500">星核</span>題庫引擎
           </h1>
-          <p className="text-lg text-gray-500 max-w-md mx-auto">
-            全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+            把題海整理成你的專屬作戰指揮台，支援多題庫管理、模擬測驗與成績分析。
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
@@ -141,11 +141,10 @@ export default function HomePage() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <QuickAction href="/exam" label="開始練習" desc="模擬測驗" bgColor="bg-blue-50" textColor="text-blue-600" />
         <QuickAction href="/questions" label="瀏覽題庫" desc="搜尋題目" bgColor="bg-emerald-50" textColor="text-emerald-600" />
         <QuickAction href="/review" label="查看錯題" desc="重點複習" bgColor="bg-amber-50" textColor="text-amber-600" />
-        <QuickAction href="/questions/create" label="AI 解題" desc="智慧分析" bgColor="bg-purple-50" textColor="text-purple-600" />
       </div>
 
       {/* Recent exams */}

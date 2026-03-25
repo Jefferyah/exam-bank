@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 const navLinks = [
   { href: "/", label: "首頁" },
@@ -19,6 +20,7 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
 
   async function handleLogout() {
     setMenuOpen(false);
@@ -28,6 +30,8 @@ export function Navbar() {
     });
     window.location.assign("/login");
   }
+
+  const isDark = theme === "dark";
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -63,6 +67,14 @@ export function Navbar() {
 
           {/* User section */}
           <div className="hidden md:flex items-center space-x-3">
+            <button
+              onClick={toggleTheme}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="切換深色模式"
+            >
+              <span>{isDark ? "月" : "日"}</span>
+              <span>切換主題</span>
+            </button>
             {status === "loading" ? (
               <div className="h-8 w-20 bg-gray-100 rounded-full animate-pulse" />
             ) : session?.user ? (
@@ -125,6 +137,15 @@ export function Navbar() {
             );
           })}
           <div className="pt-3 border-t border-gray-100">
+            <button
+              onClick={() => {
+                toggleTheme();
+                setMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
+            >
+              切換主題模式
+            </button>
             {session?.user ? (
               <div className="space-y-2">
                 <p className="px-4 text-sm text-gray-400">{session.user.name || session.user.email}</p>
