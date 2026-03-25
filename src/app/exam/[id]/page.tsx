@@ -41,7 +41,7 @@ interface Exam {
 export default function ExamTakingPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  useSession();
   const [exam, setExam] = useState<Exam | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,6 +63,12 @@ export default function ExamTakingPage() {
             return;
           }
           setExam(data);
+          const startedAt = new Date(data.startedAt).getTime();
+          const initialElapsed = Math.max(
+            0,
+            Math.floor((Date.now() - startedAt) / 1000)
+          );
+          setElapsed(initialElapsed);
           // Restore any existing answers
           const existing: Record<string, string> = {};
           const existingFlags = new Set<string>();
@@ -95,12 +101,6 @@ export default function ExamTakingPage() {
   }, [exam]);
 
   // Auto-submit if time's up (mock mode)
-  useEffect(() => {
-    if (exam?.mode === "MOCK" && exam.timeLimit && elapsed >= exam.timeLimit) {
-      handleFinish();
-    }
-  }, [elapsed, exam]);
-
   const currentAnswer = exam?.answers[currentIndex];
   const currentQuestion = currentAnswer?.question;
   const isPractice = exam?.mode === "PRACTICE";
@@ -164,9 +164,10 @@ export default function ExamTakingPage() {
     return () => clearInterval(interval);
   }, [exam, saveAnswers]);
 
-  async function handleFinish() {
+  const handleFinish = useCallback(async (force = false) => {
     if (!exam) return;
-    if (!isPractice && !confirm("確定要交卷嗎？交卷後無法修改答案。")) return;
+    if (submitting) return;
+    if (!force && !isPractice && !confirm("確定要交卷嗎？交卷後無法修改答案。")) return;
 
     setSubmitting(true);
     try {
@@ -190,7 +191,18 @@ export default function ExamTakingPage() {
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [exam, flagged, isPractice, router, submitting, userAnswers]);
+
+  useEffect(() => {
+    if (
+      exam?.mode === "MOCK" &&
+      exam.timeLimit &&
+      elapsed >= exam.timeLimit &&
+      !submitting
+    ) {
+      handleFinish(true);
+    }
+  }, [elapsed, exam, handleFinish, submitting]);
 
   if (loading) {
     return (
@@ -234,7 +246,7 @@ export default function ExamTakingPage() {
           </span>
           {isPractice ? (
             <button
-              onClick={handleFinish}
+              onClick={() => handleFinish()}
               disabled={submitting}
               className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium transition-colors"
             >
@@ -242,7 +254,7 @@ export default function ExamTakingPage() {
             </button>
           ) : (
             <button
-              onClick={handleFinish}
+              onClick={() => handleFinish()}
               disabled={submitting}
               className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-colors"
             >

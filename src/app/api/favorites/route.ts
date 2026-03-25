@@ -12,10 +12,16 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
+    const questionId = searchParams.get("questionId");
+    const where: { userId: string; questionId?: string } = { userId: session.user.id };
+
+    if (questionId) {
+      where.questionId = questionId;
+    }
 
     const [favorites, total] = await Promise.all([
       prisma.favorite.findMany({
-        where: { userId: session.user.id },
+        where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -23,7 +29,7 @@ export async function GET(req: NextRequest) {
           question: true,
         },
       }),
-      prisma.favorite.count({ where: { userId: session.user.id } }),
+      prisma.favorite.count({ where }),
     ]);
 
     const parsed = favorites.map((f) => ({

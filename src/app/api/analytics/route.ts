@@ -51,8 +51,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.wrongRecord.findMany({
         where: { userId },
-        orderBy: { count: "desc" },
-        take: 10,
+        orderBy: [{ count: "desc" }, { lastWrongAt: "desc" }],
         include: {
           question: {
             select: {
@@ -150,7 +149,7 @@ export async function GET(req: NextRequest) {
     }));
 
     // Most wrong questions
-    const mostWrongQuestions = wrongRecords.map((r) => ({
+    const allWrongQuestions = wrongRecords.map((r) => ({
       questionId: r.questionId,
       stem: r.question.stem,
       questionBankId: r.question.questionBankId,
@@ -167,7 +166,8 @@ export async function GET(req: NextRequest) {
       bankAccuracy,
       difficultyDistribution,
       recentTrend,
-      mostWrongQuestions,
+      mostWrongQuestions: allWrongQuestions.slice(0, 10),
+      allWrongQuestions,
     });
   } catch (error) {
     console.error("GET /api/analytics error:", error);

@@ -2,6 +2,52 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
+function normalizeAnswerSet(answer: string | null | undefined) {
+  return (answer || "")
+    .split(",")
+    .map((part) => part.trim().toUpperCase())
+    .filter(Boolean)
+    .sort();
+}
+
+function isAnswerCorrect(userAnswer: string | null | undefined, correctAnswer: string) {
+  const userParts = normalizeAnswerSet(userAnswer);
+  const correctParts = normalizeAnswerSet(correctAnswer);
+
+  if (userParts.length === 0 || userParts.length !== correctParts.length) {
+    return false;
+  }
+
+  return userParts.every((part, index) => part === correctParts[index]);
+}
+
+function serializeExam(exam: {
+  config: string;
+  answers: Array<{
+    question: {
+      options: string;
+      tags: string;
+      wrongOptionExplanations: string | null;
+    };
+  }>;
+} & Record<string, unknown>) {
+  return {
+    ...exam,
+    config: JSON.parse(exam.config),
+    answers: exam.answers.map((a) => ({
+      ...a,
+      question: {
+        ...a.question,
+        options: JSON.parse(a.question.options),
+        tags: JSON.parse(a.question.tags),
+        wrongOptionExplanations: a.question.wrongOptionExplanations
+          ? JSON.parse(a.question.wrongOptionExplanations)
+          : null,
+      },
+    })),
+  };
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,21 +78,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json({
-      ...exam,
-      config: JSON.parse(exam.config),
-      answers: exam.answers.map((a) => ({
-        ...a,
-        question: {
-          ...a.question,
-          options: JSON.parse(a.question.options),
-          tags: JSON.parse(a.question.tags),
-          wrongOptionExplanations: a.question.wrongOptionExplanations
-            ? JSON.parse(a.question.wrongOptionExplanations)
-            : null,
-        },
-      })),
-    });
+    return NextResponse.json(serializeExam(exam));
   } catch (error) {
     console.error("GET /api/exams/[id] error:", error);
     return NextResponse.json(
@@ -85,6 +117,10 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    if (exam.status === "COMPLETED") {
+      return NextResponse.json(serializeExam(exam));
+    }
+
     const body = await req.json();
     const { answers: submittedAnswers, finish = false } = body;
 
@@ -101,7 +137,7 @@ export async function PUT(
         const question = examAnswer.question;
         const isCorrect =
           userAnswer != null
-            ? userAnswer.toString().toUpperCase() === question.answer.toUpperCase()
+            ? isAnswerCorrect(userAnswer.toString(), question.answer)
             : null;
 
         await prisma.examAnswer.update({
@@ -123,13 +159,11 @@ export async function PUT(
         include: { question: true },
       });
 
-      const totalAnswered = updatedAnswers.filter(
-        (a) => a.userAnswer != null
-      ).length;
       const correctCount = updatedAnswers.filter(
         (a) => a.isCorrect === true
       ).length;
-      const score = totalAnswered > 0 ? (correctCount / totalAnswered) * 100 : 0;
+      const totalQuestions = updatedAnswers.length;
+      const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
 
       // Update wrong records for incorrect answers
       const wrongAnswers = updatedAnswers.filter(
@@ -172,21 +206,7 @@ export async function PUT(
         },
       });
 
-      return NextResponse.json({
-        ...finishedExam,
-        config: JSON.parse(finishedExam.config),
-        answers: finishedExam.answers.map((a) => ({
-          ...a,
-          question: {
-            ...a.question,
-            options: JSON.parse(a.question.options),
-            tags: JSON.parse(a.question.tags),
-            wrongOptionExplanations: a.question.wrongOptionExplanations
-              ? JSON.parse(a.question.wrongOptionExplanations)
-              : null,
-          },
-        })),
-      });
+      return NextResponse.json(serializeExam(finishedExam));
     }
 
     // Return updated exam without finishing
@@ -200,21 +220,7 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({
-      ...updatedExam!,
-      config: JSON.parse(updatedExam!.config),
-      answers: updatedExam!.answers.map((a) => ({
-        ...a,
-        question: {
-          ...a.question,
-          options: JSON.parse(a.question.options),
-          tags: JSON.parse(a.question.tags),
-          wrongOptionExplanations: a.question.wrongOptionExplanations
-            ? JSON.parse(a.question.wrongOptionExplanations)
-            : null,
-        },
-      })),
-    });
+    return NextResponse.json(serializeExam(updatedExam!));
   } catch (error) {
     console.error("PUT /api/exams/[id] error:", error);
     return NextResponse.json(

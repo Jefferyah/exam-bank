@@ -68,8 +68,8 @@ export default function QuestionDetailPage() {
     async function checkFavoriteAndNote() {
       try {
         const [favRes, noteRes] = await Promise.all([
-          fetch("/api/favorites"),
-          fetch("/api/notes"),
+          fetch(`/api/favorites?questionId=${params.id}`),
+          fetch(`/api/notes?questionId=${params.id}`),
         ]);
 
         if (favRes.ok) {

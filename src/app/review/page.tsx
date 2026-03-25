@@ -15,6 +15,11 @@ interface WrongQuestion {
   lastWrongAt: string;
 }
 
+interface AnalyticsResponse {
+  mostWrongQuestions?: WrongQuestion[];
+  allWrongQuestions?: WrongQuestion[];
+}
+
 interface FavoriteQuestion {
   id: string;
   questionId: string;
@@ -53,8 +58,8 @@ export default function ReviewPage() {
         ]);
 
         if (analyticsRes.ok) {
-          const data = await analyticsRes.json();
-          setWrongQuestions(data.mostWrongQuestions || []);
+          const data: AnalyticsResponse = await analyticsRes.json();
+          setWrongQuestions(data.allWrongQuestions || data.mostWrongQuestions || []);
         }
         if (favRes.ok) {
           const data = await favRes.json();
