@@ -166,10 +166,10 @@ export default function ExamSetupPage() {
               key={d}
               type="button"
               onClick={() => toggleDifficulty(d)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
                 difficultyRange.includes(d)
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
+                  ? "bg-blue-50 border-blue-200 shadow-sm"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
               }`}
             >
               <DifficultyStars value={d} />
