@@ -22,6 +22,13 @@ interface InviteCode {
   usedBy: { name: string | null; email: string | null } | null;
 }
 
+interface QuestionBankOption {
+  id: string;
+  name: string;
+}
+
+type ResetScope = "all" | "wrong" | "exams" | null;
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -31,6 +38,11 @@ export default function AdminPage() {
   const [generateCount, setGenerateCount] = useState(1);
   const [generateMaxUses, setGenerateMaxUses] = useState(0); // 0 = unlimited
   const [copied, setCopied] = useState<string | null>(null);
+  const [resetScope, setResetScope] = useState<ResetScope>(null);
+  const [resetBankId, setResetBankId] = useState<string>("");
+  const [questionBanks, setQuestionBanks] = useState<QuestionBankOption[]>([]);
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) {
@@ -59,6 +71,18 @@ export default function AdminPage() {
         if (codesRes.ok) {
           const data = await codesRes.json();
           setInviteCodes(data.inviteCodes || []);
+        }
+
+        // Fetch question banks for reset filter
+        const banksRes = await fetch("/api/question-banks");
+        if (banksRes.ok) {
+          const banksData = await banksRes.json();
+          setQuestionBanks(
+            (banksData.questionBanks || []).map((b: { id: string; name: string }) => ({
+              id: b.id,
+              name: b.name,
+            }))
+          );
         }
       } catch (err) {
         console.error(err);
@@ -95,6 +119,51 @@ export default function AdminPage() {
     setTimeout(() => setCopied(null), 2000);
   }
 
+  async function handleReset() {
+    if (!resetScope) return;
+
+    const scopeLabels: Record<string, string> = {
+      all: "全部學習記錄（測驗、錯題、筆記、收藏、難度設定）",
+      wrong: "所有錯題記錄",
+      exams: "所有測驗記錄",
+    };
+
+    const confirmed = confirm(
+      `確定要重置${scopeLabels[resetScope]}嗎？此操作無法復原！`
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    setResetMessage(null);
+    try {
+      const res = await fetch("/api/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: resetScope,
+          ...(resetBankId ? { questionBankId: resetBankId } : {}),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const counts = Object.entries(data.deleted || {})
+          .map(([, v]) => v as number)
+          .reduce((a, b) => a + b, 0);
+        setResetMessage({ type: "success", text: `重置成功！共刪除 ${counts} 筆記錄` });
+        setResetScope(null);
+        setResetBankId("");
+      } else {
+        const data = await res.json();
+        setResetMessage({ type: "error", text: data.error || "重置失敗" });
+      }
+    } catch (err) {
+      console.error(err);
+      setResetMessage({ type: "error", text: "重置失敗，請稍後再試" });
+    } finally {
+      setResetting(false);
+    }
+  }
+
   const role = (session?.user as { role?: string } | undefined)?.role;
 
   if (status === "loading") {
@@ -118,18 +187,107 @@ export default function AdminPage() {
     );
   }
 
-  if (role !== "ADMIN" && role !== "TEACHER") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-600">
-        <p className="text-lg text-gray-900">權限不足</p>
-        <p className="text-sm mt-1">僅限管理員或教師使用</p>
-        <Link href="/" className="text-gray-900 hover:text-gray-700 mt-4 inline-block font-medium">回首頁</Link>
-      </div>
-    );
-  }
+  const isAdmin = role === "ADMIN" || role === "TEACHER";
 
   const unusedCodes = inviteCodes.filter((c) => c.maxUses === 0 || c.usedCount < c.maxUses);
   const usedCodes = inviteCodes.filter((c) => c.maxUses > 0 && c.usedCount >= c.maxUses);
+
+  const resetSection = (
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">重置學習記錄</h2>
+        <p className="text-sm text-gray-500 mt-1">清除你的學習數據，重新開始</p>
+      </div>
+
+      {/* Scope selector */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <button
+          type="button"
+          onClick={() => setResetScope(resetScope === "all" ? null : "all")}
+          className={cn(
+            "text-left rounded-xl border p-4 transition-all",
+            resetScope === "all"
+              ? "border-red-200 bg-red-50"
+              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+          )}
+        >
+          <p className="font-medium text-gray-900 text-sm">全部重置</p>
+          <p className="text-xs text-gray-500 mt-1">清除所有測驗記錄、錯題、筆記、收藏</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setResetScope(resetScope === "wrong" ? null : "wrong")}
+          className={cn(
+            "text-left rounded-xl border p-4 transition-all",
+            resetScope === "wrong"
+              ? "border-red-200 bg-red-50"
+              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+          )}
+        >
+          <p className="font-medium text-gray-900 text-sm">僅重置錯題</p>
+          <p className="text-xs text-gray-500 mt-1">只清除錯題記錄</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setResetScope(resetScope === "exams" ? null : "exams")}
+          className={cn(
+            "text-left rounded-xl border p-4 transition-all",
+            resetScope === "exams"
+              ? "border-red-200 bg-red-50"
+              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+          )}
+        >
+          <p className="font-medium text-gray-900 text-sm">僅重置測驗</p>
+          <p className="text-xs text-gray-500 mt-1">只清除測驗記錄</p>
+        </button>
+      </div>
+
+      {/* Optional question bank filter */}
+      {resetScope && resetScope !== "all" && questionBanks.length > 0 && (
+        <div>
+          <label className="text-sm text-gray-600 block mb-1">指定題庫（可選）</label>
+          <select
+            value={resetBankId}
+            onChange={(e) => setResetBankId(e.target.value)}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
+          >
+            <option value="">全部題庫</option>
+            {questionBanks.map((bank) => (
+              <option key={bank.id} value={bank.id}>{bank.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Reset button & message */}
+      <div className="flex items-center gap-3 pt-2">
+        <button
+          onClick={handleReset}
+          disabled={!resetScope || resetting}
+          className="px-6 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
+        >
+          {resetting ? "重置中..." : "確認重置"}
+        </button>
+        {resetMessage && (
+          <p className={cn(
+            "text-sm",
+            resetMessage.type === "success" ? "text-emerald-600" : "text-red-600"
+          )}>
+            {resetMessage.text}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  if (!isAdmin) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">設定</h1>
+        {resetSection}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -270,6 +428,9 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+
+          {/* Reset Learning Records */}
+          {resetSection}
         </>
       )}
     </div>

@@ -33,6 +33,9 @@ export async function GET(req: NextRequest) {
               questionBankId: true,
               difficulty: true,
               type: true,
+              questionBank: {
+                select: { name: true },
+              },
             },
           },
         },

@@ -37,12 +37,29 @@ interface FavoriteQuestion {
   };
 }
 
+interface NotedQuestion {
+  id: string;
+  content: string;
+  questionId: string;
+  question: {
+    id: string;
+    stem: string;
+    difficulty: number;
+    type: string;
+    questionBankId: string;
+    questionBank?: {
+      name: string;
+    };
+  };
+}
+
 export default function ReviewPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [tab, setTab] = useState<"wrong" | "favorites">("wrong");
+  const [tab, setTab] = useState<"wrong" | "favorites" | "notes">("wrong");
   const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>([]);
   const [favorites, setFavorites] = useState<FavoriteQuestion[]>([]);
+  const [notedQuestions, setNotedQuestions] = useState<NotedQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -54,9 +71,10 @@ export default function ReviewPage() {
 
     async function fetchData() {
       try {
-        const [analyticsRes, favRes] = await Promise.all([
+        const [analyticsRes, favRes, notesRes] = await Promise.all([
           fetch("/api/analytics"),
           fetch("/api/favorites?limit=100"),
+          fetch("/api/notes?limit=100"),
         ]);
 
         if (analyticsRes.ok) {
@@ -66,6 +84,10 @@ export default function ReviewPage() {
         if (favRes.ok) {
           const data = await favRes.json();
           setFavorites(data.favorites || []);
+        }
+        if (notesRes.ok) {
+          const data = await notesRes.json();
+          setNotedQuestions(data.notes || []);
         }
       } catch (err) {
         console.error(err);
@@ -114,6 +136,29 @@ export default function ReviewPage() {
     }
   }
 
+  async function handleReviewNotes() {
+    if (notedQuestions.length === 0) return;
+    try {
+      const questionIds = notedQuestions.map((n) => n.questionId);
+      const res = await fetch("/api/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `筆記題重做 - ${new Date().toLocaleDateString("zh-TW")}`,
+          count: Math.min(notedQuestions.length, 50),
+          mode: "PRACTICE",
+          questionIds,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        router.push(`/exam/${data.id}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   const filteredWrong = wrongQuestions.filter((q) =>
     !search || q.stem.toLowerCase().includes(search.toLowerCase())
   );
@@ -121,6 +166,12 @@ export default function ReviewPage() {
   const filteredFav = favorites.filter((f) =>
     !search || f.question.stem.toLowerCase().includes(search.toLowerCase())
   );
+
+  const filteredNotes = notedQuestions.filter((n) => {
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return n.question.stem.toLowerCase().includes(s) || n.content.toLowerCase().includes(s);
+  });
 
   if (!session) {
     return (
@@ -162,6 +213,15 @@ export default function ReviewPage() {
           )}
         >
           收藏題 ({favorites.length})
+        </button>
+        <button
+          onClick={() => setTab("notes")}
+          className={cn(
+            "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
+            tab === "notes" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-600 hover:text-gray-900"
+          )}
+        >
+          筆記題 ({notedQuestions.length})
         </button>
       </div>
 
@@ -222,7 +282,7 @@ export default function ReviewPage() {
             </div>
           )}
         </>
-      ) : (
+      ) : tab === "favorites" ? (
         <>
           {filteredFav.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -252,6 +312,55 @@ export default function ReviewPage() {
                   >
                     移除
                   </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {notedQuestions.length > 0 && (
+            <button
+              onClick={handleReviewNotes}
+              className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium transition-colors"
+            >
+              重做所有筆記題
+            </button>
+          )}
+
+          {filteredNotes.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <p>{search ? "找不到符合的筆記題" : "目前沒有筆記記錄"}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredNotes.map((n) => (
+                <div
+                  key={n.id}
+                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/questions/${n.questionId}`}
+                      className="flex-1 min-w-0"
+                    >
+                      <p className="text-sm text-gray-900 line-clamp-2">{n.question.stem}</p>
+                    </Link>
+                    <CopyQuestionButton stem={n.question.stem} options={[]} />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                    {n.content.length > 50 ? n.content.slice(0, 50) + "..." : n.content}
+                  </p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                    <span>{n.question.questionBank?.name || n.question.questionBankId}</span>
+                    <DifficultyStars value={n.question.difficulty} />
+                    <Link
+                      href={`/questions/${n.questionId}`}
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+                    >
+                      重做
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
