@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DifficultyStars } from "@/components/icons";
+import { CopyQuestionButton } from "@/components/copy-question-button";
 
 interface WrongQuestion {
   questionId: string;
@@ -197,19 +198,26 @@ export default function ReviewPage() {
           ) : (
             <div className="space-y-3">
               {filteredWrong.map((q) => (
-                <Link
+                <div
                   key={q.questionId}
-                  href={`/questions/${q.questionId}`}
-                  className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
                 >
-                  <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/questions/${q.questionId}`}
+                      className="flex-1 min-w-0"
+                    >
+                      <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                    </Link>
+                    <CopyQuestionButton stem={q.stem} options={[]} />
+                  </div>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">錯 {q.wrongCount} 次</span>
                     <span>{q.questionBankName}</span>
                     <DifficultyStars value={q.difficulty} />
                     <span>最後錯誤：{new Date(q.lastWrongAt).toLocaleDateString("zh-TW")}</span>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
@@ -237,6 +245,7 @@ export default function ReviewPage() {
                       <DifficultyStars value={f.question.difficulty} />
                     </div>
                   </Link>
+                  <CopyQuestionButton stem={f.question.stem} options={[]} />
                   <button
                     onClick={() => handleRemoveFavorite(f.questionId)}
                     className="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-full text-xs transition-colors flex-shrink-0"

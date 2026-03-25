@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn, DIFFICULTY_LABELS } from "@/lib/utils";
 import { CheckCircle, XCircle } from "@/components/icons";
+import { CopyQuestionButton } from "@/components/copy-question-button";
 
 interface ExamResult {
   id: string;
@@ -209,6 +210,12 @@ export default function ExamResultPage() {
                 <span className="flex-1 text-sm text-gray-900 line-clamp-1">
                   {i + 1}. {a.question.stem}
                 </span>
+                <CopyQuestionButton
+                  stem={a.question.stem}
+                  options={a.question.options}
+                  answer={a.question.answer}
+                  explanation={a.question.explanation}
+                />
                 <span className="text-xs text-gray-400 flex-shrink-0">
                   {expandedIds.has(a.id) ? "收起" : "展開"}
                 </span>

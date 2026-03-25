@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, DifficultyStars } from "@/components/icons";
+import { CopyQuestionButton } from "@/components/copy-question-button";
 
 interface BankAccuracy {
   questionBankId: string;
@@ -168,18 +169,25 @@ export default function WeakPointsPage() {
         ) : (
           <div className="space-y-3">
             {mostWrong.map((q) => (
-              <Link
+              <div
                 key={q.questionId}
-                href={`/questions/${q.questionId}`}
-                className="block p-3 bg-gray-50 border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+                className="p-3 bg-gray-50 border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
               >
-                <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <Link
+                    href={`/questions/${q.questionId}`}
+                    className="flex-1 min-w-0"
+                  >
+                    <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                  </Link>
+                  <CopyQuestionButton stem={q.stem} options={[]} />
+                </div>
                 <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">錯 {q.wrongCount} 次</span>
                   <span>{q.questionBankName}</span>
                   <DifficultyStars value={q.difficulty} />
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}

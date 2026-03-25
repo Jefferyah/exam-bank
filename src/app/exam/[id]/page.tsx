@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { DifficultyStarsClickable, FlagFilled, FlagEmpty, NoteIcon, ArrowLeft, ArrowRight } from "@/components/icons";
+import { CopyQuestionButton } from "@/components/copy-question-button";
 
 interface ExamAnswer {
   id: string;
@@ -398,6 +399,12 @@ export default function ExamTakingPage() {
               <div className="flex items-center gap-2">
                 {/* Difficulty stars */}
                 <DifficultyStarsClickable value={currentDifficulty} onChange={(d) => handleSetDifficulty(currentQuestion.id, d)} />
+                <CopyQuestionButton
+                  stem={currentQuestion.stem}
+                  options={currentQuestion.options}
+                  answer={currentQuestion.answer}
+                  explanation={currentQuestion.explanation}
+                />
                 <button
                   onClick={() => toggleFlag(currentQuestion.id)}
                   className={cn(

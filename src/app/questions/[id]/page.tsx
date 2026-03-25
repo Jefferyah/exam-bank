@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable, Warning } from "@/components/icons";
+import { CopyQuestionButton } from "@/components/copy-question-button";
 
 interface AiResult {
   success: boolean;
@@ -271,7 +272,15 @@ export default function QuestionDetailPage() {
 
       {/* Question stem */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">題目</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">題目</h2>
+          <CopyQuestionButton
+            stem={question.stem}
+            options={question.options}
+            answer={question.answer}
+            explanation={question.explanation}
+          />
+        </div>
         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{question.stem}</p>
       </div>
 
