@@ -1,0 +1,71 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { solveWithClaude } from "@/lib/ai/claude";
+import { solveWithGPT } from "@/lib/ai/openai";
+import { solveWithGemini } from "@/lib/ai/gemini";
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { questionId } = body;
+
+    if (!questionId) {
+      return NextResponse.json(
+        { error: "Missing required field: questionId" },
+        { status: 400 }
+      );
+    }
+
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+    });
+
+    if (!question) {
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 }
+      );
+    }
+
+    const options = JSON.parse(question.options);
+
+    const [claudeResult, openaiResult, geminiResult] = await Promise.allSettled([
+      solveWithClaude(question.stem, options, question.type),
+      solveWithGPT(question.stem, options, question.type),
+      solveWithGemini(question.stem, options, question.type),
+    ]);
+
+    const results = {
+      claude:
+        claudeResult.status === "fulfilled"
+          ? { success: true, data: claudeResult.value }
+          : { success: false, error: claudeResult.reason?.message || "Claude API failed" },
+      openai:
+        openaiResult.status === "fulfilled"
+          ? { success: true, data: openaiResult.value }
+          : { success: false, error: openaiResult.reason?.message || "OpenAI API failed" },
+      gemini:
+        geminiResult.status === "fulfilled"
+          ? { success: true, data: geminiResult.value }
+          : { success: false, error: geminiResult.reason?.message || "Gemini API failed" },
+    };
+
+    return NextResponse.json({
+      questionId,
+      correctAnswer: question.answer,
+      results,
+    });
+  } catch (error) {
+    console.error("POST /api/ai-solve error:", error);
+    return NextResponse.json(
+      { error: "Failed to solve question with AI" },
+      { status: 500 }
+    );
+  }
+}

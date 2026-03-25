@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("STUDENT") // ADMIN, TEACHER, STUDENT
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  questions     Question[]
+  exams         Exam[]
+  notes         Note[]
+  favorites     Favorite[]
+  wrongRecords  WrongRecord[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Question {
+  id                     String   @id @default(cuid())
+  stem                   String
+  type                   String   @default("SINGLE") // SINGLE, MULTI, SCENARIO
+  options                String   // JSON: [{label: "A", text: "..."}, ...]
+  answer                 String   // "A" or "A,B" for multi
+  explanation            String
+  wrongOptionExplanations String? // JSON: {A: "...", B: "...", ...}
+  extendedKnowledge      String?
+  domain                 String   // CISSP domain key
+  chapter                String?
+  difficulty             Int      @default(3) // 1-5
+  tags                   String   @default("[]") // JSON array
+  version                Int      @default(1)
+  createdById            String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  createdBy     User?        @relation(fields: [createdById], references: [id])
+  examAnswers   ExamAnswer[]
+  notes         Note[]
+  favorites     Favorite[]
+  wrongRecords  WrongRecord[]
+}
+
+model Exam {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  mode      String   // PRACTICE, MOCK
+  config    String   // JSON
+  status    String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABANDONED
+  score     Float?
+  startedAt DateTime @default(now())
+  finishedAt DateTime?
+  timeLimit Int?     // minutes
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers ExamAnswer[]
+}
+
+model ExamAnswer {
+  id         String   @id @default(cuid())
+  examId     String
+  questionId String
+  userAnswer String?
+  isCorrect  Boolean?
+  timeSpent  Int?     // seconds
+  order      Int      @default(0)
+  flagged    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
+
+model WrongRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  questionId  String
+  count       Int      @default(1)
+  lastWrongAt DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+}
