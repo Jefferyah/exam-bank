@@ -120,7 +120,7 @@ export default function QuestionsPage() {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">題庫管理</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">題庫管理</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowBankManager(!showBankManager)}
@@ -135,7 +135,7 @@ export default function QuestionsPage() {
           </button>
           <Link
             href="/questions/create"
-            className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium shadow-sm transition-colors"
+            className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium shadow-sm transition-all"
           >
             新增題目
           </Link>
@@ -150,10 +150,10 @@ export default function QuestionsPage() {
 
       {/* Question Bank Manager */}
       {showBankManager && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">題庫列表</h2>
-            <span className="text-sm text-gray-500">共 {questionBanks.length} 個題庫</span>
+            <span className="text-sm text-gray-600">共 {questionBanks.length} 個題庫</span>
           </div>
 
           {questionBanks.length === 0 ? (
@@ -176,7 +176,7 @@ export default function QuestionsPage() {
                       </span>
                     </div>
                     {bank.description && (
-                      <p className="text-sm text-gray-500 mt-0.5 truncate">{bank.description}</p>
+                      <p className="text-sm text-gray-600 mt-0.5 truncate">{bank.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 ml-4 flex-shrink-0">
@@ -194,7 +194,7 @@ export default function QuestionsPage() {
                     <button
                       onClick={() => handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
                       disabled={deletingBankId === bank.id}
-                      className="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-full transition-colors disabled:opacity-50"
                     >
                       {deletingBankId === bank.id ? "刪除中..." : "刪除"}
                     </button>
@@ -207,7 +207,7 @@ export default function QuestionsPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
@@ -218,7 +218,7 @@ export default function QuestionsPage() {
           />
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium shadow-sm transition-colors"
+            className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium shadow-sm transition-all"
           >
             搜尋
           </button>
@@ -261,7 +261,7 @@ export default function QuestionsPage() {
       </div>
 
       {/* Results info */}
-      <p className="text-sm text-gray-500">共 {pagination.total} 題</p>
+      <p className="text-sm text-gray-600">共 {pagination.total} 題</p>
 
       {/* Question list */}
       {loading ? (
@@ -281,7 +281,7 @@ export default function QuestionsPage() {
             <Link
               key={q.id}
               href={`/questions/${q.id}`}
-              className="block bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
+              className="block bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -319,7 +319,7 @@ export default function QuestionsPage() {
           >
             上一頁
           </button>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             第 {pagination.page} / {pagination.totalPages} 頁
           </span>
           <button

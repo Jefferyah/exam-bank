@@ -66,7 +66,7 @@ export default function BankAnalysisPage() {
 
   if (!session) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-600">
         <p>請先登入</p>
       </div>
     );
@@ -90,12 +90,12 @@ export default function BankAnalysisPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/analytics" className="text-gray-500 hover:text-gray-900">&larr; 返回分析</Link>
-        <h1 className="text-2xl font-bold text-gray-900">題庫分析</h1>
+        <Link href="/analytics" className="text-gray-600 hover:text-gray-900">&larr; 返回分析</Link>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">題庫分析</h1>
       </div>
 
       {/* Bar chart overview */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題庫總覽</h2>
         {bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -107,7 +107,7 @@ export default function BankAnalysisPage() {
                 <div key={d.questionBankId}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-900 truncate mr-2">{d.questionBankName}</span>
-                    <span className="text-gray-500 flex-shrink-0">
+                    <span className="text-gray-600 flex-shrink-0">
                       {d.accuracy}% ({d.correct}/{d.total})
                     </span>
                   </div>
@@ -128,12 +128,12 @@ export default function BankAnalysisPage() {
 
       {/* Weakest bank highlight */}
       {weakest && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-red-600 font-medium">最弱題庫</p>
               <p className="text-lg font-semibold text-gray-900">{weakest.questionBankName}</p>
-              <p className="text-sm text-gray-500">{weakest.accuracy}% 正確率 ({weakest.correct}/{weakest.total})</p>
+              <p className="text-sm text-gray-600">{weakest.accuracy}% 正確率 ({weakest.correct}/{weakest.total})</p>
             </div>
             <button
               onClick={() => handlePracticeBank(weakest.questionBankId, weakest.questionBankName)}
@@ -148,7 +148,7 @@ export default function BankAnalysisPage() {
       {/* Per-bank detail cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {bankAccuracy.map((d) => (
-          <div key={d.questionBankId} className="bg-white border border-gray-200 rounded-2xl p-5">
+          <div key={d.questionBankId} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="font-semibold text-sm text-gray-900">{d.questionBankName}</p>
@@ -177,11 +177,11 @@ export default function BankAnalysisPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-gray-600">
               <span>已答 {d.total} 題 | 正確 {d.correct} 題</span>
               <button
                 onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
-                className="text-blue-500 hover:text-blue-600"
+                className="text-gray-900 hover:text-gray-800 font-medium"
               >
                 練習此題庫
               </button>

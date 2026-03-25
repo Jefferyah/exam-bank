@@ -94,43 +94,43 @@ export default function ExamSetupPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">測驗設定</h1>
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">測驗設定</h1>
 
       {/* Mode selector */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">測驗模式</h2>
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setMode("PRACTICE")}
-            className={`p-4 rounded-2xl border-2 transition-colors text-left ${
+            className={`p-4 rounded-2xl border-2 transition-all text-left ${
               mode === "PRACTICE"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300 bg-white"
+                ? "bg-blue-50 text-blue-600 border-blue-200"
+                : "border-gray-100 hover:border-gray-200 hover:shadow-md bg-white"
             }`}
           >
             <p className="font-semibold text-gray-900">練習模式</p>
-            <p className="text-sm text-gray-500 mt-1">可隨時查看答案，無時間限制</p>
+            <p className="text-sm text-gray-600 mt-1">可隨時查看答案，無時間限制</p>
           </button>
           <button
             type="button"
             onClick={() => setMode("MOCK")}
-            className={`p-4 rounded-2xl border-2 transition-colors text-left ${
+            className={`p-4 rounded-2xl border-2 transition-all text-left ${
               mode === "MOCK"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300 bg-white"
+                ? "bg-blue-50 text-blue-600 border-blue-200"
+                : "border-gray-100 hover:border-gray-200 hover:shadow-md bg-white"
             }`}
           >
             <p className="font-semibold text-gray-900">模擬考模式</p>
-            <p className="text-sm text-gray-500 mt-1">計時作答，交卷後顯示結果</p>
+            <p className="text-sm text-gray-600 mt-1">計時作答，交卷後顯示結果</p>
           </button>
         </div>
       </div>
 
       {/* Question bank selection */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">選擇題庫</h2>
-        <p className="text-sm text-gray-500">不選則包含所有題庫</p>
+        <p className="text-sm text-gray-600">不選則包含所有題庫</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {questionBanks.map((bank) => (
             <label
@@ -157,7 +157,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Difficulty */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">難度範圍</h2>
         <div className="flex gap-3">
           {[1, 2, 3, 4, 5].map((d) => (
@@ -165,10 +165,10 @@ export default function ExamSetupPage() {
               key={d}
               type="button"
               onClick={() => toggleDifficulty(d)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 difficultyRange.includes(d)
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
               }`}
             >
               {"★".repeat(d)}
@@ -178,10 +178,10 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Count and Time */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">題目數量</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">題目數量</label>
             <input
               type="number"
               min={1}
@@ -193,7 +193,7 @@ export default function ExamSetupPage() {
           </div>
           {mode === "MOCK" && (
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">時間限制（分鐘）</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">時間限制（分鐘）</label>
               <input
                 type="number"
                 min={1}
@@ -208,7 +208,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Special options */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
         <h2 className="text-lg font-semibold text-gray-900">特殊選項</h2>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
@@ -241,7 +241,7 @@ export default function ExamSetupPage() {
       <button
         onClick={handleStart}
         disabled={creating}
-        className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-lg font-bold transition-colors"
+        className="w-full py-4 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-lg font-bold transition-all"
       >
         {creating ? "建立中..." : "開始測驗"}
       </button>

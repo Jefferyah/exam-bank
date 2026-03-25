@@ -118,10 +118,10 @@ export default function HomePage() {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-          歡迎回來，<span className="text-blue-500">{session.user?.name || session.user?.email}</span>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
+          歡迎回來，<span className="text-gradient">{session.user?.name || session.user?.email}</span>
         </h1>
-        <p className="text-gray-500 mt-1">繼續你的學習旅程</p>
+        <p className="text-gray-600 mt-1">繼續你的學習旅程</p>
       </div>
 
       {/* Stats cards */}
@@ -164,7 +164,7 @@ export default function HomePage() {
       </div>
 
       {/* Recent exams */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">最近測驗</h2>
           <Link href="/exam" className="text-sm text-blue-500 hover:text-blue-600">
@@ -208,7 +208,7 @@ export default function HomePage() {
 
       {/* Bank accuracy overview */}
       {analytics?.bankAccuracy && analytics.bankAccuracy.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
           <div className="space-y-3">
             {analytics.bankAccuracy.map((d) => (
@@ -239,12 +239,12 @@ export default function HomePage() {
 
 function StatCard({ label, value, icon, iconBg, iconColor }: { label: string; value: string | number; icon: React.ReactNode; iconBg: string; iconColor: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg, iconColor)}>
         {icon}
       </div>
-      <p className="text-2xl font-bold mt-3 text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500 mt-0.5">{label}</p>
+      <p className="text-2xl font-bold mt-3 tracking-tight text-gray-900">{value}</p>
+      <p className="text-sm text-gray-600 mt-0.5">{label}</p>
     </div>
   );
 }

@@ -44,9 +44,9 @@ export default function AnalyticsPage() {
 
   if (!session) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-600">
         <p>請先登入以查看學習分析</p>
-        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-gray-900 hover:text-gray-800 mt-2 inline-block font-medium">登入</Link>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
 
   if (!data) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-600">
         <p>無法載入分析資料</p>
       </div>
     );
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">學習分析</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">學習分析</h1>
         <Link
           href="/analytics/domain"
           className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
@@ -93,26 +93,26 @@ export default function AnalyticsPage() {
 
       {/* Overall stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <p className="text-3xl font-bold text-blue-500">{overallAccuracy.toFixed(1)}%</p>
-          <p className="text-sm text-gray-500">整體正確率</p>
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-3xl font-bold text-gray-900">{overallAccuracy.toFixed(1)}%</p>
+          <p className="text-sm text-gray-600">整體正確率</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-gray-900">{data.completedExams}</p>
-          <p className="text-sm text-gray-500">已完成測驗</p>
+          <p className="text-sm text-gray-600">已完成測驗</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-gray-900">{totalAnswered}</p>
-          <p className="text-sm text-gray-500">已答題數</p>
+          <p className="text-sm text-gray-600">已答題數</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-emerald-500">{data.avgScore.toFixed(1)}%</p>
-          <p className="text-sm text-gray-500">平均分數</p>
+          <p className="text-sm text-gray-600">平均分數</p>
         </div>
       </div>
 
       {/* Score trend (bar chart) */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">分數趨勢（最近測驗）</h2>
         {data.recentTrend.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無測驗記錄</p>
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
                     key={exam.id}
                     className="flex-1 flex flex-col items-center justify-end gap-1"
                   >
-                    <span className="text-xs text-gray-500">{score.toFixed(0)}%</span>
+                    <span className="text-xs text-gray-600">{score.toFixed(0)}%</span>
                     <div
                       className={cn(
                         "w-full rounded-t transition-all min-h-[4px]",
@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Bank accuracy bar chart */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
         {data.bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -166,7 +166,7 @@ export default function AnalyticsPage() {
                     <span className="text-gray-900 truncate mr-2">
                       {d.questionBankName}
                     </span>
-                    <span className="text-gray-500 flex-shrink-0">
+                    <span className="text-gray-600 flex-shrink-0">
                       {d.accuracy}%
                     </span>
                   </div>
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Difficulty distribution (circular SVGs) */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">難度分佈</h2>
         {data.difficultyDistribution.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                     <span className="text-sm font-bold z-10 text-gray-900">{d.accuracy.toFixed(0)}%</span>
                   </div>
                   <p className="text-xs text-amber-500 mt-2">{"★".repeat(d.difficulty)}</p>
-                  <p className="text-xs text-gray-500">{d.total} 題 ({percentage.toFixed(0)}%)</p>
+                  <p className="text-xs text-gray-600">{d.total} 題 ({percentage.toFixed(0)}%)</p>
                   <p className="text-xs text-gray-400">{DIFFICULTY_LABELS[d.difficulty]}</p>
                 </div>
               );

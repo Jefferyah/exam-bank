@@ -101,7 +101,7 @@ export default function ExamResultPage() {
 
   if (!exam) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 text-center text-gray-500">
+      <div className="max-w-4xl mx-auto px-4 py-8 text-center text-gray-600">
         找不到此測驗結果
       </div>
     );
@@ -127,15 +127,15 @@ export default function ExamResultPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Score display */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
-        <h1 className="text-xl text-gray-500 mb-2">{exam.title}</h1>
+      <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 mb-2">{exam.title}</h1>
         <div className={cn(
           "text-6xl md:text-8xl font-bold",
           score >= 70 ? "text-emerald-500" : score >= 50 ? "text-amber-500" : "text-red-500"
         )}>
           {score.toFixed(1)}%
         </div>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-600 mt-2">
           {correctCount} / {totalCount} 答對
         </p>
         {exam.finishedAt && exam.startedAt && (
@@ -146,7 +146,7 @@ export default function ExamResultPage() {
       </div>
 
       {/* Question bank breakdown */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫表現</h2>
         <div className="space-y-3">
           {Object.entries(bankStats).map(([bankId, stats]) => {
@@ -157,7 +157,7 @@ export default function ExamResultPage() {
                   <span className="text-gray-900 truncate mr-2">
                     {bankNameMap[bankId] || bankId}
                   </span>
-                  <span className="text-gray-500 flex-shrink-0">
+                  <span className="text-gray-600 flex-shrink-0">
                     {stats.correct}/{stats.total} ({accuracy.toFixed(0)}%)
                   </span>
                 </div>
@@ -180,24 +180,24 @@ export default function ExamResultPage() {
       <div className="flex gap-3">
         <Link
           href="/exam"
-          className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium text-center transition-colors"
+          className="flex-1 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium text-center transition-all"
         >
           重新測驗
         </Link>
         <Link
           href="/"
-          className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full font-medium text-center transition-colors"
+          className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full font-medium text-center transition-all"
         >
           回首頁
         </Link>
       </div>
 
       {/* Question list */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題目詳情</h2>
         <div className="space-y-3">
           {exam.answers.map((a, i) => (
-            <div key={a.id} className="border border-gray-200 rounded-2xl overflow-hidden">
+            <div key={a.id} className="border border-gray-100 rounded-2xl overflow-hidden">
               <button
                 onClick={() => toggleExpand(a.id)}
                 className="w-full p-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors"
@@ -217,7 +217,7 @@ export default function ExamResultPage() {
               </button>
 
               {expandedIds.has(a.id) && (
-                <div className="px-4 pb-4 space-y-3 border-t border-gray-200 pt-3">
+                <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-gray-900 whitespace-pre-wrap">{a.question.stem}</p>
 
                   <div className="space-y-2">
@@ -246,7 +246,7 @@ export default function ExamResultPage() {
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-sm text-gray-500 mb-1">解析</p>
+                    <p className="text-sm text-gray-600 mb-1">解析</p>
                     <p className="text-sm text-gray-700">{a.question.explanation}</p>
                   </div>
 
@@ -254,7 +254,7 @@ export default function ExamResultPage() {
                   <button
                     onClick={() => handleAiSolve(a.questionId)}
                     disabled={aiLoadingId === a.questionId}
-                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-xs font-medium transition-colors"
+                    className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-xs font-medium transition-all"
                   >
                     {aiLoadingId === a.questionId ? "分析中..." : "AI 解題"}
                   </button>
@@ -265,8 +265,8 @@ export default function ExamResultPage() {
                         const r = aiResults[a.questionId]?.[model];
                         if (!r) return null;
                         return (
-                          <div key={model} className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
-                            <p className="font-semibold text-blue-500 capitalize mb-1">{model}</p>
+                          <div key={model} className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs">
+                            <p className="font-semibold text-gray-900 capitalize mb-1">{model}</p>
                             {r.success && r.data ? (
                               <p className="text-gray-700">{r.data.answer}: {r.data.reasoning?.slice(0, 100)}...</p>
                             ) : (

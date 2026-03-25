@@ -89,9 +89,9 @@ export default function AdminUsersPage() {
 
   if (!session || role !== "ADMIN") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-600">
         <p className="text-lg">權限不足</p>
-        <Link href="/" className="text-blue-500 hover:text-blue-600 mt-4 inline-block">回首頁</Link>
+        <Link href="/" className="text-gray-900 hover:text-gray-700 mt-4 inline-block font-medium">回首頁</Link>
       </div>
     );
   }
@@ -108,8 +108,8 @@ export default function AdminUsersPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin" className="text-gray-500 hover:text-gray-900">&larr; 返回管理</Link>
-        <h1 className="text-2xl font-bold text-gray-900">使用者管理</h1>
+        <Link href="/admin" className="text-gray-600 hover:text-gray-900">&larr; 返回管理</Link>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">使用者管理</h1>
       </div>
 
       <input
@@ -133,33 +133,33 @@ export default function AdminUsersPage() {
           ))}
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
-          <p className="text-gray-500">
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
+          <p className="text-gray-600">
             {search ? "找不到符合的使用者" : "尚無使用者"}
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">名稱</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Email</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">角色</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">建立日期</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">操作</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">名稱</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Email</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">角色</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">建立日期</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 text-sm text-gray-900">{user.name || "--"}</td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{user.email || "--"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{user.email || "--"}</td>
                     <td className="px-4 py-3">
                       <span className={cn(
                         "px-2.5 py-0.5 text-xs rounded-full font-medium",
-                        ROLE_COLORS[user.role] || "bg-gray-100 text-gray-500"
+                        ROLE_COLORS[user.role] || "bg-gray-100 text-gray-600"
                       )}>
                         {user.role}
                       </span>

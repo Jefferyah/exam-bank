@@ -231,12 +231,12 @@ function CreateQuestionContent() {
         <Link href="/questions" className="text-gray-400 hover:text-gray-700 transition-colors">
           &larr; 返回題庫
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">{editId ? "編輯題目" : "新增題目"}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">{editId ? "編輯題目" : "新增題目"}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Stem */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">題幹</h2>
           <textarea
             value={stem}
@@ -248,7 +248,7 @@ function CreateQuestionContent() {
         </div>
 
         {/* Type & Question Bank */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">題型</label>
@@ -305,7 +305,7 @@ function CreateQuestionContent() {
                       type="button"
                       onClick={handleCreateBank}
                       disabled={creatingBank}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-sm font-medium transition-colors"
+                      className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
                     >
                       {creatingBank ? "建立中..." : "建立並選取"}
                     </button>
@@ -368,14 +368,14 @@ function CreateQuestionContent() {
         </div>
 
         {/* Options builder */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">選項</h2>
             <button
               type="button"
               onClick={addOption}
               disabled={options.length >= 8}
-              className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed rounded-full text-sm font-medium shadow-sm transition-colors"
+              className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 text-white disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed rounded-full text-sm font-medium shadow-sm transition-all"
             >
               + 新增選項
             </button>
@@ -407,7 +407,7 @@ function CreateQuestionContent() {
         </div>
 
         {/* Answer */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">答案</h2>
           {type === "MULTI" ? (
             <div className="flex flex-wrap gap-3">
@@ -452,11 +452,11 @@ function CreateQuestionContent() {
               ))}
             </div>
           )}
-          <p className="text-sm text-gray-500">目前答案：{answer || "尚未選擇"}</p>
+          <p className="text-sm text-gray-600">目前答案：{answer || "尚未選擇"}</p>
         </div>
 
         {/* Explanation */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">解析</h2>
           <textarea
             value={explanation}
@@ -468,12 +468,12 @@ function CreateQuestionContent() {
         </div>
 
         {/* Wrong option explanations */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">各錯誤選項說明</h2>
           <div className="space-y-3">
             {options.filter((opt) => !answer.includes(opt.label)).map((opt) => (
               <div key={opt.label}>
-                <label className="block text-sm text-gray-500 mb-1">選項 {opt.label} 為何錯誤</label>
+                <label className="block text-sm text-gray-600 mb-1">選項 {opt.label} 為何錯誤</label>
                 <input
                   type="text"
                   value={wrongExplanations[opt.label] || ""}
@@ -489,7 +489,7 @@ function CreateQuestionContent() {
         </div>
 
         {/* Extended knowledge */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">延伸知識</h2>
           <textarea
             value={extendedKnowledge}
@@ -516,7 +516,7 @@ function CreateQuestionContent() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed text-white rounded-full font-medium shadow-sm transition-colors"
+            className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full font-medium shadow-sm transition-all"
           >
             {submitting ? "儲存中..." : editId ? "更新題目" : "建立題目"}
           </button>

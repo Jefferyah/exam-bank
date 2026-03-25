@@ -8,13 +8,32 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 
 const navLinks = [
-  { href: "/", label: "首頁", icon: "🏠" },
-  { href: "/questions", label: "題庫", icon: "📚" },
-  { href: "/exam", label: "測驗", icon: "✍️" },
-  { href: "/review", label: "複習", icon: "🔄" },
-  { href: "/analytics", label: "分析", icon: "📊" },
-  { href: "/admin", label: "管理", icon: "⚙️" },
+  { href: "/", label: "首頁" },
+  { href: "/questions", label: "題庫" },
+  { href: "/exam", label: "測驗" },
+  { href: "/review", label: "複習" },
+  { href: "/analytics", label: "分析" },
+  { href: "/admin", label: "管理" },
 ];
+
+function Logo({ isDark }: { isDark: boolean }) {
+  return (
+    <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+      {/* SVG Book/Spark icon */}
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" className={isDark ? "fill-[#38bdf8]" : "fill-gray-900"} />
+        <path d="M9 10.5C9 9.67 9.67 9 10.5 9H14C14.83 9 16 9.67 16 10.5V22.5C16 21.67 14.83 21 14 21H10.5C9.67 21 9 21.67 9 22.5V10.5Z" fill="white" opacity="0.9" />
+        <path d="M23 10.5C23 9.67 22.33 9 21.5 9H18C17.17 9 16 9.67 16 10.5V22.5C16 21.67 17.17 21 18 21H21.5C22.33 21 23 21.67 23 22.5V10.5Z" fill="white" opacity="0.7" />
+        <circle cx="22" cy="11" r="4" className={isDark ? "fill-[#0ea5e9]" : "fill-blue-500"} />
+        <path d="M22 9L22.6 10.4L24 11L22.6 11.6L22 13L21.4 11.6L20 11L21.4 10.4L22 9Z" fill="white" />
+      </svg>
+      <span className="text-xl font-bold tracking-tight">
+        <span className={isDark ? "text-[#f1f5f9]" : "text-gray-900"}>Exam</span>
+        <span className={isDark ? "text-[#38bdf8]" : "text-blue-500"}>Bank</span>
+      </span>
+    </Link>
+  );
+}
 
 export function Navbar() {
   const { data: session, status } = useSession();
@@ -41,17 +60,7 @@ export function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <span className="text-xl font-bold tracking-tight">
-              <span className={isDark ? "text-[#f1f5f9]" : "text-gray-900"}>
-                Exam
-              </span>
-              <span className={isDark ? "text-[#38bdf8]" : "text-blue-500"}>
-                Bank
-              </span>
-            </span>
-          </Link>
+          <Logo isDark={isDark} />
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">
@@ -68,7 +77,7 @@ export function Navbar() {
                     isActive
                       ? isDark
                         ? "bg-[#38bdf8] text-[#0a0b10] font-semibold"
-                        : "bg-gray-100 text-gray-900"
+                        : "bg-gray-100 text-gray-900 font-semibold"
                       : isDark
                         ? "text-[#7a8599] hover:text-[#f1f5f9]"
                         : "text-gray-500 hover:text-gray-900"
@@ -80,7 +89,7 @@ export function Navbar() {
             })}
           </div>
 
-          {/* User section */}
+          {/* Right section */}
           <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={toggleTheme}
@@ -90,29 +99,25 @@ export function Navbar() {
                   ? "text-[#7a8599] hover:text-[#f1f5f9] hover:bg-[rgba(255,255,255,0.04)]"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
               )}
-              aria-label={isDark ? "切換為淺色模式" : "切換為暗色模式"}
-              title={isDark ? "切換為淺色模式" : "切換為暗色模式"}
+              aria-label={isDark ? "淺色" : "暗色"}
             >
               {isDark ? (
-                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
-                </svg>
+                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" /></svg>
               ) : (
-                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-                </svg>
+                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
               )}
             </button>
             {status === "loading" ? (
               <div className="h-8 w-20 bg-gray-100 rounded-full animate-pulse" />
             ) : session?.user ? (
               <div className="flex items-center space-x-3">
-                <span
-                  className={cn(
-                    "text-sm",
-                    isDark ? "text-[#7a8599]" : "text-gray-500"
-                  )}
-                >
+                <div className={cn(
+                  "h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold",
+                  isDark ? "bg-[#151821] text-[#38bdf8] border border-[rgba(255,255,255,0.06)]" : "bg-blue-50 text-blue-600"
+                )}>
+                  {(session.user.name || session.user.email || "U")[0].toUpperCase()}
+                </div>
+                <span className={cn("text-sm hidden lg:block", isDark ? "text-[#7a8599]" : "text-gray-500")}>
                   {session.user.name || session.user.email}
                 </span>
                 <button
@@ -146,9 +151,7 @@ export function Navbar() {
           <button
             className={cn(
               "md:hidden p-2 rounded-lg transition-colors",
-              isDark
-                ? "text-[#7a8599] hover:text-[#f1f5f9] hover:bg-[rgba(255,255,255,0.04)]"
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              isDark ? "text-[#7a8599] hover:text-[#f1f5f9]" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
             )}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -165,95 +168,41 @@ export function Navbar() {
 
       {/* Mobile menu */}
       <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
-        <div
-          className={cn(
-            "px-4 pt-2 pb-4 space-y-1 border-t",
-            isDark
-              ? "border-[rgba(255,255,255,0.06)] bg-[rgba(10,11,16,0.98)]"
-              : "border-gray-100 bg-white"
-          )}
-        >
+        <div className={cn(
+          "px-4 pt-2 pb-4 space-y-1 border-t",
+          isDark ? "border-[rgba(255,255,255,0.06)] bg-[rgba(10,11,16,0.98)]" : "border-gray-100 bg-white"
+        )}>
           {navLinks.map((link) => {
-            const isActive =
-              pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
+            const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? isDark
-                      ? "bg-[#38bdf8] text-[#0a0b10]"
-                      : "bg-blue-50 text-blue-600"
-                    : isDark
-                      ? "text-[#7a8599] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] hover:text-[#f1f5f9]"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? isDark ? "bg-[#38bdf8] text-[#0a0b10]" : "bg-gray-100 text-gray-900"
+                    : isDark ? "text-[#7a8599] hover:text-[#f1f5f9]" : "text-gray-600 hover:bg-gray-50"
                 )}
                 onClick={() => setMenuOpen(false)}
               >
-                <span>{link.icon}</span>
                 {link.label}
               </Link>
             );
           })}
-          <div
-            className={cn(
-              "pt-3 border-t",
-              isDark ? "border-[rgba(255,255,255,0.06)]" : "border-gray-100"
-            )}
-          >
+          <div className={cn("pt-3 border-t", isDark ? "border-[rgba(255,255,255,0.06)]" : "border-gray-100")}>
             <button
-              onClick={() => {
-                toggleTheme();
-                setMenuOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg",
-                isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50"
-              )}
+              onClick={() => { toggleTheme(); setMenuOpen(false); }}
+              className={cn("w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg", isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50")}
             >
-              {isDark ? (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
-                </svg>
-              ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-                </svg>
-              )}
-              <span>{isDark ? "切換為淺色模式" : "切換為暗色模式"}</span>
+              {isDark ? "☀️ 淺色模式" : "🌙 暗色模式"}
             </button>
             {session?.user ? (
-              <div className="space-y-2">
-                <p
-                  className={cn(
-                    "px-4 text-sm",
-                    isDark ? "text-[#5a6275]" : "text-gray-400"
-                  )}
-                >
-                  {session.user.name || session.user.email}
-                </p>
-                <button
-                  onClick={handleLogout}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 text-sm rounded-lg",
-                    isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50"
-                  )}
-                >
-                  登出
-                </button>
-              </div>
+              <button onClick={handleLogout} className={cn("w-full text-left px-4 py-2.5 text-sm rounded-lg", isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50")}>
+                登出
+              </button>
             ) : (
-              <Link
-                href="/login"
-                className={cn(
-                  "block px-4 py-2.5 text-sm font-medium",
-                  isDark ? "text-[#38bdf8]" : "text-blue-500"
-                )}
-                onClick={() => setMenuOpen(false)}
-              >
+              <Link href="/login" className={cn("block px-4 py-2.5 text-sm font-medium", isDark ? "text-[#38bdf8]" : "text-blue-500")} onClick={() => setMenuOpen(false)}>
                 登入
               </Link>
             )}

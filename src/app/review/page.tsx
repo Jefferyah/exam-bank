@@ -122,9 +122,9 @@ export default function ReviewPage() {
 
   if (!session) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-600">
         <p>請先登入以查看複習內容</p>
-        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-gray-900 hover:text-gray-800 mt-2 inline-block font-medium">登入</Link>
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function ReviewPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">複習中心</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">複習中心</h1>
         <Link
           href="/review/weak"
           className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
@@ -147,7 +147,7 @@ export default function ReviewPage() {
           onClick={() => setTab("wrong")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "wrong" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
+            tab === "wrong" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-600 hover:text-gray-900"
           )}
         >
           錯題本 ({wrongQuestions.length})
@@ -156,7 +156,7 @@ export default function ReviewPage() {
           onClick={() => setTab("favorites")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "favorites" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
+            tab === "favorites" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-600 hover:text-gray-900"
           )}
         >
           收藏題 ({favorites.length})
@@ -169,7 +169,7 @@ export default function ReviewPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋..."
-        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
 
       {loading ? (
@@ -199,11 +199,11 @@ export default function ReviewPage() {
                 <Link
                   key={q.questionId}
                   href={`/questions/${q.questionId}`}
-                  className="block bg-white border border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+                  className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
                 >
                   <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                    <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full font-semibold">錯 {q.wrongCount} 次</span>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">錯 {q.wrongCount} 次</span>
                     <span>{q.questionBankName}</span>
                     <span className="text-amber-500">{"★".repeat(q.difficulty)}</span>
                     <span>最後錯誤：{new Date(q.lastWrongAt).toLocaleDateString("zh-TW")}</span>
@@ -224,14 +224,14 @@ export default function ReviewPage() {
               {filteredFav.map((f) => (
                 <div
                   key={f.id}
-                  className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4"
+                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4"
                 >
                   <Link
                     href={`/questions/${f.questionId}`}
-                    className="flex-1 min-w-0 hover:text-blue-500 transition-colors"
+                    className="flex-1 min-w-0 hover:text-gray-900 transition-colors"
                   >
                     <p className="text-sm text-gray-900 line-clamp-2">{f.question.stem}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                       <span>{f.question.questionBank?.name || "未分類"}</span>
                       <span className="text-amber-500">{"★".repeat(f.question.difficulty)}</span>
                     </div>
