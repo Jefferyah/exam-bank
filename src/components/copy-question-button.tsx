@@ -52,14 +52,6 @@ export function CopyQuestionButton({
       lines.push(`${opt.label}. ${stripHtml(opt.text)}`);
     }
 
-    if (answer) {
-      lines.push("", `正確答案：${answer}`);
-    }
-
-    if (explanation) {
-      lines.push("", `解析：${stripHtml(explanation)}`);
-    }
-
     const text = lines.join("\n");
 
     try {
