@@ -21,7 +21,7 @@ interface InviteCode {
 }
 
 export default function AdminPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +30,10 @@ export default function AdminPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
+    if (status !== "authenticated" || !session?.user) {
+      return;
+    }
+
     async function fetchData() {
       try {
         const [questionsRes, codesRes] = await Promise.all([
@@ -61,7 +65,7 @@ export default function AdminPage() {
     }
 
     fetchData();
-  }, []);
+  }, [session, status]);
 
   async function handleGenerateCodes() {
     setGenerating(true);
@@ -89,6 +93,18 @@ export default function AdminPage() {
   }
 
   const role = (session?.user as { role?: string } | undefined)?.role;
+
+  if (status === "loading") {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!session) {
     return (

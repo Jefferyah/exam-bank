@@ -25,6 +25,7 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email: email.trim(),
         inviteCode: inviteCode.trim(),
+        callbackUrl: "/",
         redirect: false,
       });
 
@@ -39,7 +40,8 @@ export default function LoginPage() {
           setError("登入失敗，請重試");
         }
       } else {
-        router.push("/");
+        router.replace(result?.url || "/");
+        router.refresh();
       }
     } catch {
       setError("登入失敗，請重試");

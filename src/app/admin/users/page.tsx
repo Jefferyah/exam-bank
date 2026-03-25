@@ -20,13 +20,17 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (status !== "authenticated" || !session?.user) {
+      return;
+    }
+
     async function fetchUsers() {
       try {
         const res = await fetch("/api/admin/users");
@@ -46,7 +50,7 @@ export default function AdminUsersPage() {
     }
 
     fetchUsers();
-  }, []);
+  }, [session, status]);
 
   async function handleRoleChange(userId: string, newRole: string) {
     try {
@@ -70,6 +74,18 @@ export default function AdminUsersPage() {
   }
 
   const role = (session?.user as { role?: string } | undefined)?.role;
+
+  if (status === "loading") {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!session || role !== "ADMIN") {
     return (
