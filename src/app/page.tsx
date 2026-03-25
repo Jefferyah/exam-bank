@@ -172,36 +172,57 @@ export default function HomePage() {
           </Link>
         </div>
         {analytics?.recentTrend && analytics.recentTrend.length > 0 ? (
-          <div className="space-y-3">
-            {analytics.recentTrend.map((exam) => (
-              <Link
-                key={exam.id}
-                href={`/exam/${exam.id}/result`}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{exam.title || "測驗"}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-sm text-gray-500">
-                      {exam.finishedAt
-                        ? new Date(exam.finishedAt).toLocaleDateString("zh-TW")
-                        : "進行中"}
-                    </p>
-                    {exam.questionBankNames && exam.questionBankNames.length > 0 && (
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full truncate max-w-[200px]">
-                        {exam.questionBankNames.join(", ")}
+          <div className="space-y-4">
+            {analytics.recentTrend.map((exam) => {
+              const pct = exam.score ?? 0;
+              const barColor =
+                pct >= 80 ? "from-emerald-400 to-emerald-500"
+                : pct >= 60 ? "from-blue-400 to-blue-500"
+                : pct >= 40 ? "from-amber-400 to-amber-500"
+                : "from-red-400 to-red-500";
+              const textColor =
+                pct >= 80 ? "text-emerald-600"
+                : pct >= 60 ? "text-blue-600"
+                : pct >= 40 ? "text-amber-600"
+                : "text-red-600";
+              return (
+                <Link
+                  key={exam.id}
+                  href={`/exam/${exam.id}/result`}
+                  className="block group"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="font-medium text-gray-900 text-sm truncate">
+                        {exam.title || "測驗"}
+                      </p>
+                      {exam.questionBankNames && exam.questionBankNames.length > 0 && (
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full truncate max-w-[160px] flex-shrink-0">
+                          {exam.questionBankNames.join(", ")}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-400 flex-shrink-0">
+                        {exam.finishedAt
+                          ? new Date(exam.finishedAt).toLocaleDateString("zh-TW")
+                          : "進行中"}
                       </span>
-                    )}
+                    </div>
+                    <span className={cn("text-sm font-bold tabular-nums flex-shrink-0 ml-3", textColor)}>
+                      {exam.score != null ? `${exam.score.toFixed(1)}%` : "--"}
+                    </span>
                   </div>
-                </div>
-                <div className={cn(
-                  "text-lg font-bold",
-                  (exam.score || 0) >= 70 ? "text-emerald-500" : "text-red-500"
-                )}>
-                  {exam.score != null ? `${exam.score.toFixed(1)}%` : "--"}
-                </div>
-              </Link>
-            ))}
+                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full bg-gradient-to-r transition-all duration-500 group-hover:opacity-80",
+                        barColor
+                      )}
+                      style={{ width: `${Math.max(pct, 2)}%` }}
+                    />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-8 text-gray-400">
