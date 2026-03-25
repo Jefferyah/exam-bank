@@ -141,13 +141,25 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => a.difficulty - b.difficulty);
 
     // Recent trend (last 10 exams) — include question bank names
+    // Fetch actual bank IDs from exam answers for accurate names
+    const recentExamIds = recentExams.map((e) => e.id);
+    const recentExamAnswers = recentExamIds.length > 0
+      ? await prisma.examAnswer.findMany({
+          where: { examId: { in: recentExamIds } },
+          select: { examId: true, question: { select: { questionBankId: true } } },
+        })
+      : [];
+
+    // Group unique bank IDs per exam
+    const examBankIds: Record<string, Set<string>> = {};
+    for (const a of recentExamAnswers) {
+      if (!examBankIds[a.examId]) examBankIds[a.examId] = new Set();
+      examBankIds[a.examId].add(a.question.questionBankId);
+    }
+
     const recentTrend = recentExams.map((e) => {
-      let bankNames: string[] = [];
-      try {
-        const cfg = JSON.parse(e.config);
-        const bankIds: string[] = cfg.questionBankIds || [];
-        bankNames = bankIds.map((id: string) => bankMap.get(id) || id);
-      } catch { /* ignore */ }
+      const bankIds = Array.from(examBankIds[e.id] || []);
+      const bankNames = bankIds.map((id) => bankMap.get(id) || id);
       return {
         id: e.id,
         title: e.title,
