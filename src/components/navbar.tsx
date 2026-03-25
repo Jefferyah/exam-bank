@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -19,16 +19,14 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   async function handleLogout() {
     setMenuOpen(false);
-    const result = await signOut({
+    await signOut({
       callbackUrl: "/login",
       redirect: false,
     });
-    router.replace(result?.url || "/login");
-    router.refresh();
+    window.location.assign("/login");
   }
 
   return (

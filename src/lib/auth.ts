@@ -27,6 +27,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (existingUser) {
+          if (existingUser.email === "demo@example.com" && existingUser.role !== "ADMIN") {
+            return prisma.user.update({
+              where: { id: existingUser.id },
+              data: { role: "ADMIN" },
+            });
+          }
+
           // Existing user: direct login, no invite code needed
           return existingUser;
         }
@@ -77,8 +84,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as { role?: string }).role || "STUDENT";
         token.id = user.id;
       }
-      // Ensure role persists on token refresh by re-reading from DB if missing
-      if (!token.role && token.id) {
+
+      if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { role: true },

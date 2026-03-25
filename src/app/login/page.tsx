@@ -2,14 +2,12 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   async function handleCredentialLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -40,8 +38,7 @@ export default function LoginPage() {
           setError("登入失敗，請重試");
         }
       } else {
-        router.replace(result?.url || "/");
-        router.refresh();
+        window.location.assign("/");
       }
     } catch {
       setError("登入失敗，請重試");
