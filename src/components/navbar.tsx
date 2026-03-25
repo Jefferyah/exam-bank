@@ -65,7 +65,7 @@ export function Navbar() {
                   {session.user.name || session.user.email}
                 </span>
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
                   className="px-4 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   登出
@@ -123,7 +123,7 @@ export function Navbar() {
               <div className="space-y-2">
                 <p className="px-4 text-sm text-gray-400">{session.user.name || session.user.email}</p>
                 <button
-                  onClick={() => signOut()}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
                   className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
                 >
                   登出
