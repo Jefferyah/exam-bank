@@ -9,8 +9,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const searchParams = req.nextUrl.searchParams;
+    const questionBankId = searchParams.get("questionBankId");
+
+    const where: Record<string, unknown> = {};
+    if (questionBankId) {
+      where.questionBankId = questionBankId;
+    }
+
     const questions = await prisma.question.findMany({
+      where,
       orderBy: { createdAt: "asc" },
+      include: {
+        questionBank: { select: { name: true } },
+      },
     });
 
     const exported = questions.map((q) => ({
@@ -23,7 +35,7 @@ export async function GET(req: NextRequest) {
         ? JSON.parse(q.wrongOptionExplanations)
         : null,
       extendedKnowledge: q.extendedKnowledge,
-      domain: q.domain,
+      category: q.category,
       chapter: q.chapter,
       difficulty: q.difficulty,
       tags: JSON.parse(q.tags),
@@ -47,34 +59,57 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const { questionBankName, questionBankDescription, questions } = body;
 
-    if (!Array.isArray(body)) {
+    // Support both new format {questionBankName, questions: [...]} and legacy format [...]
+    const questionList = Array.isArray(body) ? body : questions;
+    const bankName = Array.isArray(body) ? null : questionBankName;
+
+    if (!questionList || !Array.isArray(questionList)) {
       return NextResponse.json(
-        { error: "Request body must be a JSON array of questions" },
+        { error: "Request body must include a questions array" },
         { status: 400 }
       );
     }
 
-    if (body.length === 0) {
+    if (questionList.length === 0) {
       return NextResponse.json(
         { error: "No questions to import" },
         { status: 400 }
       );
     }
 
+    if (!bankName) {
+      return NextResponse.json(
+        { error: "Missing required field: questionBankName" },
+        { status: 400 }
+      );
+    }
+
+    // Create the question bank
+    const questionBank = await prisma.questionBank.create({
+      data: {
+        name: bankName,
+        description: questionBankDescription || null,
+        createdById: session.user.id,
+      },
+    });
+
     const results = {
       imported: 0,
       skipped: 0,
       errors: [] as string[],
+      questionBankId: questionBank.id,
+      questionBankName: questionBank.name,
     };
 
-    for (let i = 0; i < body.length; i++) {
-      const q = body[i];
+    for (let i = 0; i < questionList.length; i++) {
+      const q = questionList[i];
       try {
         // Validate required fields
-        if (!q.stem || !q.options || !q.answer || !q.explanation || !q.domain) {
+        if (!q.stem || !q.options || !q.answer || !q.explanation) {
           results.errors.push(
-            `Question ${i + 1}: Missing required fields (stem, options, answer, explanation, domain)`
+            `Question ${i + 1}: Missing required fields (stem, options, answer, explanation)`
           );
           results.skipped++;
           continue;
@@ -96,7 +131,8 @@ export async function POST(req: NextRequest) {
                 : JSON.stringify(q.wrongOptionExplanations)
               : null,
             extendedKnowledge: q.extendedKnowledge || null,
-            domain: q.domain,
+            questionBankId: questionBank.id,
+            category: q.category || null,
             chapter: q.chapter || null,
             difficulty: q.difficulty || 3,
             tags:

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { cn, DOMAINS, DomainKey } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface ExamAnswer {
   id: string;
@@ -20,7 +20,8 @@ interface ExamAnswer {
     options: { label: string; text: string }[];
     answer: string;
     explanation: string;
-    domain: string;
+    questionBankId: string;
+    questionBank?: { id: string; name: string };
     difficulty: number;
     wrongOptionExplanations: Record<string, string> | null;
   };
@@ -313,9 +314,6 @@ export default function ExamTakingPage() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-slate-400">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-indigo-600/30 text-indigo-300 text-xs rounded-full">
-                  {DOMAINS[currentQuestion.domain as DomainKey] || currentQuestion.domain}
-                </span>
                 <button
                   onClick={() => toggleFlag(currentQuestion.id)}
                   className={cn(

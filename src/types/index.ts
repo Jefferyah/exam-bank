@@ -12,13 +12,25 @@ export interface AiSolveResult {
 }
 
 export interface ExamConfig {
-  domains?: string[];
+  questionBankIds?: string[];
   difficulty?: number[];
   count: number;
   tags?: string[];
   questionIds?: string[];
   wrongOnly?: boolean;
   favoriteOnly?: boolean;
+}
+
+export interface QuestionBank {
+  id: string;
+  name: string;
+  description: string | null;
+  createdById: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: {
+    questions: number;
+  };
 }
 
 export interface QuestionWithRelations {
@@ -30,7 +42,8 @@ export interface QuestionWithRelations {
   explanation: string;
   wrongOptionExplanations: string | null;
   extendedKnowledge: string | null;
-  domain: string;
+  questionBankId: string;
+  category: string | null;
   chapter: string | null;
   difficulty: number;
   tags: string;

@@ -3,15 +3,15 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, cn, DomainKey } from "@/lib/utils";
+import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 
 interface AnalyticsData {
   totalExams: number;
   completedExams: number;
   avgScore: number;
-  domainAccuracy: { domain: string; total: number; correct: number; accuracy: number }[];
+  bankAccuracy: { questionBankId: string; questionBankName: string; total: number; correct: number; accuracy: number }[];
   recentTrend: { id: string; title: string; score: number | null; finishedAt: string; startedAt: string }[];
-  mostWrongQuestions: { questionId: string; stem: string; domain: string; difficulty: number; wrongCount: number; lastWrongAt: string }[];
+  mostWrongQuestions: { questionId: string; stem: string; questionBankName: string; difficulty: number; wrongCount: number; lastWrongAt: string }[];
 }
 
 export default function HomePage() {
@@ -72,10 +72,10 @@ export default function HomePage() {
       <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
         <div className="text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold">
-            <span className="text-indigo-400">CISSP</span> 題庫系統
+            <span className="text-indigo-400">萬用</span>題庫系統
           </h1>
           <p className="text-lg text-slate-400 max-w-md mx-auto">
-            全方位 CISSP 考試準備平台，涵蓋八大 Domain 題庫、模擬考、AI 解題、學習分析
+            全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析
           </p>
           <Link
             href="/login"
@@ -97,7 +97,7 @@ export default function HomePage() {
         <h1 className="text-2xl md:text-3xl font-bold">
           歡迎回來，<span className="text-indigo-400">{session.user?.name || session.user?.email}</span>
         </h1>
-        <p className="text-slate-400 mt-1">繼續你的 CISSP 學習旅程</p>
+        <p className="text-slate-400 mt-1">繼續你的學習旅程</p>
       </div>
 
       {/* Stats cards */}
@@ -163,16 +163,16 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Domain accuracy overview */}
-      {analytics?.domainAccuracy && analytics.domainAccuracy.length > 0 && (
+      {/* Bank accuracy overview */}
+      {analytics?.bankAccuracy && analytics.bankAccuracy.length > 0 && (
         <div className="bg-slate-800 rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">各 Domain 正確率</h2>
+          <h2 className="text-lg font-semibold mb-4">各題庫正確率</h2>
           <div className="space-y-3">
-            {analytics.domainAccuracy.map((d) => (
-              <div key={d.domain}>
+            {analytics.bankAccuracy.map((d) => (
+              <div key={d.questionBankId}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-slate-300 truncate mr-2">
-                    {DOMAINS[d.domain as DomainKey] || d.domain}
+                    {d.questionBankName}
                   </span>
                   <span className="text-slate-400 flex-shrink-0">{d.accuracy}% ({d.correct}/{d.total})</span>
                 </div>

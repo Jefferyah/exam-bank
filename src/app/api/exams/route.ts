@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       title,
-      domains,
+      questionBankIds,
       difficulty,
       count = 20,
       mode = "PRACTICE",
@@ -84,8 +84,8 @@ export async function POST(req: NextRequest) {
     // Build question filter
     const questionWhere: Record<string, unknown> = {};
 
-    if (domains && domains.length > 0) {
-      questionWhere.domain = { in: domains };
+    if (questionBankIds && questionBankIds.length > 0) {
+      questionWhere.questionBankId = { in: questionBankIds };
     }
     if (difficulty) {
       if (Array.isArray(difficulty)) {
@@ -125,7 +125,6 @@ export async function POST(req: NextRequest) {
         );
       }
       if (questionWhere.id) {
-        // Intersect with wrongOnly ids if both filters active
         const existingIds = (questionWhere.id as { in: string[] }).in;
         questionWhere.id = { in: existingIds.filter((id: string) => favIds.includes(id)) };
       } else {
@@ -159,7 +158,7 @@ export async function POST(req: NextRequest) {
     const selectedQuestions = shuffled.slice(0, actualCount);
 
     const config = {
-      domains: domains || [],
+      questionBankIds: questionBankIds || [],
       difficulty: difficulty || null,
       count: actualCount,
       mode,

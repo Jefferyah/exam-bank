@@ -18,13 +18,14 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  questions     Question[]
-  exams         Exam[]
-  notes         Note[]
-  favorites     Favorite[]
-  wrongRecords  WrongRecord[]
+  accounts       Account[]
+  sessions       Session[]
+  questions      Question[]
+  exams          Exam[]
+  notes          Note[]
+  favorites      Favorite[]
+  wrongRecords   WrongRecord[]
+  questionBanks  QuestionBank[]
 }
 
 model Account {
@@ -63,6 +64,18 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model QuestionBank {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  questions Question[]
+}
+
 model Question {
   id                     String   @id @default(cuid())
   stem                   String
@@ -72,7 +85,8 @@ model Question {
   explanation            String
   wrongOptionExplanations String? // JSON: {A: "...", B: "...", ...}
   extendedKnowledge      String?
-  domain                 String   // CISSP domain key
+  questionBankId         String   // FK to QuestionBank
+  category               String?  // user-defined category/label for the question
   chapter                String?
   difficulty             Int      @default(3) // 1-5
   tags                   String   @default("[]") // JSON array
@@ -81,6 +95,7 @@ model Question {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
+  questionBank  QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
   createdBy     User?        @relation(fields: [createdById], references: [id])
   examAnswers   ExamAnswer[]
   notes         Note[]

@@ -4,11 +4,16 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, DomainKey } from "@/lib/utils";
+import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 
 interface Option {
   label: string;
   text: string;
+}
+
+interface QuestionBank {
+  id: string;
+  name: string;
 }
 
 export default function CreateQuestionPage() {
@@ -37,12 +42,30 @@ function CreateQuestionContent() {
   const [explanation, setExplanation] = useState("");
   const [wrongExplanations, setWrongExplanations] = useState<Record<string, string>>({});
   const [extendedKnowledge, setExtendedKnowledge] = useState("");
-  const [domain, setDomain] = useState<string>("");
+  const [questionBankId, setQuestionBankId] = useState<string>("");
+  const [category, setCategory] = useState("");
   const [chapter, setChapter] = useState("");
   const [difficulty, setDifficulty] = useState(3);
   const [tagsInput, setTagsInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+
+  // Fetch question banks on mount
+  useEffect(() => {
+    async function fetchBanks() {
+      try {
+        const res = await fetch("/api/question-banks");
+        if (res.ok) {
+          const data = await res.json();
+          setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch question banks:", err);
+      }
+    }
+    fetchBanks();
+  }, []);
 
   // Load question data if editing
   useEffect(() => {
@@ -60,7 +83,8 @@ function CreateQuestionContent() {
           setExplanation(q.explanation);
           setWrongExplanations(q.wrongOptionExplanations || {});
           setExtendedKnowledge(q.extendedKnowledge || "");
-          setDomain(q.domain);
+          setQuestionBankId(q.questionBankId || "");
+          setCategory(q.category || "");
           setChapter(q.chapter || "");
           setDifficulty(q.difficulty);
           setTagsInput(Array.isArray(q.tags) ? q.tags.join(", ") : "");
@@ -96,8 +120,8 @@ function CreateQuestionContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stem || !domain || !answer || !explanation) {
-      setError("請填寫所有必要欄位（題幹、Domain、答案、解析）");
+    if (!stem || !questionBankId || !answer || !explanation) {
+      setError("請填寫所有必要欄位（題幹、題庫、答案、解析）");
       return;
     }
 
@@ -117,7 +141,8 @@ function CreateQuestionContent() {
       explanation,
       wrongOptionExplanations: Object.keys(wrongExplanations).length > 0 ? wrongExplanations : null,
       extendedKnowledge: extendedKnowledge || null,
-      domain,
+      questionBankId,
+      category: category || null,
       chapter: chapter || null,
       difficulty,
       tags,
@@ -146,8 +171,6 @@ function CreateQuestionContent() {
     }
   }
 
-  const domainKeys = Object.keys(DOMAINS) as DomainKey[];
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
@@ -170,7 +193,7 @@ function CreateQuestionContent() {
           />
         </div>
 
-        {/* Type & Domain */}
+        {/* Type & Question Bank */}
         <div className="bg-slate-800 rounded-lg p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -186,22 +209,32 @@ function CreateQuestionContent() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Domain</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">所屬題庫</label>
               <select
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
+                value={questionBankId}
+                onChange={(e) => setQuestionBankId(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               >
-                <option value="">選擇 Domain</option>
-                {domainKeys.map((key) => (
-                  <option key={key} value={key}>{DOMAINS[key]}</option>
+                <option value="">選擇題庫</option>
+                {questionBanks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>{bank.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">分類</label>
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="例如: 網路安全、資料庫管理"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">章節</label>
               <input
@@ -212,21 +245,22 @@ function CreateQuestionContent() {
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                難度: {difficulty} - {DIFFICULTY_LABELS[difficulty]}
-              </label>
-              <input
-                type="range"
-                min={1}
-                max={5}
-                value={difficulty}
-                onChange={(e) => setDifficulty(parseInt(e.target.value))}
-                className="w-full accent-indigo-500"
-              />
-              <div className="flex justify-between text-xs text-slate-500">
-                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-              </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              難度: {difficulty} - {DIFFICULTY_LABELS[difficulty]}
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={5}
+              value={difficulty}
+              onChange={(e) => setDifficulty(parseInt(e.target.value))}
+              className="w-full accent-indigo-500"
+            />
+            <div className="flex justify-between text-xs text-slate-500">
+              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
             </div>
           </div>
 

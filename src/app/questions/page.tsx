@@ -2,16 +2,21 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, cn, DomainKey } from "@/lib/utils";
+import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+
+interface QuestionBank {
+  id: string;
+  name: string;
+}
 
 interface Question {
   id: string;
   stem: string;
   type: string;
-  domain: string;
   difficulty: number;
   tags: string[];
   options: { label: string; text: string }[];
+  questionBank?: { id: string; name: string };
   createdAt: string;
 }
 
@@ -27,16 +32,33 @@ export default function QuestionsPage() {
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [domain, setDomain] = useState("");
+  const [questionBankId, setQuestionBankId] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [type, setType] = useState("");
+  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+
+  // Fetch question banks on mount
+  useEffect(() => {
+    async function fetchBanks() {
+      try {
+        const res = await fetch("/api/question-banks");
+        if (res.ok) {
+          const data = await res.json();
+          setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch question banks:", err);
+      }
+    }
+    fetchBanks();
+  }, []);
 
   const fetchQuestions = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: "20" });
       if (search) params.set("search", search);
-      if (domain) params.set("domain", domain);
+      if (questionBankId) params.set("questionBankId", questionBankId);
       if (difficulty) params.set("difficulty", difficulty);
       if (type) params.set("type", type);
 
@@ -51,7 +73,7 @@ export default function QuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, domain, difficulty, type]);
+  }, [search, questionBankId, difficulty, type]);
 
   useEffect(() => {
     fetchQuestions(1);
@@ -61,8 +83,6 @@ export default function QuestionsPage() {
     e.preventDefault();
     fetchQuestions(1);
   }
-
-  const domainKeys = Object.keys(DOMAINS) as DomainKey[];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -105,13 +125,13 @@ export default function QuestionsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <select
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
+            value={questionBankId}
+            onChange={(e) => setQuestionBankId(e.target.value)}
             className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="">全部 Domain</option>
-            {domainKeys.map((key) => (
-              <option key={key} value={key}>{DOMAINS[key]}</option>
+            <option value="">全部題庫</option>
+            {questionBanks.map((bank) => (
+              <option key={bank.id} value={bank.id}>{bank.name}</option>
             ))}
           </select>
 
@@ -166,9 +186,9 @@ export default function QuestionsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-medium line-clamp-2">{q.stem}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-3">
-                    {/* Domain badge */}
+                    {/* Question bank badge */}
                     <span className="inline-block px-2 py-0.5 bg-indigo-600/30 text-indigo-300 text-xs rounded-full">
-                      {DOMAINS[q.domain as DomainKey] || q.domain}
+                      {q.questionBank?.name || "未分類"}
                     </span>
                     {/* Type badge */}
                     <span className="inline-block px-2 py-0.5 bg-slate-600 text-slate-300 text-xs rounded-full">

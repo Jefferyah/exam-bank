@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, cn, DomainKey } from "@/lib/utils";
+import { cn, DIFFICULTY_LABELS } from "@/lib/utils";
 
 interface ExamResult {
   id: string;
@@ -25,7 +25,8 @@ interface ExamResult {
       options: { label: string; text: string }[];
       answer: string;
       explanation: string;
-      domain: string;
+      questionBankId: string;
+      questionBank?: { id: string; name: string };
       difficulty: number;
       wrongOptionExplanations: Record<string, string> | null;
     };
@@ -110,13 +111,17 @@ export default function ExamResultPage() {
   const totalCount = exam.answers.length;
   const score = exam.score ?? (totalCount > 0 ? (correctCount / totalCount) * 100 : 0);
 
-  // Domain breakdown
-  const domainStats: Record<string, { total: number; correct: number }> = {};
+  // Build bank name map and stats grouped by questionBankId
+  const bankNameMap: Record<string, string> = {};
+  const bankStats: Record<string, { total: number; correct: number }> = {};
   for (const a of exam.answers) {
-    const d = a.question.domain;
-    if (!domainStats[d]) domainStats[d] = { total: 0, correct: 0 };
-    domainStats[d].total++;
-    if (a.isCorrect) domainStats[d].correct++;
+    const bankId = a.question.questionBankId;
+    if (!bankNameMap[bankId] && a.question.questionBank?.name) {
+      bankNameMap[bankId] = a.question.questionBank.name;
+    }
+    if (!bankStats[bankId]) bankStats[bankId] = { total: 0, correct: 0 };
+    bankStats[bankId].total++;
+    if (a.isCorrect) bankStats[bankId].correct++;
   }
 
   return (
@@ -140,17 +145,17 @@ export default function ExamResultPage() {
         )}
       </div>
 
-      {/* Domain breakdown */}
+      {/* Question bank breakdown */}
       <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">各 Domain 表現</h2>
+        <h2 className="text-lg font-semibold mb-4">各題庫表現</h2>
         <div className="space-y-3">
-          {Object.entries(domainStats).map(([domain, stats]) => {
+          {Object.entries(bankStats).map(([bankId, stats]) => {
             const accuracy = stats.total > 0 ? (stats.correct / stats.total) * 100 : 0;
             return (
-              <div key={domain}>
+              <div key={bankId}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-slate-300 truncate mr-2">
-                    {DOMAINS[domain as DomainKey] || domain}
+                    {bankNameMap[bankId] || bankId}
                   </span>
                   <span className="text-slate-400 flex-shrink-0">
                     {stats.correct}/{stats.total} ({accuracy.toFixed(0)}%)

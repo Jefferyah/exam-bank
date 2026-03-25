@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { DOMAINS, cn, DomainKey } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
-interface DomainAccuracy {
-  domain: string;
+interface BankAccuracy {
+  questionBankId: string;
+  questionBankName: string;
   total: number;
   correct: number;
   accuracy: number;
@@ -16,7 +17,7 @@ interface DomainAccuracy {
 interface WrongQuestion {
   questionId: string;
   stem: string;
-  domain: string;
+  questionBankName: string;
   difficulty: number;
   wrongCount: number;
 }
@@ -24,7 +25,7 @@ interface WrongQuestion {
 export default function WeakPointsPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [domainAccuracy, setDomainAccuracy] = useState<DomainAccuracy[]>([]);
+  const [bankAccuracy, setBankAccuracy] = useState<BankAccuracy[]>([]);
   const [mostWrong, setMostWrong] = useState<WrongQuestion[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,8 +40,8 @@ export default function WeakPointsPage() {
         const res = await fetch("/api/analytics");
         if (res.ok) {
           const data = await res.json();
-          setDomainAccuracy(
-            (data.domainAccuracy || []).sort((a: DomainAccuracy, b: DomainAccuracy) => a.accuracy - b.accuracy)
+          setBankAccuracy(
+            (data.bankAccuracy || []).sort((a: BankAccuracy, b: BankAccuracy) => a.accuracy - b.accuracy)
           );
           setMostWrong(data.mostWrongQuestions || []);
         }
@@ -54,14 +55,14 @@ export default function WeakPointsPage() {
     fetchData();
   }, [session]);
 
-  async function handlePracticeDomain(domainKey: string) {
+  async function handlePracticeBank(bankId: string, bankName: string) {
     try {
       const res = await fetch("/api/exams", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: `加強練習 - ${DOMAINS[domainKey as DomainKey] || domainKey}`,
-          domains: [domainKey],
+          title: `加強練習 - ${bankName}`,
+          questionBankIds: [bankId],
           count: 20,
           mode: "PRACTICE",
         }),
@@ -103,16 +104,16 @@ export default function WeakPointsPage() {
         <h1 className="text-2xl font-bold">弱點分析</h1>
       </div>
 
-      {/* Domain weakness ranking */}
+      {/* Bank weakness ranking */}
       <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">各 Domain 弱點排名</h2>
-        {domainAccuracy.length === 0 ? (
+        <h2 className="text-lg font-semibold mb-4">各題庫弱點排名</h2>
+        {bankAccuracy.length === 0 ? (
           <p className="text-slate-500 text-center py-8">尚無作答記錄，無法分析弱點</p>
         ) : (
           <div className="space-y-4">
-            {domainAccuracy.map((d, i) => (
+            {bankAccuracy.map((d, i) => (
               <div
-                key={d.domain}
+                key={d.questionBankId}
                 className={cn(
                   "p-4 rounded-lg",
                   i === 0 ? "bg-red-500/10 border border-red-500/30" : "bg-slate-700/50"
@@ -127,7 +128,7 @@ export default function WeakPointsPage() {
                         </span>
                       )}
                       <span className="font-medium">
-                        {DOMAINS[d.domain as DomainKey] || d.domain}
+                        {d.questionBankName}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 mt-2">
@@ -146,7 +147,7 @@ export default function WeakPointsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handlePracticeDomain(d.domain)}
+                    onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
                   >
                     加強練習
@@ -174,7 +175,7 @@ export default function WeakPointsPage() {
                 <p className="text-sm line-clamp-2">{q.stem}</p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                   <span className="text-red-400 font-semibold">錯 {q.wrongCount} 次</span>
-                  <span>{DOMAINS[q.domain as DomainKey] || q.domain}</span>
+                  <span>{q.questionBankName}</span>
                   <span className="text-amber-400">{"★".repeat(q.difficulty)}</span>
                 </div>
               </Link>

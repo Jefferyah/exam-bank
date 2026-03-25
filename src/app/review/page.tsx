@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DOMAINS, cn, DomainKey } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface WrongQuestion {
   questionId: string;
   stem: string;
-  domain: string;
+  questionBankName: string;
   difficulty: number;
   wrongCount: number;
   lastWrongAt: string;
@@ -22,9 +22,11 @@ interface FavoriteQuestion {
   question: {
     id: string;
     stem: string;
-    domain: string;
     difficulty: number;
     type: string;
+    questionBank?: {
+      name: string;
+    };
   };
 }
 
@@ -197,7 +199,7 @@ export default function ReviewPage() {
                   <p className="text-sm line-clamp-2">{q.stem}</p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                     <span className="text-red-400 font-semibold">錯 {q.wrongCount} 次</span>
-                    <span>{DOMAINS[q.domain as DomainKey] || q.domain}</span>
+                    <span>{q.questionBankName}</span>
                     <span className="text-amber-400">{"★".repeat(q.difficulty)}</span>
                     <span>最後錯誤：{new Date(q.lastWrongAt).toLocaleDateString("zh-TW")}</span>
                   </div>
@@ -225,7 +227,7 @@ export default function ReviewPage() {
                   >
                     <p className="text-sm line-clamp-2">{f.question.stem}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                      <span>{DOMAINS[f.question.domain as DomainKey] || f.question.domain}</span>
+                      <span>{f.question.questionBank?.name || "未分類"}</span>
                       <span className="text-amber-400">{"★".repeat(f.question.difficulty)}</span>
                     </div>
                   </Link>

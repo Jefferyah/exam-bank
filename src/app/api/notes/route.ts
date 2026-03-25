@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               stem: true,
-              domain: true,
+              questionBankId: true,
               difficulty: true,
               type: true,
             },
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             stem: true,
-            domain: true,
+            questionBankId: true,
             difficulty: true,
           },
         },

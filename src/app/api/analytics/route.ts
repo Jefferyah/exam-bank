@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
           question: {
             select: {
               id: true,
-              domain: true,
+              questionBankId: true,
               difficulty: true,
               stem: true,
             },
@@ -58,13 +58,19 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               stem: true,
-              domain: true,
+              questionBankId: true,
               difficulty: true,
             },
           },
         },
       }),
     ]);
+
+    // Fetch question banks for mapping
+    const questionBanks = await prisma.questionBank.findMany({
+      select: { id: true, name: true },
+    });
+    const bankMap = new Map(questionBanks.map((b) => [b.id, b.name]));
 
     // Average score
     const avgScore =
@@ -73,27 +79,28 @@ export async function GET(req: NextRequest) {
           completedExams.length
         : 0;
 
-    // Domain-wise accuracy
-    const domainStats: Record<
+    // QuestionBank-wise accuracy
+    const bankStats: Record<
       string,
       { total: number; correct: number }
     > = {};
     for (const answer of allExamAnswers) {
-      const domain = answer.question.domain;
-      if (!domainStats[domain]) {
-        domainStats[domain] = { total: 0, correct: 0 };
+      const bankId = answer.question.questionBankId;
+      if (!bankStats[bankId]) {
+        bankStats[bankId] = { total: 0, correct: 0 };
       }
       if (answer.userAnswer != null) {
-        domainStats[domain].total++;
+        bankStats[bankId].total++;
         if (answer.isCorrect) {
-          domainStats[domain].correct++;
+          bankStats[bankId].correct++;
         }
       }
     }
 
-    const domainAccuracy = Object.entries(domainStats).map(
-      ([domain, stats]) => ({
-        domain,
+    const bankAccuracy = Object.entries(bankStats).map(
+      ([bankId, stats]) => ({
+        questionBankId: bankId,
+        questionBankName: bankMap.get(bankId) || bankId,
         total: stats.total,
         correct: stats.correct,
         accuracy:
@@ -146,7 +153,8 @@ export async function GET(req: NextRequest) {
     const mostWrongQuestions = wrongRecords.map((r) => ({
       questionId: r.questionId,
       stem: r.question.stem,
-      domain: r.question.domain,
+      questionBankId: r.question.questionBankId,
+      questionBankName: bankMap.get(r.question.questionBankId) || r.question.questionBankId,
       difficulty: r.question.difficulty,
       wrongCount: r.count,
       lastWrongAt: r.lastWrongAt,
@@ -156,7 +164,7 @@ export async function GET(req: NextRequest) {
       totalExams,
       completedExams: completedExams.length,
       avgScore: Math.round(avgScore * 100) / 100,
-      domainAccuracy,
+      bankAccuracy,
       difficultyDistribution,
       recentTrend,
       mostWrongQuestions,

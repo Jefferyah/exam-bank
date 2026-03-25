@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, cn, DomainKey } from "@/lib/utils";
+import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 
 interface AiResult {
   success: boolean;
@@ -21,7 +21,9 @@ interface Question {
   explanation: string;
   wrongOptionExplanations: Record<string, string> | null;
   extendedKnowledge: string | null;
-  domain: string;
+  questionBankId: string;
+  questionBank?: { id: string; name: string };
+  category: string | null;
   chapter: string | null;
   difficulty: number;
   tags: string[];
@@ -219,7 +221,7 @@ export default function QuestionDetailPage() {
       {/* Meta info */}
       <div className="flex flex-wrap gap-2">
         <span className="px-2.5 py-1 bg-indigo-600/30 text-indigo-300 text-sm rounded-full">
-          {DOMAINS[question.domain as DomainKey] || question.domain}
+          {question.questionBank?.name || "未分類"}
         </span>
         <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-sm rounded-full">
           {question.type === "SINGLE" ? "單選題" : question.type === "MULTI" ? "多選題" : "情境題"}
@@ -227,6 +229,11 @@ export default function QuestionDetailPage() {
         <span className="px-2.5 py-1 bg-slate-700 text-amber-400 text-sm rounded-full">
           {"★".repeat(question.difficulty)}{"☆".repeat(5 - question.difficulty)} {DIFFICULTY_LABELS[question.difficulty]}
         </span>
+        {question.category && (
+          <span className="px-2.5 py-1 bg-emerald-600/20 text-emerald-300 text-sm rounded-full">
+            {question.category}
+          </span>
+        )}
         {question.chapter && (
           <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-sm rounded-full">
             {question.chapter}
@@ -287,7 +294,6 @@ export default function QuestionDetailPage() {
             <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
           </div>
 
-          {/* Wrong option explanations */}
           {question.wrongOptionExplanations && Object.keys(question.wrongOptionExplanations).length > 0 && (
             <div className="bg-slate-800 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-3">各選項說明</h2>
@@ -302,7 +308,6 @@ export default function QuestionDetailPage() {
             </div>
           )}
 
-          {/* Extended knowledge */}
           {question.extendedKnowledge && (
             <div className="bg-slate-800 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-3">延伸知識</h2>
@@ -366,7 +371,7 @@ export default function QuestionDetailPage() {
         )}
       </div>
 
-      {/* Notes */}
+      {/* Notes - inline per question */}
       {session && (
         <div className="bg-slate-800 rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-3">我的筆記</h2>

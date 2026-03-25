@@ -4,31 +4,35 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-const SAMPLE_JSON = `[
-  {
-    "stem": "Which of the following is the MOST important consideration...",
-    "type": "SINGLE",
-    "options": [
-      { "label": "A", "text": "Option A text" },
-      { "label": "B", "text": "Option B text" },
-      { "label": "C", "text": "Option C text" },
-      { "label": "D", "text": "Option D text" }
-    ],
-    "answer": "B",
-    "explanation": "Explanation text...",
-    "wrongOptionExplanations": { "A": "Why A is wrong...", "C": "...", "D": "..." },
-    "extendedKnowledge": "Additional info...",
-    "domain": "SECURITY_AND_RISK_MANAGEMENT",
-    "chapter": "Chapter 1",
-    "difficulty": 3,
-    "tags": ["risk", "governance"]
-  }
-]`;
+const SAMPLE_JSON = `{
+  "questionBankName": "我的題庫名稱",
+  "questionBankDescription": "題庫描述（選填）",
+  "questions": [
+    {
+      "stem": "Which of the following is the MOST important consideration...",
+      "type": "SINGLE",
+      "options": [
+        { "label": "A", "text": "Option A text" },
+        { "label": "B", "text": "Option B text" },
+        { "label": "C", "text": "Option C text" },
+        { "label": "D", "text": "Option D text" }
+      ],
+      "answer": "B",
+      "explanation": "Explanation text...",
+      "wrongOptionExplanations": { "A": "Why A is wrong...", "C": "...", "D": "..." },
+      "extendedKnowledge": "Additional info...",
+      "category": "分類標籤（選填）",
+      "chapter": "Chapter 1",
+      "difficulty": 3,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}`;
 
 interface PreviewQuestion {
   stem: string;
   type?: string;
-  domain?: string;
+  category?: string;
   difficulty?: number;
   options?: { label: string; text: string }[];
 }
@@ -36,10 +40,12 @@ interface PreviewQuestion {
 export default function ImportPage() {
   const { data: session } = useSession();
   const [fileContent, setFileContent] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [bankDescription, setBankDescription] = useState("");
   const [preview, setPreview] = useState<PreviewQuestion[]>([]);
   const [parseError, setParseError] = useState("");
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
+  const [result, setResult] = useState<{ imported: number; skipped: number; errors: string[]; questionBankName?: string } | null>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -54,11 +60,18 @@ export default function ImportPage() {
       setFileContent(text);
       try {
         const parsed = JSON.parse(text);
-        if (!Array.isArray(parsed)) {
-          setParseError("JSON 必須是陣列格式");
+
+        // Support both formats: { questionBankName, questions: [...] } or [...]
+        if (Array.isArray(parsed)) {
+          setPreview(parsed);
+        } else if (parsed.questions && Array.isArray(parsed.questions)) {
+          setPreview(parsed.questions);
+          if (parsed.questionBankName) setBankName(parsed.questionBankName);
+          if (parsed.questionBankDescription) setBankDescription(parsed.questionBankDescription);
+        } else {
+          setParseError("JSON 格式不正確，請使用正確的匯入格式");
           return;
         }
-        setPreview(parsed);
       } catch {
         setParseError("JSON 格式錯誤，請檢查檔案內容");
       }
@@ -68,19 +81,40 @@ export default function ImportPage() {
 
   async function handleImport() {
     if (preview.length === 0) return;
+    if (!bankName.trim()) {
+      setParseError("請輸入題庫名稱");
+      return;
+    }
+
     setImporting(true);
     setResult(null);
+    setParseError("");
 
     try {
+      // Parse original content and rebuild with bank info
+      const parsed = JSON.parse(fileContent);
+      const questions = Array.isArray(parsed) ? parsed : parsed.questions;
+
+      const body = {
+        questionBankName: bankName.trim(),
+        questionBankDescription: bankDescription.trim() || null,
+        questions,
+      };
+
       const res = await fetch("/api/import-export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: fileContent,
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setResult({ imported: data.imported, skipped: data.skipped, errors: data.errors || [] });
+        setResult({
+          imported: data.imported,
+          skipped: data.skipped,
+          errors: data.errors || [],
+          questionBankName: data.questionBankName,
+        });
       } else {
         setResult({ imported: 0, skipped: 0, errors: [data.error || "匯入失敗"] });
       }
@@ -119,6 +153,30 @@ export default function ImportPage() {
       {/* Upload area */}
       <div className="bg-slate-800 rounded-lg p-6 space-y-4">
         <h2 className="text-lg font-semibold">匯入題目 (JSON)</h2>
+
+        {/* Question bank name */}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">題庫名稱 *</label>
+          <input
+            type="text"
+            value={bankName}
+            onChange={(e) => setBankName(e.target.value)}
+            placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文N1 文法"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">題庫描述（選填）</label>
+          <input
+            type="text"
+            value={bankDescription}
+            onChange={(e) => setBankDescription(e.target.value)}
+            placeholder="簡短描述這個題庫的內容"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
         <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
           <input
             type="file"
@@ -159,7 +217,7 @@ export default function ImportPage() {
                 <div className="flex gap-2 mt-2 text-xs text-slate-400">
                   <span>{q.type || "SINGLE"}</span>
                   <span>|</span>
-                  <span>{q.domain || "N/A"}</span>
+                  <span>{q.category || "無分類"}</span>
                   <span>|</span>
                   <span>難度 {q.difficulty || 3}</span>
                   <span>|</span>
@@ -170,10 +228,10 @@ export default function ImportPage() {
           </div>
           <button
             onClick={handleImport}
-            disabled={importing}
+            disabled={importing || !bankName.trim()}
             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
           >
-            {importing ? "匯入中..." : `確認匯入 ${preview.length} 題`}
+            {importing ? "匯入中..." : `確認匯入 ${preview.length} 題到「${bankName || "..."}」`}
           </button>
         </div>
       )}
@@ -182,6 +240,9 @@ export default function ImportPage() {
       {result && (
         <div className="bg-slate-800 rounded-lg p-6 space-y-3">
           <h2 className="text-lg font-semibold">匯入結果</h2>
+          {result.questionBankName && (
+            <p className="text-sm text-slate-400">題庫：{result.questionBankName}</p>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-emerald-500/10 rounded-lg text-center">
               <p className="text-2xl font-bold text-emerald-400">{result.imported}</p>
@@ -217,6 +278,9 @@ export default function ImportPage() {
       {/* Sample format */}
       <div className="bg-slate-800 rounded-lg p-6 space-y-4">
         <h2 className="text-lg font-semibold">JSON 格式範例</h2>
+        <p className="text-sm text-slate-400">
+          匯入時需要提供題庫名稱。JSON 檔案可以包含 questionBankName 欄位，或在匯入時手動輸入。
+        </p>
         <pre className="bg-slate-900 p-4 rounded-lg text-sm text-slate-300 overflow-x-auto whitespace-pre">
           {SAMPLE_JSON}
         </pre>

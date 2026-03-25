@@ -11,6 +11,9 @@ export async function GET(
 
     const question = await prisma.question.findUnique({
       where: { id },
+      include: {
+        questionBank: { select: { id: true, name: true } },
+      },
     });
 
     if (!question) {
@@ -66,7 +69,8 @@ export async function PUT(
       explanation,
       wrongOptionExplanations,
       extendedKnowledge,
-      domain,
+      questionBankId,
+      category,
       chapter,
       difficulty,
       tags,
@@ -88,7 +92,8 @@ export async function PUT(
         : null;
     }
     if (extendedKnowledge !== undefined) data.extendedKnowledge = extendedKnowledge;
-    if (domain !== undefined) data.domain = domain;
+    if (questionBankId !== undefined) data.questionBankId = questionBankId;
+    if (category !== undefined) data.category = category;
     if (chapter !== undefined) data.chapter = chapter;
     if (difficulty !== undefined) data.difficulty = difficulty;
     if (tags !== undefined) {

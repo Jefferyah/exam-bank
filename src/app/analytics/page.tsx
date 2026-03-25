@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { DOMAINS, DIFFICULTY_LABELS, cn, DomainKey } from "@/lib/utils";
+import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 
 interface AnalyticsData {
   totalExams: number;
   completedExams: number;
   avgScore: number;
-  domainAccuracy: { domain: string; total: number; correct: number; accuracy: number }[];
+  bankAccuracy: { questionBankId: string; questionBankName: string; total: number; correct: number; accuracy: number }[];
   difficultyDistribution: { difficulty: number; total: number; correct: number; accuracy: number }[];
   recentTrend: { id: string; title: string; score: number | null; finishedAt: string }[];
   mostWrongQuestions: { questionId: string; stem: string; wrongCount: number }[];
@@ -75,8 +75,8 @@ export default function AnalyticsPage() {
     );
   }
 
-  const totalAnswered = data.domainAccuracy.reduce((sum, d) => sum + d.total, 0);
-  const totalCorrect = data.domainAccuracy.reduce((sum, d) => sum + d.correct, 0);
+  const totalAnswered = data.bankAccuracy.reduce((sum, d) => sum + d.total, 0);
+  const totalCorrect = data.bankAccuracy.reduce((sum, d) => sum + d.correct, 0);
   const overallAccuracy = totalAnswered > 0 ? (totalCorrect / totalAnswered) * 100 : 0;
 
   return (
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
           href="/analytics/domain"
           className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
         >
-          Domain 詳細分析
+          題庫詳細分析
         </Link>
       </div>
 
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
         ) : (
           <div className="space-y-4">
             <div className="flex items-end gap-1 h-48">
-              {data.recentTrend.slice().reverse().map((exam, i) => {
+              {data.recentTrend.slice().reverse().map((exam) => {
                 const score = exam.score || 0;
                 return (
                   <div
@@ -151,20 +151,20 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {/* Domain accuracy bar chart */}
+      {/* Bank accuracy bar chart */}
       <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">各 Domain 正確率</h2>
-        {data.domainAccuracy.length === 0 ? (
+        <h2 className="text-lg font-semibold mb-4">各題庫正確率</h2>
+        {data.bankAccuracy.length === 0 ? (
           <p className="text-slate-500 text-center py-8">尚無作答記錄</p>
         ) : (
           <div className="space-y-3">
-            {data.domainAccuracy
+            {data.bankAccuracy
               .sort((a, b) => b.accuracy - a.accuracy)
               .map((d) => (
-                <div key={d.domain}>
+                <div key={d.questionBankId}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-slate-300 truncate mr-2">
-                      {DOMAINS[d.domain as DomainKey] || d.domain}
+                      {d.questionBankName}
                     </span>
                     <span className="text-slate-400 flex-shrink-0">
                       {d.accuracy}%

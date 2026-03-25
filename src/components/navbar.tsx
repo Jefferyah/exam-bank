@@ -11,7 +11,6 @@ const navLinks = [
   { href: "/exam", label: "測驗" },
   { href: "/review", label: "複習" },
   { href: "/analytics", label: "分析" },
-  { href: "/notes", label: "筆記" },
   { href: "/admin", label: "Admin" },
 ];
 
@@ -25,7 +24,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="text-xl font-bold text-indigo-400">CISSP 題庫</span>
+            <span className="text-xl font-bold text-indigo-400">ExamBank</span>
           </Link>
 
           {/* Desktop nav */}

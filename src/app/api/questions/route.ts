@@ -8,10 +8,11 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const search = searchParams.get("search") || "";
-    const domain = searchParams.get("domain");
+    const questionBankId = searchParams.get("questionBankId");
     const difficulty = searchParams.get("difficulty");
     const type = searchParams.get("type");
     const tags = searchParams.get("tags");
+    const category = searchParams.get("category");
 
     const where: Record<string, unknown> = {};
 
@@ -21,8 +22,8 @@ export async function GET(req: NextRequest) {
         { explanation: { contains: search } },
       ];
     }
-    if (domain) {
-      where.domain = domain;
+    if (questionBankId) {
+      where.questionBankId = questionBankId;
     }
     if (difficulty) {
       where.difficulty = parseInt(difficulty, 10);
@@ -33,6 +34,9 @@ export async function GET(req: NextRequest) {
     if (tags) {
       where.tags = { contains: tags };
     }
+    if (category) {
+      where.category = { contains: category };
+    }
 
     const [questions, total] = await Promise.all([
       prisma.question.findMany({
@@ -40,6 +44,9 @@ export async function GET(req: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: "desc" },
+        include: {
+          questionBank: { select: { id: true, name: true } },
+        },
       }),
       prisma.question.count({ where }),
     ]);
@@ -87,16 +94,26 @@ export async function POST(req: NextRequest) {
       explanation,
       wrongOptionExplanations,
       extendedKnowledge,
-      domain,
+      questionBankId,
+      category,
       chapter,
       difficulty = 3,
       tags = [],
     } = body;
 
-    if (!stem || !options || !answer || !explanation || !domain) {
+    if (!stem || !options || !answer || !explanation || !questionBankId) {
       return NextResponse.json(
-        { error: "Missing required fields: stem, options, answer, explanation, domain" },
+        { error: "Missing required fields: stem, options, answer, explanation, questionBankId" },
         { status: 400 }
+      );
+    }
+
+    // Verify question bank exists
+    const bank = await prisma.questionBank.findUnique({ where: { id: questionBankId } });
+    if (!bank) {
+      return NextResponse.json(
+        { error: "Question bank not found" },
+        { status: 404 }
       );
     }
 
@@ -113,7 +130,8 @@ export async function POST(req: NextRequest) {
             : JSON.stringify(wrongOptionExplanations)
           : null,
         extendedKnowledge: extendedKnowledge || null,
-        domain,
+        questionBankId,
+        category: category || null,
         chapter: chapter || null,
         difficulty,
         tags: typeof tags === "string" ? tags : JSON.stringify(tags),

@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { DOMAINS, DomainKey } from "@/lib/utils";
+
+interface QuestionBank {
+  id: string;
+  name: string;
+  _count: { questions: number };
+}
 
 export default function ExamSetupPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [mode, setMode] = useState<"PRACTICE" | "MOCK">("PRACTICE");
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+  const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
   const [difficultyRange, setDifficultyRange] = useState<number[]>([1, 2, 3, 4, 5]);
   const [count, setCount] = useState(20);
   const [timeLimit, setTimeLimit] = useState(60);
@@ -18,11 +24,24 @@ export default function ExamSetupPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
-  const domainKeys = Object.keys(DOMAINS) as DomainKey[];
+  useEffect(() => {
+    async function fetchBanks() {
+      try {
+        const res = await fetch("/api/question-banks");
+        if (res.ok) {
+          const data = await res.json();
+          setQuestionBanks(data.questionBanks);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchBanks();
+  }, []);
 
-  function toggleDomain(key: string) {
-    setSelectedDomains((prev) =>
-      prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
+  function toggleBank(id: string) {
+    setSelectedBankIds((prev) =>
+      prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
     );
   }
 
@@ -44,7 +63,7 @@ export default function ExamSetupPage() {
     try {
       const body = {
         title: `${mode === "PRACTICE" ? "練習" : "模擬考"} - ${new Date().toLocaleDateString("zh-TW")}`,
-        domains: selectedDomains.length > 0 ? selectedDomains : undefined,
+        questionBankIds: selectedBankIds.length > 0 ? selectedBankIds : undefined,
         difficulty: difficultyRange.length > 0 && difficultyRange.length < 5 ? difficultyRange : undefined,
         count,
         mode,
@@ -108,27 +127,30 @@ export default function ExamSetupPage() {
         </div>
       </div>
 
-      {/* Domain selection */}
+      {/* Question bank selection */}
       <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">選擇 Domain</h2>
-        <p className="text-sm text-slate-400">不選則包含全部 Domain</p>
+        <h2 className="text-lg font-semibold">選擇題庫</h2>
+        <p className="text-sm text-slate-400">不選則包含所有題庫</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {domainKeys.map((key) => (
+          {questionBanks.map((bank) => (
             <label
-              key={key}
+              key={bank.id}
               className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedDomains.includes(key)
+                selectedBankIds.includes(bank.id)
                   ? "bg-indigo-500/10 ring-1 ring-indigo-500"
                   : "bg-slate-700/50 hover:bg-slate-700"
               }`}
             >
               <input
                 type="checkbox"
-                checked={selectedDomains.includes(key)}
-                onChange={() => toggleDomain(key)}
+                checked={selectedBankIds.includes(bank.id)}
+                onChange={() => toggleBank(bank.id)}
                 className="accent-indigo-500 mt-0.5"
               />
-              <span className="text-sm">{DOMAINS[key]}</span>
+              <span className="text-sm">
+                {bank.name}
+                <span className="text-slate-500 ml-2">({bank._count.questions} 題)</span>
+              </span>
             </label>
           ))}
         </div>
