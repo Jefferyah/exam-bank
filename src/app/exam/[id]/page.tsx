@@ -230,7 +230,7 @@ export default function ExamTakingPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-4">
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-4 glass-card rounded-2xl p-3">
+      <div className="flex items-center justify-between mb-4 bg-white border border-gray-200 rounded-2xl p-3">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold text-gray-900 hidden sm:block">{exam.title}</h1>
           <span className="text-sm text-gray-500">
@@ -240,7 +240,7 @@ export default function ExamTakingPage() {
         <div className="flex items-center gap-4">
           <span className={cn(
             "font-mono text-lg font-bold",
-            remaining !== null && remaining < 300 ? "text-red-500" : "text-emerald-600"
+            remaining !== null && remaining < 300 ? "text-red-500" : "text-blue-500"
           )}>
             {remaining !== null ? formatTime(Math.max(0, remaining)) : formatTime(elapsed)}
           </span>
@@ -267,7 +267,7 @@ export default function ExamTakingPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Question navigation sidebar */}
         <div className="lg:w-48 flex-shrink-0">
-          <div className="glass-card rounded-2xl p-3">
+          <div className="bg-white border border-gray-200 rounded-2xl p-3">
             <p className="text-sm text-gray-500 mb-2">題目導覽</p>
             <div className="grid grid-cols-8 lg:grid-cols-4 gap-1.5">
               {exam.answers.map((a, i) => {
@@ -281,7 +281,7 @@ export default function ExamTakingPage() {
                     className={cn(
                       "w-full aspect-square rounded-lg text-xs font-medium transition-colors relative",
                       isCurrent
-                        ? "bg-emerald-600 text-white ring-2 ring-emerald-300"
+                        ? "bg-blue-500 text-white ring-2 ring-blue-300"
                         : answered
                           ? "bg-emerald-100 text-emerald-600"
                           : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200"
@@ -300,7 +300,7 @@ export default function ExamTakingPage() {
                 <span className="w-3 h-3 bg-emerald-100 rounded border border-emerald-200" /> 已作答
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-emerald-600 rounded" /> 目前題目
+                <span className="w-3 h-3 bg-blue-500 rounded" /> 目前題目
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 bg-gray-50 border border-gray-200 rounded relative">
@@ -316,13 +316,13 @@ export default function ExamTakingPage() {
           {/* Progress */}
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
-              className="h-1.5 bg-emerald-500 rounded-full transition-all"
+              className="h-1.5 bg-blue-500 rounded-full transition-all"
               style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
             />
           </div>
 
           {/* Question */}
-          <div className="glass-card rounded-2xl p-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-gray-500">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
               <div className="flex items-center gap-2">
@@ -356,7 +356,7 @@ export default function ExamTakingPage() {
 
               let optionStyle = "border-gray-200 bg-white hover:border-gray-300";
               if (selected) {
-                optionStyle = "border-emerald-500 bg-emerald-50";
+                optionStyle = "border-blue-500 bg-blue-50";
               }
               if (showExplanation && isPractice) {
                 const isCorrect = currentQuestion.answer.includes(opt.label);
@@ -376,7 +376,7 @@ export default function ExamTakingPage() {
                     optionStyle
                   )}
                 >
-                  <span className="font-semibold text-emerald-600 mr-3">{opt.label}.</span>
+                  <span className="font-semibold text-blue-500 mr-3">{opt.label}.</span>
                   <span className="text-gray-700">{opt.text}</span>
                 </button>
               );
@@ -387,7 +387,7 @@ export default function ExamTakingPage() {
           {isPractice && userAnswers[currentQuestion.id] && (
             <button
               onClick={() => setShowExplanation(!showExplanation)}
-              className="w-full py-3 btn-nature rounded-full font-medium transition-colors"
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
             >
               {showExplanation ? "隱藏答案" : "查看答案"}
             </button>
@@ -395,7 +395,7 @@ export default function ExamTakingPage() {
 
           {/* Explanation (practice mode only) */}
           {showExplanation && isPractice && (
-            <div className="glass-card rounded-2xl p-6 space-y-3">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
               <p className="text-sm text-gray-500">
                 正確答案：<span className="text-emerald-500 font-bold text-lg">{currentQuestion.answer}</span>
               </p>

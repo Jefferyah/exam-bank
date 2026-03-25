@@ -127,7 +127,7 @@ export default function ExamResultPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Score display */}
-      <div className="glass-card rounded-2xl p-8 text-center">
+      <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
         <h1 className="text-xl text-gray-500 mb-2">{exam.title}</h1>
         <div className={cn(
           "text-6xl md:text-8xl font-bold",
@@ -146,7 +146,7 @@ export default function ExamResultPage() {
       </div>
 
       {/* Question bank breakdown */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫表現</h2>
         <div className="space-y-3">
           {Object.entries(bankStats).map(([bankId, stats]) => {
@@ -180,20 +180,20 @@ export default function ExamResultPage() {
       <div className="flex gap-3">
         <Link
           href="/exam"
-          className="flex-1 py-3 btn-nature rounded-full font-medium text-center transition-colors"
+          className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium text-center transition-colors"
         >
           重新測驗
         </Link>
         <Link
           href="/"
-          className="flex-1 py-3 btn-secondary rounded-full font-medium text-center transition-colors"
+          className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full font-medium text-center transition-colors"
         >
           回首頁
         </Link>
       </div>
 
       {/* Question list */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題目詳情</h2>
         <div className="space-y-3">
           {exam.answers.map((a, i) => (
@@ -254,7 +254,7 @@ export default function ExamResultPage() {
                   <button
                     onClick={() => handleAiSolve(a.questionId)}
                     disabled={aiLoadingId === a.questionId}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded-full text-xs font-medium transition-colors"
+                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-xs font-medium transition-colors"
                   >
                     {aiLoadingId === a.questionId ? "分析中..." : "AI 解題"}
                   </button>
@@ -266,7 +266,7 @@ export default function ExamResultPage() {
                         if (!r) return null;
                         return (
                           <div key={model} className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
-                            <p className="font-semibold text-emerald-600 capitalize mb-1">{model}</p>
+                            <p className="font-semibold text-blue-500 capitalize mb-1">{model}</p>
                             {r.success && r.data ? (
                               <p className="text-gray-700">{r.data.answer}: {r.data.reasoning?.slice(0, 100)}...</p>
                             ) : (

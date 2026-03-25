@@ -92,13 +92,13 @@ export default function QuestionsPage() {
         <div className="flex gap-2">
           <Link
             href="/questions/create"
-            className="btn-nature px-6 py-2.5 text-sm font-medium shadow-sm"
+            className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium shadow-sm transition-colors"
           >
             新增題目
           </Link>
           <Link
             href="/questions/import"
-            className="btn-secondary px-6 py-2.5 text-sm font-medium"
+            className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors"
           >
             匯入題目
           </Link>
@@ -106,19 +106,18 @@ export default function QuestionsPage() {
       </div>
 
       {/* Filters */}
-      <div className="glass-card rounded-2xl p-4 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="搜尋關鍵字..."
-            className="flex-1 px-4 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             type="submit"
-            className="btn-nature px-6 py-2 text-sm font-medium shadow-sm"
+            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium shadow-sm transition-colors"
           >
             搜尋
           </button>
@@ -128,8 +127,7 @@ export default function QuestionsPage() {
           <select
             value={questionBankId}
             onChange={(e) => setQuestionBankId(e.target.value)}
-            className="px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部題庫</option>
             {questionBanks.map((bank) => (
@@ -140,8 +138,7 @@ export default function QuestionsPage() {
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
-            className="px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部難度</option>
             {Object.entries(DIFFICULTY_LABELS).map(([val, label]) => (
@@ -152,8 +149,7 @@ export default function QuestionsPage() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部類型</option>
             <option value="SINGLE">單選題</option>
@@ -184,14 +180,14 @@ export default function QuestionsPage() {
             <Link
               key={q.id}
               href={`/questions/${q.id}`}
-              className="block glass-card rounded-2xl p-5 hover:shadow-md hover:border-emerald-300 transition-all"
+              className="block bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 font-medium line-clamp-2">{q.stem}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     {/* Question bank badge */}
-                    <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                    <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
                       {q.questionBank?.name || "未分類"}
                     </span>
                     {/* Type badge */}
@@ -222,7 +218,7 @@ export default function QuestionsPage() {
           <button
             onClick={() => fetchQuestions(pagination.page - 1)}
             disabled={pagination.page <= 1}
-            className="btn-secondary px-4 py-1.5 text-sm"
+            className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-sm text-gray-700 transition-colors"
           >
             上一頁
           </button>
@@ -232,7 +228,7 @@ export default function QuestionsPage() {
           <button
             onClick={() => fetchQuestions(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages}
-            className="btn-secondary px-4 py-1.5 text-sm"
+            className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-sm text-gray-700 transition-colors"
           >
             下一頁
           </button>

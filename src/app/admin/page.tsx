@@ -110,7 +110,7 @@ export default function AdminPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入</p>
-        <Link href="/login" className="text-emerald-600 hover:text-emerald-700 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p className="text-lg text-gray-900">權限不足</p>
         <p className="text-sm mt-1">僅限管理員或教師使用</p>
-        <Link href="/" className="text-emerald-600 hover:text-emerald-700 mt-4 inline-block">回首頁</Link>
+        <Link href="/" className="text-blue-500 hover:text-blue-600 mt-4 inline-block">回首頁</Link>
       </div>
     );
   }
@@ -142,15 +142,15 @@ export default function AdminPage() {
         <>
           {/* Stats cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="glass-card rounded-2xl p-6">
-              <p className="text-3xl font-bold text-emerald-600">{stats?.totalQuestions || 0}</p>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <p className="text-3xl font-bold text-blue-500">{stats?.totalQuestions || 0}</p>
               <p className="text-sm text-gray-500 mt-1">題目總數</p>
             </div>
-            <div className="glass-card rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <p className="text-3xl font-bold text-emerald-500">{unusedCodes.length}</p>
               <p className="text-sm text-gray-500 mt-1">可用邀請碼</p>
             </div>
-            <div className="glass-card rounded-2xl p-6">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
               <p className="text-3xl font-bold text-amber-500">{usedCodes.length}</p>
               <p className="text-sm text-gray-500 mt-1">已使用邀請碼</p>
             </div>
@@ -160,21 +160,21 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Link
               href="/admin/users"
-              className="glass-card hover:border-emerald-300 hover:shadow-sm rounded-2xl p-5 transition-all"
+              className="bg-white border border-gray-200 hover:border-blue-300 hover:shadow-sm rounded-2xl p-5 transition-all"
             >
               <h3 className="font-semibold text-blue-500">使用者管理</h3>
               <p className="text-sm text-gray-500 mt-1">管理帳號與角色</p>
             </Link>
             <Link
               href="/questions"
-              className="glass-card hover:border-emerald-300 hover:shadow-sm rounded-2xl p-5 transition-all"
+              className="bg-white border border-gray-200 hover:border-blue-300 hover:shadow-sm rounded-2xl p-5 transition-all"
             >
               <h3 className="font-semibold text-emerald-500">題庫管理</h3>
               <p className="text-sm text-gray-500 mt-1">新增、編輯、匯入題目</p>
             </Link>
             <Link
               href="/questions/import"
-              className="glass-card hover:border-emerald-300 hover:shadow-sm rounded-2xl p-5 transition-all"
+              className="bg-white border border-gray-200 hover:border-blue-300 hover:shadow-sm rounded-2xl p-5 transition-all"
             >
               <h3 className="font-semibold text-amber-500">匯入匯出</h3>
               <p className="text-sm text-gray-500 mt-1">批量匯入或匯出題目</p>
@@ -182,15 +182,14 @@ export default function AdminPage() {
           </div>
 
           {/* Invite Codes Management */}
-          <div className="glass-card rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-gray-900">邀請碼管理</h2>
               <div className="flex items-center gap-2">
                 <select
                   value={generateCount}
                   onChange={(e) => setGenerateCount(parseInt(e.target.value))}
-                  className="px-3 py-2 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {[1, 3, 5, 10].map((n) => (
                     <option key={n} value={n}>{n} 組</option>
@@ -199,7 +198,7 @@ export default function AdminPage() {
                 <button
                   onClick={handleGenerateCodes}
                   disabled={generating}
-                  className="btn-nature rounded-full text-sm font-medium transition-colors"
+                  className="px-5 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-sm font-medium transition-colors"
                 >
                   {generating ? "產生中..." : "產生邀請碼"}
                 </button>
@@ -217,7 +216,7 @@ export default function AdminPage() {
                       "flex items-center justify-between p-3 rounded-xl border",
                       ic.usedBy
                         ? "bg-gray-50 border-gray-200"
-                        : "bg-emerald-50/50 border-emerald-200"
+                        : "bg-blue-50/50 border-blue-200"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -225,7 +224,7 @@ export default function AdminPage() {
                         "font-mono text-sm font-bold px-2.5 py-1 rounded-lg",
                         ic.usedBy
                           ? "bg-gray-100 text-gray-400 line-through"
-                          : "bg-white text-emerald-600 border border-emerald-200"
+                          : "bg-white text-blue-600 border border-blue-200"
                       )}>
                         {ic.code}
                       </code>
@@ -233,7 +232,7 @@ export default function AdminPage() {
                         {ic.usedBy ? (
                           <span>已被 <span className="text-gray-700 font-medium">{ic.usedBy.name || ic.usedBy.email}</span> 使用</span>
                         ) : (
-                          <span className="text-emerald-600 font-medium">未使用</span>
+                          <span className="text-blue-600 font-medium">未使用</span>
                         )}
                       </div>
                     </div>

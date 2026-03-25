@@ -97,7 +97,7 @@ export default function ExamSetupPage() {
       <h1 className="text-2xl font-bold text-gray-900">測驗設定</h1>
 
       {/* Mode selector */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">測驗模式</h2>
         <div className="grid grid-cols-2 gap-4">
           <button
@@ -105,7 +105,7 @@ export default function ExamSetupPage() {
             onClick={() => setMode("PRACTICE")}
             className={`p-4 rounded-2xl border-2 transition-colors text-left ${
               mode === "PRACTICE"
-                ? "border-emerald-500 bg-emerald-50"
+                ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
           >
@@ -117,7 +117,7 @@ export default function ExamSetupPage() {
             onClick={() => setMode("MOCK")}
             className={`p-4 rounded-2xl border-2 transition-colors text-left ${
               mode === "MOCK"
-                ? "border-emerald-500 bg-emerald-50"
+                ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
           >
@@ -128,7 +128,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Question bank selection */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">選擇題庫</h2>
         <p className="text-sm text-gray-500">不選則包含所有題庫</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -137,7 +137,7 @@ export default function ExamSetupPage() {
               key={bank.id}
               className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                 selectedBankIds.includes(bank.id)
-                  ? "bg-emerald-50 ring-1 ring-emerald-400"
+                  ? "bg-blue-50 ring-1 ring-blue-400"
                   : "bg-gray-50 hover:bg-gray-100"
               }`}
             >
@@ -145,7 +145,7 @@ export default function ExamSetupPage() {
                 type="checkbox"
                 checked={selectedBankIds.includes(bank.id)}
                 onChange={() => toggleBank(bank.id)}
-                className="accent-emerald-500 mt-0.5"
+                className="accent-blue-500 mt-0.5"
               />
               <span className="text-sm text-gray-900">
                 {bank.name}
@@ -157,7 +157,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Difficulty */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">難度範圍</h2>
         <div className="flex gap-3">
           {[1, 2, 3, 4, 5].map((d) => (
@@ -167,7 +167,7 @@ export default function ExamSetupPage() {
               onClick={() => toggleDifficulty(d)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 difficultyRange.includes(d)
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-blue-500 text-white"
                   : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
@@ -178,7 +178,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Count and Time */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">題目數量</label>
@@ -188,8 +188,7 @@ export default function ExamSetupPage() {
               max={200}
               value={count}
               onChange={(e) => setCount(parseInt(e.target.value) || 20)}
-              className="w-full px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {mode === "MOCK" && (
@@ -201,8 +200,7 @@ export default function ExamSetupPage() {
                 max={360}
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)}
-                className="w-full px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
@@ -210,14 +208,14 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Special options */}
-      <div className="glass-card rounded-2xl p-6 space-y-3">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
         <h2 className="text-lg font-semibold text-gray-900">特殊選項</h2>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={wrongOnly}
             onChange={(e) => setWrongOnly(e.target.checked)}
-            className="accent-emerald-500"
+            className="accent-blue-500"
           />
           <span className="text-gray-700">只出錯題</span>
         </label>
@@ -226,7 +224,7 @@ export default function ExamSetupPage() {
             type="checkbox"
             checked={favoriteOnly}
             onChange={(e) => setFavoriteOnly(e.target.checked)}
-            className="accent-emerald-500"
+            className="accent-blue-500"
           />
           <span className="text-gray-700">只出收藏題</span>
         </label>
@@ -243,7 +241,7 @@ export default function ExamSetupPage() {
       <button
         onClick={handleStart}
         disabled={creating}
-        className="w-full py-4 btn-nature disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed rounded-full text-lg font-bold transition-colors"
+        className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-lg font-bold transition-colors"
       >
         {creating ? "建立中..." : "開始測驗"}
       </button>

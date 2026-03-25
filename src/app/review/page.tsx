@@ -124,7 +124,7 @@ export default function ReviewPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入以查看複習內容</p>
-        <Link href="/login" className="text-emerald-600 hover:text-emerald-700 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function ReviewPage() {
           onClick={() => setTab("wrong")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "wrong" ? "border-emerald-500 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-900"
+            tab === "wrong" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
           )}
         >
           錯題本 ({wrongQuestions.length})
@@ -156,7 +156,7 @@ export default function ReviewPage() {
           onClick={() => setTab("favorites")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "favorites" ? "border-emerald-500 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-900"
+            tab === "favorites" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
           )}
         >
           收藏題 ({favorites.length})
@@ -169,8 +169,7 @@ export default function ReviewPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋..."
-        className="w-full px-4 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       {loading ? (
@@ -200,7 +199,7 @@ export default function ReviewPage() {
                 <Link
                   key={q.questionId}
                   href={`/questions/${q.questionId}`}
-                  className="block glass-card rounded-2xl p-4 hover:border-emerald-300 hover:shadow-sm transition-all"
+                  className="block bg-white border border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:shadow-sm transition-all"
                 >
                   <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
@@ -225,11 +224,11 @@ export default function ReviewPage() {
               {filteredFav.map((f) => (
                 <div
                   key={f.id}
-                  className="glass-card rounded-2xl p-4 flex items-center gap-4"
+                  className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4"
                 >
                   <Link
                     href={`/questions/${f.questionId}`}
-                    className="flex-1 min-w-0 hover:text-emerald-600 transition-colors"
+                    className="flex-1 min-w-0 hover:text-blue-500 transition-colors"
                   >
                     <p className="text-sm text-gray-900 line-clamp-2">{f.question.stem}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">

@@ -17,7 +17,7 @@ interface QuestionBank {
 
 export default function CreateQuestionPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" /></div>}>
       <CreateQuestionContent />
     </Suspense>
   );
@@ -236,28 +236,26 @@ function CreateQuestionContent() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Stem */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">題幹</h2>
           <textarea
             value={stem}
             onChange={(e) => setStem(e.target.value)}
             placeholder="輸入題目（支援長題幹/情境題）..."
-            className="w-full h-40 px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-y"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="w-full h-40 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
             required
           />
         </div>
 
         {/* Type & Question Bank */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">題型</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as "SINGLE" | "MULTI" | "SCENARIO")}
-                className="w-full px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="SINGLE">單選題 (SINGLE)</option>
                 <option value="MULTI">多選題 (MULTI)</option>
@@ -270,7 +268,7 @@ function CreateQuestionContent() {
                 <button
                   type="button"
                   onClick={() => setShowBankCreator((current) => !current)}
-                  className="text-sm text-emerald-600 hover:text-emerald-700"
+                  className="text-sm text-blue-500 hover:text-blue-600"
                 >
                   {showBankCreator ? "收起新增題庫" : "+ 新增題庫"}
                 </button>
@@ -278,8 +276,7 @@ function CreateQuestionContent() {
               <select
                 value={questionBankId}
                 onChange={(e) => setQuestionBankId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">選擇題庫</option>
@@ -288,27 +285,27 @@ function CreateQuestionContent() {
                 ))}
               </select>
               {showBankCreator && (
-                <div className="mt-3 space-y-3 rounded-2xl p-4" style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}>
+                <div className="mt-3 space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
                   <input
                     type="text"
                     value={newBankName}
                     onChange={(e) => setNewBankName(e.target.value)}
                     placeholder="新題庫名稱"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="text"
                     value={newBankDescription}
                     onChange={(e) => setNewBankDescription(e.target.value)}
                     placeholder="題庫描述（選填）"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={handleCreateBank}
                       disabled={creatingBank}
-                      className="btn-nature px-4 py-2 text-sm font-medium"
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full text-sm font-medium transition-colors"
                     >
                       {creatingBank ? "建立中..." : "建立並選取"}
                     </button>
@@ -326,8 +323,7 @@ function CreateQuestionContent() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="例如: 網路安全、資料庫管理"
-                className="w-full px-3 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div>
@@ -337,8 +333,7 @@ function CreateQuestionContent() {
                 value={chapter}
                 onChange={(e) => setChapter(e.target.value)}
                 placeholder="例如: Chapter 3"
-                className="w-full px-3 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -353,7 +348,7 @@ function CreateQuestionContent() {
               max={5}
               value={difficulty}
               onChange={(e) => setDifficulty(parseInt(e.target.value))}
-              className="w-full accent-emerald-600"
+              className="w-full accent-blue-500"
             />
             <div className="flex justify-between text-xs text-gray-400">
               <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
@@ -367,21 +362,20 @@ function CreateQuestionContent() {
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="例如: CIA, Risk Management, Access Control"
-              className="w-full px-3 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* Options builder */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">選項</h2>
             <button
               type="button"
               onClick={addOption}
               disabled={options.length >= 8}
-              className="btn-nature px-4 py-1.5 text-sm font-medium shadow-sm disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed rounded-full text-sm font-medium shadow-sm transition-colors"
             >
               + 新增選項
             </button>
@@ -389,7 +383,7 @@ function CreateQuestionContent() {
           <div className="space-y-3">
             {options.map((opt, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center font-bold text-emerald-600">
+                <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center font-bold text-blue-500">
                   {opt.label}.
                 </span>
                 <input
@@ -397,8 +391,7 @@ function CreateQuestionContent() {
                   value={opt.text}
                   onChange={(e) => updateOptionText(i, e.target.value)}
                   placeholder={`選項 ${opt.label} 內容`}
-                  className="flex-1 px-3 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <button
                   type="button"
@@ -414,7 +407,7 @@ function CreateQuestionContent() {
         </div>
 
         {/* Answer */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">答案</h2>
           {type === "MULTI" ? (
             <div className="flex flex-wrap gap-3">
@@ -436,7 +429,7 @@ function CreateQuestionContent() {
                         );
                       }
                     }}
-                    className="accent-emerald-600"
+                    className="accent-blue-500"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -452,7 +445,7 @@ function CreateQuestionContent() {
                     value={opt.label}
                     checked={answer === opt.label}
                     onChange={(e) => setAnswer(e.target.value)}
-                    className="accent-emerald-600"
+                    className="accent-blue-500"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -463,20 +456,19 @@ function CreateQuestionContent() {
         </div>
 
         {/* Explanation */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">解析</h2>
           <textarea
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
             placeholder="輸入答案解析..."
-            className="w-full h-32 px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-y"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
             required
           />
         </div>
 
         {/* Wrong option explanations */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">各錯誤選項說明</h2>
           <div className="space-y-3">
             {options.filter((opt) => !answer.includes(opt.label)).map((opt) => (
@@ -489,8 +481,7 @@ function CreateQuestionContent() {
                     setWrongExplanations({ ...wrongExplanations, [opt.label]: e.target.value })
                   }
                   placeholder={`說明選項 ${opt.label} 為何不正確...`}
-                  className="w-full px-3 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             ))}
@@ -498,14 +489,13 @@ function CreateQuestionContent() {
         </div>
 
         {/* Extended knowledge */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">延伸知識</h2>
           <textarea
             value={extendedKnowledge}
             onChange={(e) => setExtendedKnowledge(e.target.value)}
             placeholder="輸入相關的延伸知識..."
-            className="w-full h-32 px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-y"
-            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
           />
         </div>
 
@@ -519,14 +509,14 @@ function CreateQuestionContent() {
         <div className="flex justify-end gap-3">
           <Link
             href="/questions"
-            className="btn-secondary px-6 py-2.5 font-medium"
+            className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full font-medium transition-colors"
           >
             取消
           </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="btn-nature px-6 py-2.5 font-medium shadow-sm"
+            className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed text-white rounded-full font-medium shadow-sm transition-colors"
           >
             {submitting ? "儲存中..." : editId ? "更新題目" : "建立題目"}
           </button>

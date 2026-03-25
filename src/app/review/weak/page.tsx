@@ -105,7 +105,7 @@ export default function WeakPointsPage() {
       </div>
 
       {/* Bank weakness ranking */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫弱點排名</h2>
         {bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄，無法分析弱點</p>
@@ -148,7 +148,7 @@ export default function WeakPointsPage() {
                   </div>
                   <button
                     onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
-                    className="btn-nature rounded-full text-sm font-medium transition-colors flex-shrink-0"
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium transition-colors flex-shrink-0"
                   >
                     加強練習
                   </button>
@@ -160,7 +160,7 @@ export default function WeakPointsPage() {
       </div>
 
       {/* Most frequently wrong */}
-      <div className="glass-card rounded-2xl p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">最常錯的題目</h2>
         {mostWrong.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無錯題記錄</p>
@@ -170,7 +170,7 @@ export default function WeakPointsPage() {
               <Link
                 key={q.questionId}
                 href={`/questions/${q.questionId}`}
-                className="block p-3 glass-card rounded-2xl hover:border-emerald-300 hover:shadow-sm transition-all"
+                className="block p-3 bg-gray-50 border border-gray-200 rounded-2xl hover:border-blue-300 hover:shadow-sm transition-all"
               >
                 <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">

@@ -178,7 +178,7 @@ export default function ImportPage() {
       </div>
 
       {/* Upload area */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯入題目 (JSON)</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -187,7 +187,7 @@ export default function ImportPage() {
             onClick={() => setImportMode("new")}
             className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
               importMode === "new"
-                ? "border-emerald-500 bg-emerald-50"
+                ? "border-blue-400 bg-blue-50"
                 : "border-gray-200 bg-white hover:bg-gray-50"
             }`}
           >
@@ -199,7 +199,7 @@ export default function ImportPage() {
             onClick={() => setImportMode("existing")}
             className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
               importMode === "existing"
-                ? "border-emerald-500 bg-emerald-50"
+                ? "border-blue-400 bg-blue-50"
                 : "border-gray-200 bg-white hover:bg-gray-50"
             }`}
           >
@@ -217,8 +217,7 @@ export default function ImportPage() {
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文 N1 文法"
-                className="w-full px-4 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -229,8 +228,7 @@ export default function ImportPage() {
                 value={bankDescription}
                 onChange={(e) => setBankDescription(e.target.value)}
                 placeholder="簡短描述這個題庫的內容"
-                className="w-full px-4 py-2 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </>
@@ -240,8 +238,7 @@ export default function ImportPage() {
             <select
               value={selectedBankId}
               onChange={(e) => setSelectedBankId(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">選擇題庫</option>
               {questionBanks.map((bank) => (
@@ -253,7 +250,7 @@ export default function ImportPage() {
           </div>
         )}
 
-        <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center" style={{ background: 'var(--accent-bg)' }}>
+        <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 text-center">
           <input
             type="file"
             accept=".json"
@@ -263,7 +260,7 @@ export default function ImportPage() {
           />
           <label
             htmlFor="file-upload"
-            className="cursor-pointer text-gray-400 hover:text-emerald-600 transition-colors"
+            className="cursor-pointer text-gray-400 hover:text-blue-500 transition-colors"
           >
             <div className="space-y-2">
               <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,11 +281,11 @@ export default function ImportPage() {
 
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">預覽匯入題目 ({preview.length} 題)</h2>
           <div className="max-h-96 overflow-y-auto space-y-3">
             {preview.map((q, i) => (
-              <div key={i} className="p-3 rounded-xl" style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}>
+              <div key={i} className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 <p className="text-sm font-medium text-gray-900 line-clamp-2">{q.stem}</p>
                 <div className="flex gap-2 mt-2 text-xs text-gray-400">
                   <span>{q.type || "SINGLE"}</span>
@@ -308,7 +305,7 @@ export default function ImportPage() {
               importing ||
               (importMode === "new" ? !bankName.trim() : !selectedBankId)
             }
-            className="w-full btn-nature py-2.5 font-medium disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors"
           >
             {importing
               ? "匯入中..."
@@ -321,7 +318,7 @@ export default function ImportPage() {
 
       {/* Import result */}
       {result && (
-        <div className="glass-card rounded-2xl p-6 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">匯入結果</h2>
           {result.questionBankName && (
             <p className="text-sm text-gray-500">題庫：{result.questionBankName}</p>
@@ -347,24 +344,24 @@ export default function ImportPage() {
       )}
 
       {/* Export */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯出全部題目</h2>
         <p className="text-sm text-gray-500">將所有題目匯出為 JSON 檔案</p>
         <button
           onClick={handleExport}
-          className="btn-nature px-4 py-2 text-sm font-medium"
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium transition-colors"
         >
           匯出 JSON
         </button>
       </div>
 
       {/* Sample format */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">JSON 格式範例</h2>
         <p className="text-sm text-gray-500">
           匯入時需要提供題庫名稱。JSON 檔案可以包含 questionBankName 欄位，或在匯入時手動輸入。
         </p>
-        <pre className="p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre" style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}>
+        <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
           {SAMPLE_JSON}
         </pre>
       </div>
