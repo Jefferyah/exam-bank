@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { DifficultyStars } from "@/components/icons";
 
 interface QuestionBank {
   id: string;
@@ -171,7 +172,7 @@ export default function ExamSetupPage() {
                   : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
               }`}
             >
-              {"★".repeat(d)}
+              <DifficultyStars value={d} />
             </button>
           ))}
         </div>

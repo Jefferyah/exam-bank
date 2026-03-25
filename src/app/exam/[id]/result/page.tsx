@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn, DIFFICULTY_LABELS } from "@/lib/utils";
+import { CheckCircle, XCircle } from "@/components/icons";
 
 interface ExamResult {
   id: string;
@@ -202,11 +203,8 @@ export default function ExamResultPage() {
                 onClick={() => toggleExpand(a.id)}
                 className="w-full p-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors"
               >
-                <span className={cn(
-                  "w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold flex-shrink-0",
-                  a.isCorrect ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-                )}>
-                  {a.isCorrect ? "O" : "X"}
+                <span className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold flex-shrink-0">
+                  {a.isCorrect ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
                 </span>
                 <span className="flex-1 text-sm text-gray-900 line-clamp-1">
                   {i + 1}. {a.question.stem}

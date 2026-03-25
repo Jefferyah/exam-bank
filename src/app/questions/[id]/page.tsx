@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable, Warning } from "@/components/icons";
 
 interface AiResult {
   success: boolean;
@@ -198,19 +199,19 @@ export default function QuestionDetailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/questions" className="text-gray-600 hover:text-gray-900">
-            &larr; 返回題庫
+          <Link href="/questions" className="flex items-center gap-1 text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="w-4 h-4" /> 返回題庫
           </Link>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleToggleFavorite}
             className={cn(
-              "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+              "flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
               isFavorited ? "bg-amber-100 text-amber-700 border border-amber-300" : "bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200"
             )}
           >
-            {isFavorited ? "★ 已收藏" : "☆ 收藏"}
+            {isFavorited ? <><BookmarkFilled className="w-4 h-4" /> 已收藏</> : <><BookmarkEmpty className="w-4 h-4" /> 收藏</>}
           </button>
           <Link
             href={`/questions/create?edit=${question.id}`}
@@ -236,27 +237,19 @@ export default function QuestionDetailPage() {
           {question.type === "SINGLE" ? "單選題" : question.type === "MULTI" ? "多選題" : "情境題"}
         </span>
         <span className="px-2.5 py-1 bg-amber-50 text-amber-600 text-sm rounded-full inline-flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((star) => {
-            const d = userDifficulty ?? question.difficulty;
-            return (
-              <button
-                key={star}
-                onClick={async () => {
-                  setUserDifficulty(star);
-                  try {
-                    await fetch("/api/user-difficulty", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ questionId: question.id, difficulty: star }),
-                    });
-                  } catch {}
-                }}
-                className={cn("transition-colors", star <= d ? "text-amber-500" : "text-amber-200 hover:text-amber-400")}
-              >
-                ★
-              </button>
-            );
-          })}
+          <DifficultyStarsClickable
+            value={userDifficulty ?? question.difficulty}
+            onChange={async (star) => {
+              setUserDifficulty(star);
+              try {
+                await fetch("/api/user-difficulty", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ questionId: question.id, difficulty: star }),
+                });
+              } catch {}
+            }}
+          />
           <span className="ml-1">{DIFFICULTY_LABELS[userDifficulty ?? question.difficulty]}</span>
         </span>
         {question.category && (
@@ -352,7 +345,7 @@ export default function QuestionDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
-            <p className="text-sm text-amber-500 mt-1">⚠️ 功能開發中，尚未設定 API Key</p>
+            <p className="text-sm text-amber-500 mt-1 flex items-center gap-1"><Warning className="w-4 h-4 text-amber-500" /> 功能開發中，尚未設定 API Key</p>
           </div>
           <button
             disabled

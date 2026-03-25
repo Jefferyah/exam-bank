@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { ArrowLeft } from "@/components/icons";
 
 interface BankAccuracy {
   questionBankId: string;
@@ -90,7 +91,7 @@ export default function BankAnalysisPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/analytics" className="text-gray-600 hover:text-gray-900">&larr; 返回分析</Link>
+        <Link href="/analytics" className="flex items-center gap-1 text-gray-600 hover:text-gray-900"><ArrowLeft className="w-4 h-4" /> 返回分析</Link>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">題庫分析</h1>
       </div>
 

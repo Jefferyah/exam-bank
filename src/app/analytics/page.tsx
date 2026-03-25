@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { DifficultyStars } from "@/components/icons";
 
 interface AnalyticsData {
   totalExams: number;
@@ -219,7 +220,7 @@ export default function AnalyticsPage() {
                     </svg>
                     <span className="text-sm font-bold z-10 text-gray-900">{d.accuracy.toFixed(0)}%</span>
                   </div>
-                  <p className="text-xs text-amber-500 mt-2">{"★".repeat(d.difficulty)}</p>
+                  <div className="flex justify-center mt-2"><DifficultyStars value={d.difficulty} /></div>
                   <p className="text-xs text-gray-600">{d.total} 題 ({percentage.toFixed(0)}%)</p>
                   <p className="text-xs text-gray-400">{DIFFICULTY_LABELS[d.difficulty]}</p>
                 </div>

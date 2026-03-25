@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { DifficultyStars } from "@/components/icons";
 
 interface WrongQuestion {
   questionId: string;
@@ -205,7 +206,7 @@ export default function ReviewPage() {
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">錯 {q.wrongCount} 次</span>
                     <span>{q.questionBankName}</span>
-                    <span className="text-amber-500">{"★".repeat(q.difficulty)}</span>
+                    <DifficultyStars value={q.difficulty} />
                     <span>最後錯誤：{new Date(q.lastWrongAt).toLocaleDateString("zh-TW")}</span>
                   </div>
                 </Link>
@@ -233,7 +234,7 @@ export default function ReviewPage() {
                     <p className="text-sm text-gray-900 line-clamp-2">{f.question.stem}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                       <span>{f.question.questionBank?.name || "未分類"}</span>
-                      <span className="text-amber-500">{"★".repeat(f.question.difficulty)}</span>
+                      <DifficultyStars value={f.question.difficulty} />
                     </div>
                   </Link>
                   <button

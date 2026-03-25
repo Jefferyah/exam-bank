@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft } from "@/components/icons";
 
 const SAMPLE_FORMAT_A = `[
   {
@@ -232,9 +233,9 @@ export default function ImportPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/questions"
-          className="text-gray-600 hover:text-gray-900"
+          className="flex items-center gap-1 text-gray-600 hover:text-gray-900"
         >
-          &larr; 返回題庫
+          <ArrowLeft className="w-4 h-4" /> 返回題庫
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">匯入/匯出題目</h1>
       </div>
@@ -374,8 +375,8 @@ export default function ImportPage() {
             {detectedFormat && (
               <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">
                 {detectedFormat === "external"
-                  ? "🔄 偵測到外部格式，將自動轉換"
-                  : "✅ 系統格式"}
+                  ? "偵測到外部格式，將自動轉換"
+                  : "系統格式"}
               </span>
             )}
           </div>
@@ -503,7 +504,7 @@ export default function ImportPage() {
         {sampleTab === "A" ? (
           <div className="space-y-3">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 space-y-1">
-              <p className="font-medium">✨ 簡易格式特點：</p>
+              <p className="font-medium">簡易格式特點：</p>
               <ul className="list-disc list-inside text-blue-600 space-y-0.5">
                 <li>
                   用 <code className="bg-blue-100 px-1 rounded">question</code>{" "}
@@ -534,7 +535,7 @@ export default function ImportPage() {
         ) : (
           <div className="space-y-3">
             <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 space-y-1">
-              <p className="font-medium">📋 完整格式特點：</p>
+              <p className="font-medium">完整格式特點：</p>
               <ul className="list-disc list-inside text-purple-600 space-y-0.5">
                 <li>
                   可在 JSON 內指定{" "}

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { ArrowLeft, DifficultyStars } from "@/components/icons";
 
 interface BankAccuracy {
   questionBankId: string;
@@ -100,7 +101,7 @@ export default function WeakPointsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/review" className="text-gray-600 hover:text-gray-900">&larr; 返回複習</Link>
+        <Link href="/review" className="flex items-center gap-1 text-gray-600 hover:text-gray-900"><ArrowLeft className="w-4 h-4" /> 返回複習</Link>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">弱點分析</h1>
       </div>
 
@@ -176,7 +177,7 @@ export default function WeakPointsPage() {
                 <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">錯 {q.wrongCount} 次</span>
                   <span>{q.questionBankName}</span>
-                  <span className="text-amber-500">{"★".repeat(q.difficulty)}</span>
+                  <DifficultyStars value={q.difficulty} />
                 </div>
               </Link>
             ))}

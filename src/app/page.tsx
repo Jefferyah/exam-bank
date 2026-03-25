@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Sparkle } from "@/components/icons";
 
 interface AnalyticsData {
   totalExams: number;
@@ -73,7 +74,7 @@ export default function HomePage() {
       <div className="text-center space-y-8 max-w-3xl mx-auto">
         {/* Badge */}
         <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
-          <span>✨</span>
+          <Sparkle className="w-4 h-4 text-amber-400" />
           <span>多題庫管理・智慧出題・模擬考</span>
         </div>
 

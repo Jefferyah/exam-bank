@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { DifficultyStars } from "@/components/icons";
 
 interface QuestionBank {
   id: string;
@@ -357,9 +358,7 @@ export default function QuestionsPage() {
                     <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
                       {q.type === "SINGLE" ? "單選" : q.type === "MULTI" ? "多選" : "情境"}
                     </span>
-                    <span className="text-xs text-amber-500">
-                      {"★".repeat(q.difficulty)}{"☆".repeat(5 - q.difficulty)}
-                    </span>
+                    <DifficultyStars value={q.difficulty} />
                     {q.tags?.slice(0, 3).map((tag, i) => (
                       <span key={i} className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
                         {tag}

@@ -195,7 +195,7 @@ export function Navbar() {
               onClick={() => { toggleTheme(); setMenuOpen(false); }}
               className={cn("w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg", isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50")}
             >
-              {isDark ? "☀️ 淺色模式" : "🌙 暗色模式"}
+              {isDark ? "淺色模式" : "暗色模式"}
             </button>
             {session?.user ? (
               <button onClick={handleLogout} className={cn("w-full text-left px-4 py-2.5 text-sm rounded-lg", isDark ? "text-[#7a8599]" : "text-gray-600 hover:bg-gray-50")}>
