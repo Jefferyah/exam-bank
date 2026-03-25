@@ -3,12 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const SAMPLE_JSON = `{
+const SAMPLE_FORMAT_A = `[
+  {
+    "type": "mc",
+    "chapter": "Chapter 1",
+    "question": "Which of the following is NOT a common cloud service model?",
+    "options": [
+      "Software as a Service (SaaS)",
+      "Programming as a Service (PraaS)",
+      "Infrastructure as a Service (IaaS)",
+      "Platform as a Service (PaaS)"
+    ],
+    "answer": "B",
+    "explanation": "Programming as a Service is not a common model."
+  }
+]`;
+
+const SAMPLE_FORMAT_B = `{
   "questionBankName": "我的題庫名稱",
   "questionBankDescription": "題庫描述（選填）",
   "questions": [
     {
-      "stem": "Which of the following is the MOST important consideration...",
+      "stem": "Which of the following is the MOST important...",
       "type": "SINGLE",
       "options": [
         { "label": "A", "text": "Option A text" },
@@ -29,16 +45,36 @@ const SAMPLE_JSON = `{
 }`;
 
 interface PreviewQuestion {
-  stem: string;
+  stem?: string;
+  question?: string;
   type?: string;
   category?: string;
+  chapter?: string;
   difficulty?: number;
-  options?: { label: string; text: string }[];
+  options?: unknown[];
 }
 
 interface QuestionBank {
   id: string;
   name: string;
+}
+
+/** Extract display stem from either format */
+function getStem(q: PreviewQuestion): string {
+  return (q.stem || q.question || "(無題幹)") as string;
+}
+
+/** Get option count from either format */
+function getOptionCount(q: PreviewQuestion): number {
+  if (!q.options || !Array.isArray(q.options)) return 0;
+  return q.options.length;
+}
+
+/** Detect format type for display */
+function detectFormat(q: PreviewQuestion): string {
+  if (q.question && !q.stem) return "外部格式";
+  if (q.stem && !q.question) return "系統格式";
+  return "自動偵測";
 }
 
 export default function ImportPage() {
@@ -49,9 +85,16 @@ export default function ImportPage() {
   const [selectedBankId, setSelectedBankId] = useState("");
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
   const [preview, setPreview] = useState<PreviewQuestion[]>([]);
+  const [detectedFormat, setDetectedFormat] = useState<"external" | "internal" | "">("");
   const [parseError, setParseError] = useState("");
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<{ imported: number; skipped: number; errors: string[]; questionBankName?: string } | null>(null);
+  const [result, setResult] = useState<{
+    imported: number;
+    skipped: number;
+    errors: string[];
+    questionBankName?: string;
+  } | null>(null);
+  const [sampleTab, setSampleTab] = useState<"A" | "B">("A");
 
   useEffect(() => {
     async function fetchBanks() {
@@ -74,6 +117,7 @@ export default function ImportPage() {
 
     setParseError("");
     setResult(null);
+    setDetectedFormat("");
 
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -82,13 +126,21 @@ export default function ImportPage() {
       try {
         const parsed = JSON.parse(text);
 
-        // Support both formats: { questionBankName, questions: [...] } or [...]
         if (Array.isArray(parsed)) {
+          // Plain array — check if it's external format (has "question" field)
           setPreview(parsed);
+          if (parsed.length > 0 && parsed[0].question && !parsed[0].stem) {
+            setDetectedFormat("external");
+          } else {
+            setDetectedFormat("internal");
+          }
         } else if (parsed.questions && Array.isArray(parsed.questions)) {
+          // Wrapped format { questionBankName, questions: [...] }
           setPreview(parsed.questions);
           if (parsed.questionBankName) setBankName(parsed.questionBankName);
-          if (parsed.questionBankDescription) setBankDescription(parsed.questionBankDescription);
+          if (parsed.questionBankDescription)
+            setBankDescription(parsed.questionBankDescription);
+          setDetectedFormat("internal");
         } else {
           setParseError("JSON 格式不正確，請使用正確的匯入格式");
           return;
@@ -116,7 +168,6 @@ export default function ImportPage() {
     setParseError("");
 
     try {
-      // Parse original content and rebuild with bank info
       const parsed = JSON.parse(fileContent);
       const questions = Array.isArray(parsed) ? parsed : parsed.questions;
 
@@ -143,7 +194,11 @@ export default function ImportPage() {
           questionBankName: data.questionBankName,
         });
       } else {
-        setResult({ imported: 0, skipped: 0, errors: [data.error || "匯入失敗"] });
+        setResult({
+          imported: 0,
+          skipped: 0,
+          errors: [data.error || "匯入失敗"],
+        });
       }
     } catch {
       setResult({ imported: 0, skipped: 0, errors: ["匯入失敗，請重試"] });
@@ -157,7 +212,9 @@ export default function ImportPage() {
       const res = await fetch("/api/import-export");
       if (res.ok) {
         const data = await res.json();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -173,7 +230,12 @@ export default function ImportPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/questions" className="text-gray-500 hover:text-gray-900">&larr; 返回題庫</Link>
+        <Link
+          href="/questions"
+          className="text-gray-500 hover:text-gray-900"
+        >
+          &larr; 返回題庫
+        </Link>
         <h1 className="text-2xl font-bold text-gray-900">匯入/匯出題目</h1>
       </div>
 
@@ -192,7 +254,9 @@ export default function ImportPage() {
             }`}
           >
             <p className="font-medium text-gray-900">建立新題庫</p>
-            <p className="text-sm text-gray-500 mt-1">把匯入內容放進全新的題庫</p>
+            <p className="text-sm text-gray-500 mt-1">
+              把匯入內容放進全新的題庫
+            </p>
           </button>
           <button
             type="button"
@@ -204,14 +268,18 @@ export default function ImportPage() {
             }`}
           >
             <p className="font-medium text-gray-900">加入現有題庫</p>
-            <p className="text-sm text-gray-500 mt-1">把新題目追加到既有題庫中</p>
+            <p className="text-sm text-gray-500 mt-1">
+              把新題目追加到既有題庫中
+            </p>
           </button>
         </div>
 
         {importMode === "new" ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">題庫名稱 *</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">
+                題庫名稱 *
+              </label>
               <input
                 type="text"
                 value={bankName}
@@ -222,7 +290,9 @@ export default function ImportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">題庫描述（選填）</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">
+                題庫描述（選填）
+              </label>
               <input
                 type="text"
                 value={bankDescription}
@@ -234,7 +304,9 @@ export default function ImportPage() {
           </>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-500 mb-1">選擇現有題庫 *</label>
+            <label className="block text-sm font-medium text-gray-500 mb-1">
+              選擇現有題庫 *
+            </label>
             <select
               value={selectedBankId}
               onChange={(e) => setSelectedBankId(e.target.value)}
@@ -263,11 +335,23 @@ export default function ImportPage() {
             className="cursor-pointer text-gray-400 hover:text-blue-500 transition-colors"
           >
             <div className="space-y-2">
-              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
               <p className="text-gray-600">點擊選擇 JSON 檔案</p>
-              <p className="text-sm text-gray-400">支援 .json 格式</p>
+              <p className="text-sm text-gray-400">
+                支援兩種格式：簡易格式（純陣列）或完整格式（含題庫名稱）
+              </p>
             </div>
           </label>
         </div>
@@ -282,19 +366,40 @@ export default function ImportPage() {
       {/* Preview */}
       {preview.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">預覽匯入題目 ({preview.length} 題)</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              預覽匯入題目 ({preview.length} 題)
+            </h2>
+            {detectedFormat && (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">
+                {detectedFormat === "external"
+                  ? "🔄 偵測到外部格式，將自動轉換"
+                  : "✅ 系統格式"}
+              </span>
+            )}
+          </div>
           <div className="max-h-96 overflow-y-auto space-y-3">
             {preview.map((q, i) => (
-              <div key={i} className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                <p className="text-sm font-medium text-gray-900 line-clamp-2">{q.stem}</p>
-                <div className="flex gap-2 mt-2 text-xs text-gray-400">
-                  <span>{q.type || "SINGLE"}</span>
+              <div
+                key={i}
+                className="p-3 bg-gray-50 border border-gray-200 rounded-xl"
+              >
+                <p
+                  className="text-sm font-medium text-gray-900 line-clamp-2"
+                  dangerouslySetInnerHTML={{
+                    __html: getStem(q).replace(/<br\s*\/?>/gi, " "),
+                  }}
+                />
+                <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-400">
+                  <span>{q.type || "mc"}</span>
                   <span>|</span>
-                  <span>{q.category || "無分類"}</span>
+                  <span>{q.chapter || q.category || "無分類"}</span>
                   <span>|</span>
                   <span>難度 {q.difficulty || 3}</span>
                   <span>|</span>
-                  <span>{q.options?.length || 0} 選項</span>
+                  <span>{getOptionCount(q)} 選項</span>
+                  <span>|</span>
+                  <span>{detectFormat(q)}</span>
                 </div>
               </div>
             ))}
@@ -321,15 +426,21 @@ export default function ImportPage() {
         <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">匯入結果</h2>
           {result.questionBankName && (
-            <p className="text-sm text-gray-500">題庫：{result.questionBankName}</p>
+            <p className="text-sm text-gray-500">
+              題庫：{result.questionBankName}
+            </p>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
-              <p className="text-2xl font-bold text-emerald-500">{result.imported}</p>
+              <p className="text-2xl font-bold text-emerald-500">
+                {result.imported}
+              </p>
               <p className="text-sm text-gray-500">成功匯入</p>
             </div>
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
-              <p className="text-2xl font-bold text-amber-500">{result.skipped}</p>
+              <p className="text-2xl font-bold text-amber-500">
+                {result.skipped}
+              </p>
               <p className="text-sm text-gray-500">已跳過</p>
             </div>
           </div>
@@ -355,15 +466,187 @@ export default function ImportPage() {
         </button>
       </div>
 
-      {/* Sample format */}
+      {/* Sample formats */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">JSON 格式範例</h2>
+        <h2 className="text-lg font-semibold text-gray-900">
+          JSON 格式範例
+        </h2>
         <p className="text-sm text-gray-500">
-          匯入時需要提供題庫名稱。JSON 檔案可以包含 questionBankName 欄位，或在匯入時手動輸入。
+          系統支援兩種匯入格式，會自動偵測並轉換。
         </p>
-        <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
-          {SAMPLE_JSON}
-        </pre>
+
+        {/* Tabs */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSampleTab("A")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              sampleTab === "A"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            格式 A：簡易格式（推薦）
+          </button>
+          <button
+            onClick={() => setSampleTab("B")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              sampleTab === "B"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            格式 B：完整格式
+          </button>
+        </div>
+
+        {sampleTab === "A" ? (
+          <div className="space-y-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 space-y-1">
+              <p className="font-medium">✨ 簡易格式特點：</p>
+              <ul className="list-disc list-inside text-blue-600 space-y-0.5">
+                <li>
+                  用 <code className="bg-blue-100 px-1 rounded">question</code>{" "}
+                  取代{" "}
+                  <code className="bg-blue-100 px-1 rounded">stem</code>
+                </li>
+                <li>
+                  選項直接用字串陣列{" "}
+                  <code className="bg-blue-100 px-1 rounded">
+                    [&quot;A&quot;, &quot;B&quot;, ...]
+                  </code>
+                  ，系統自動加 A/B/C/D 標籤
+                </li>
+                <li>
+                  題型用{" "}
+                  <code className="bg-blue-100 px-1 rounded">mc</code>
+                  ，系統自動轉換為 SINGLE
+                </li>
+                <li>
+                  缺少的欄位（難度、標籤等）自動給預設值
+                </li>
+              </ul>
+            </div>
+            <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+              {SAMPLE_FORMAT_A}
+            </pre>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 space-y-1">
+              <p className="font-medium">📋 完整格式特點：</p>
+              <ul className="list-disc list-inside text-purple-600 space-y-0.5">
+                <li>
+                  可在 JSON 內指定{" "}
+                  <code className="bg-purple-100 px-1 rounded">
+                    questionBankName
+                  </code>
+                </li>
+                <li>
+                  選項用物件{" "}
+                  <code className="bg-purple-100 px-1 rounded">
+                    {`{label, text}`}
+                  </code>
+                </li>
+                <li>
+                  支援{" "}
+                  <code className="bg-purple-100 px-1 rounded">
+                    wrongOptionExplanations
+                  </code>
+                  、
+                  <code className="bg-purple-100 px-1 rounded">
+                    extendedKnowledge
+                  </code>
+                </li>
+                <li>可自訂 difficulty、tags、category</li>
+              </ul>
+            </div>
+            <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+              {SAMPLE_FORMAT_B}
+            </pre>
+          </div>
+        )}
+
+        {/* Field mapping table */}
+        <div className="mt-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+            欄位對照表
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 pr-4 text-gray-500 font-medium">
+                    簡易格式
+                  </th>
+                  <th className="text-left py-2 pr-4 text-gray-500 font-medium">
+                    完整格式
+                  </th>
+                  <th className="text-left py-2 text-gray-500 font-medium">
+                    說明
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-600">
+                <tr className="border-b border-gray-100">
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">question</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">stem</code>
+                  </td>
+                  <td className="py-1.5">題幹（必填）</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">[&quot;str&quot;, ...]</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">
+                      [{`{label, text}`}]
+                    </code>
+                  </td>
+                  <td className="py-1.5">選項（必填）</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">mc</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">SINGLE</code>
+                  </td>
+                  <td className="py-1.5">題型（自動轉換）</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">answer</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">answer</code>
+                  </td>
+                  <td className="py-1.5">答案（必填，如 &quot;B&quot;）</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">explanation</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">explanation</code>
+                  </td>
+                  <td className="py-1.5">解析（必填）</td>
+                </tr>
+                <tr>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-blue-600">chapter</code>
+                  </td>
+                  <td className="py-1.5 pr-4">
+                    <code className="text-purple-600">chapter</code>
+                  </td>
+                  <td className="py-1.5">章節（選填）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
