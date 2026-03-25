@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
       timeLimit,
       wrongOnly = false,
       favoriteOnly = false,
+      notedOnly = false,
     } = body;
 
     if (!title) {
@@ -129,6 +130,27 @@ export async function POST(req: NextRequest) {
         questionWhere.id = { in: existingIds.filter((id: string) => favIds.includes(id)) };
       } else {
         questionWhere.id = { in: favIds };
+      }
+    }
+
+    // Filter for noted-only questions
+    if (notedOnly) {
+      const notes = await prisma.note.findMany({
+        where: { userId: session.user.id },
+        select: { questionId: true },
+      });
+      const noteIds = notes.map((n) => n.questionId);
+      if (noteIds.length === 0) {
+        return NextResponse.json(
+          { error: "No noted questions found" },
+          { status: 400 }
+        );
+      }
+      if (questionWhere.id) {
+        const existingIds = (questionWhere.id as { in: string[] }).in;
+        questionWhere.id = { in: existingIds.filter((id: string) => noteIds.includes(id)) };
+      } else {
+        questionWhere.id = { in: noteIds };
       }
     }
 

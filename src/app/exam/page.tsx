@@ -22,6 +22,7 @@ export default function ExamSetupPage() {
   const [timeLimit, setTimeLimit] = useState(60);
   const [wrongOnly, setWrongOnly] = useState(false);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [notedOnly, setNotedOnly] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,6 +72,7 @@ export default function ExamSetupPage() {
         timeLimit: mode === "MOCK" ? timeLimit * 60 : undefined,
         wrongOnly,
         favoriteOnly,
+        notedOnly,
       };
 
       const res = await fetch("/api/exams", {
@@ -228,6 +230,15 @@ export default function ExamSetupPage() {
             className="accent-blue-500"
           />
           <span className="text-gray-700">只出收藏題</span>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={notedOnly}
+            onChange={(e) => setNotedOnly(e.target.checked)}
+            className="accent-blue-500"
+          />
+          <span className="text-gray-700">只出筆記題</span>
         </label>
       </div>
 
