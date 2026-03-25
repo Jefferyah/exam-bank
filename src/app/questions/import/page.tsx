@@ -123,10 +123,19 @@ export default function ImportPage() {
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const text = ev.target?.result as string;
+      let text = ev.target?.result as string;
+
       setFileContent(text);
       try {
-        const parsed = JSON.parse(text);
+        let parsed;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          // Auto-fix common JSON issues: double-escaped quotes \\" → \"
+          const fixed = text.replace(/\\\\"/g, '\\"');
+          parsed = JSON.parse(fixed);
+          setFileContent(fixed);
+        }
 
         if (Array.isArray(parsed)) {
           // Plain array — check if it's external format (has "question" field)
@@ -147,8 +156,9 @@ export default function ImportPage() {
           setParseError("JSON 格式不正確，請使用正確的匯入格式");
           return;
         }
-      } catch {
-        setParseError("JSON 格式錯誤，請檢查檔案內容");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "";
+        setParseError(`JSON 格式錯誤：${msg || "請檢查檔案內容"}`);
       }
     };
     reader.readAsText(file);
