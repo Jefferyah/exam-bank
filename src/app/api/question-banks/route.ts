@@ -11,9 +11,16 @@ export async function GET() {
 
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
 
-    // Each user only sees their own question banks
-    // Admin can see all
-    const where = isAdmin ? {} : { createdById: session.user.id };
+    // Users see: their own banks + all public banks
+    // Admin sees all
+    const where = isAdmin
+      ? {}
+      : {
+          OR: [
+            { createdById: session.user.id },
+            { isPublic: true },
+          ],
+        };
 
     const questionBanks = await prisma.questionBank.findMany({
       where,
@@ -42,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description } = body;
+    const { name, description, isPublic } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -55,6 +62,7 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         description: description || null,
+        isPublic: isPublic === true,
         createdById: session.user.id,
       },
     });

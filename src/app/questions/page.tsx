@@ -9,6 +9,8 @@ interface QuestionBank {
   id: string;
   name: string;
   description?: string;
+  isPublic?: boolean;
+  createdById?: string;
   _count?: { questions: number };
   createdBy?: { name: string | null; email: string };
 }
@@ -120,6 +122,21 @@ export default function QuestionsPage() {
     }
   }
 
+  async function handleTogglePublic(bankId: string, currentlyPublic: boolean) {
+    try {
+      const res = await fetch(`/api/question-banks/${bankId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic: !currentlyPublic }),
+      });
+      if (res.ok) {
+        await fetchBanks();
+      }
+    } catch {
+      alert("修改失敗，請重試");
+    }
+  }
+
   async function handleRenameBank(bankId: string) {
     if (!editingName.trim()) return;
     setSavingBankId(bankId);
@@ -222,11 +239,22 @@ export default function QuestionsPage() {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-gray-900 truncate">{bank.name}</p>
                         <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
                           {bank._count?.questions ?? 0} 題
                         </span>
+                        {bank.isPublic ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-full flex-shrink-0">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
+                            公開
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full flex-shrink-0">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+                            私人
+                          </span>
+                        )}
                       </div>
                     )}
                     {bank.description && editingBankId !== bank.id && (
@@ -236,6 +264,18 @@ export default function QuestionsPage() {
                   <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                     {editingBankId !== bank.id && (
                       <>
+                        {/* Toggle public/private */}
+                        <button
+                          onClick={() => handleTogglePublic(bank.id, !!bank.isPublic)}
+                          className={cn(
+                            "px-3 py-1.5 text-xs rounded-full transition-colors",
+                            bank.isPublic
+                              ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                              : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                          )}
+                        >
+                          {bank.isPublic ? "設為私人" : "設為公開"}
+                        </button>
                         {/* Rename bank */}
                         <button
                           onClick={() => { setEditingBankId(bank.id); setEditingName(bank.name); }}

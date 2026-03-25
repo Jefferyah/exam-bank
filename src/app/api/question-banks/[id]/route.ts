@@ -41,7 +41,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await req.json();
-    const { name, description } = body;
+    const { name, description, isPublic } = body;
 
     const bank = await prisma.questionBank.findUnique({ where: { id } });
     if (!bank) {
@@ -58,6 +58,7 @@ export async function PUT(
       data: {
         ...(name && { name }),
         ...(description !== undefined && { description }),
+        ...(isPublic !== undefined && { isPublic }),
       },
     });
 
