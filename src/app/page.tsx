@@ -110,15 +110,34 @@ export default function HomePage() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="題庫總數" value={totalQuestions} icon="📚" accent="bg-blue-500" />
-        <StatCard label="已完成測驗" value={analytics?.completedExams || 0} icon="✅" accent="bg-emerald-500" />
+        <StatCard
+          label="題庫總數"
+          value={totalQuestions}
+          iconBg="bg-blue-50"
+          iconColor="text-blue-500"
+          icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>}
+        />
+        <StatCard
+          label="已完成測驗"
+          value={analytics?.completedExams || 0}
+          iconBg="bg-emerald-50"
+          iconColor="text-emerald-500"
+          icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+        />
         <StatCard
           label="平均分數"
           value={`${(analytics?.avgScore || 0).toFixed(1)}%`}
-          icon="📊"
-          accent="bg-amber-500"
+          iconBg="bg-amber-50"
+          iconColor="text-amber-500"
+          icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg>}
         />
-        <StatCard label="錯題次數" value={wrongCount} icon="❌" accent="bg-red-500" />
+        <StatCard
+          label="錯題次數"
+          value={wrongCount}
+          iconBg="bg-red-50"
+          iconColor="text-red-500"
+          icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+        />
       </div>
 
       {/* Quick actions */}
@@ -203,15 +222,14 @@ export default function HomePage() {
   );
 }
 
-function StatCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent: string }) {
+function StatCard({ label, value, icon, iconBg, iconColor }: { label: string; value: string | number; icon: React.ReactNode; iconBg: string; iconColor: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-md transition-shadow relative overflow-hidden">
-      <div className={cn("absolute top-0 left-0 right-0 h-1 rounded-t-2xl", accent)} />
-      <div className="flex items-center justify-between">
-        <span className="text-2xl">{icon}</span>
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow">
+      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg, iconColor)}>
+        {icon}
       </div>
-      <p className="text-2xl font-bold mt-2 text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-2xl font-bold mt-3 text-gray-900">{value}</p>
+      <p className="text-sm text-gray-500 mt-0.5">{label}</p>
     </div>
   );
 }
