@@ -70,25 +70,41 @@ export default function HomePage() {
   if (!session) {
     return (
       <div className="hero-gradient flex flex-col items-center justify-center min-h-[80vh] px-4">
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-            <span className="text-blue-500">Powerful</span> 題庫系統
+        <div className="text-center space-y-8 max-w-3xl mx-auto">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
+            <span>✨</span>
+            <span>支援 AI 三模型同步解題</span>
+            <span className="text-gray-400">→</span>
+          </div>
+
+          {/* Hero heading */}
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+            <span className="text-gray-900">打造</span>{" "}
+            <span className="text-gradient">最強</span>
+            <br />
+            <span className="text-gray-900">題庫練習系統</span>
           </h1>
-          <p className="text-lg text-gray-500 max-w-md mx-auto">
-            全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析
+
+          <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto leading-relaxed">
+            多題庫管理、智慧出題、模擬考、AI 解題、學習分析。
+            全方位備考平台，讓每次練習都有效率。
           </p>
-          <div className="flex items-center justify-center gap-3">
+
+          <div className="flex items-center justify-center gap-4 pt-2">
             <Link
               href="/login"
-              className="inline-block px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-lg font-medium shadow-sm transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
             >
               開始使用
+              <span>→</span>
             </Link>
             <Link
               href="/questions"
-              className="inline-block px-8 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
             >
               瀏覽題庫
+              <span className="text-gray-400">→</span>
             </Link>
           </div>
         </div>

@@ -48,16 +48,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50">
+    <div className="hero-gradient min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            <span className="text-blue-500">Powerful</span> 題庫系統
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            歡迎回來
           </h1>
-          <p className="mt-2 text-gray-500">登入以開始學習</p>
+          <p className="mt-2 text-gray-500">登入 ExamBank 開始學習</p>
         </div>
 
-        <div className="bg-white shadow-lg rounded-2xl p-8 space-y-6 border border-gray-200">
+        <div className="bg-white shadow-xl rounded-2xl p-8 space-y-6 border border-gray-200">
           {/* Email login */}
           <form onSubmit={handleCredentialLogin} className="space-y-4">
             <div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed rounded-full text-white font-medium shadow-sm transition-colors"
+              className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full text-white font-medium shadow-sm transition-colors"
             >
               {loading ? "登入中..." : "登入 / 註冊"}
             </button>

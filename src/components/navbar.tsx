@@ -34,18 +34,24 @@ export function Navbar() {
   const isDark = theme === "dark";
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <nav className={cn(
+      "sticky top-0 z-50 backdrop-blur-xl border-b transition-colors",
+      isDark
+        ? "bg-[#09090b]/80 border-[#27272a]"
+        : "bg-white/80 border-gray-100"
+    )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="text-xl font-bold">
-              <span className="text-gray-900">Exam</span><span className="text-blue-500">Bank</span>
+            <span className="text-xl font-bold tracking-tight">
+              <span className={isDark ? "text-white" : "text-gray-900"}>Exam</span>
+              <span className={isDark ? "text-cyan-400" : "text-blue-500"}>Bank</span>
             </span>
           </Link>
 
-          {/* Desktop nav - centered pill tabs */}
-          <div className="hidden md:flex items-center bg-gray-50 rounded-full p-1">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
               return (
@@ -55,8 +61,12 @@ export function Navbar() {
                   className={cn(
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
                     isActive
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? isDark
+                        ? "bg-[#27272a] text-white"
+                        : "bg-gray-100 text-gray-900"
+                      : isDark
+                        ? "text-zinc-400 hover:text-white"
+                        : "text-gray-500 hover:text-gray-900"
                   )}
                 >
                   {link.label}
@@ -69,16 +79,21 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+              className={cn(
+                "inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors",
+                isDark
+                  ? "text-zinc-400 hover:text-white hover:bg-[#27272a]"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              )}
               aria-label={isDark ? "切換為淺色模式" : "切換為暗色模式"}
               title={isDark ? "切換為淺色模式" : "切換為暗色模式"}
             >
               {isDark ? (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
                 </svg>
               ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
                 </svg>
               )}
@@ -87,12 +102,17 @@ export function Navbar() {
               <div className="h-8 w-20 bg-gray-100 rounded-full animate-pulse" />
             ) : session?.user ? (
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-500">
+                <span className={cn("text-sm", isDark ? "text-zinc-400" : "text-gray-500")}>
                   {session.user.name || session.user.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+                  className={cn(
+                    "px-4 py-1.5 text-sm rounded-full transition-colors",
+                    isDark
+                      ? "text-zinc-400 hover:text-white hover:bg-[#27272a]"
+                      : "text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100"
+                  )}
                 >
                   登出
                 </button>
@@ -100,16 +120,24 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-5 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors shadow-sm"
+                className={cn(
+                  "px-5 py-2 text-sm rounded-full font-medium transition-all",
+                  isDark
+                    ? "bg-cyan-500 hover:bg-cyan-400 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                    : "bg-gray-900 hover:bg-gray-800 text-white"
+                )}
               >
-                登入
+                開始使用 →
               </Link>
             )}
           </div>
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+            className={cn(
+              "md:hidden p-2 rounded-lg",
+              isDark ? "text-zinc-400 hover:text-white" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+            )}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,7 +153,10 @@ export function Navbar() {
 
       {/* Mobile menu */}
       <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
-        <div className="px-4 pt-2 pb-4 space-y-1 border-t border-gray-100 bg-white">
+        <div className={cn(
+          "px-4 pt-2 pb-4 space-y-1 border-t",
+          isDark ? "border-[#27272a] bg-[#09090b]" : "border-gray-100 bg-white"
+        )}>
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
             return (
@@ -135,8 +166,8 @@ export function Navbar() {
                 className={cn(
                   "block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? isDark ? "bg-[#27272a] text-white" : "bg-blue-50 text-blue-600"
+                    : isDark ? "text-zinc-400 hover:text-white" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 )}
                 onClick={() => setMenuOpen(false)}
               >
@@ -144,13 +175,16 @@ export function Navbar() {
               </Link>
             );
           })}
-          <div className="pt-3 border-t border-gray-100">
+          <div className={cn("pt-3 border-t", isDark ? "border-[#27272a]" : "border-gray-100")}>
             <button
               onClick={() => {
                 toggleTheme();
                 setMenuOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg",
+                isDark ? "text-zinc-400" : "text-gray-600 hover:bg-gray-50"
+              )}
             >
               {isDark ? (
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -165,10 +199,15 @@ export function Navbar() {
             </button>
             {session?.user ? (
               <div className="space-y-2">
-                <p className="px-4 text-sm text-gray-400">{session.user.name || session.user.email}</p>
+                <p className={cn("px-4 text-sm", isDark ? "text-zinc-500" : "text-gray-400")}>
+                  {session.user.name || session.user.email}
+                </p>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 text-sm rounded-lg",
+                    isDark ? "text-zinc-400" : "text-gray-600 hover:bg-gray-50"
+                  )}
                 >
                   登出
                 </button>
@@ -176,7 +215,10 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="block px-4 py-2.5 text-sm font-medium text-blue-500"
+                className={cn(
+                  "block px-4 py-2.5 text-sm font-medium",
+                  isDark ? "text-cyan-400" : "text-blue-500"
+                )}
                 onClick={() => setMenuOpen(false)}
               >
                 登入
