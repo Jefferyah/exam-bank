@@ -85,6 +85,20 @@ export default function ExamTakingPage() {
           setUserAnswers(existing);
           setFlagged(existingFlags);
           setDifficulties(existingDiff);
+
+          // Load user's personal difficulty ratings
+          try {
+            const diffRes = await fetch("/api/user-difficulty");
+            if (diffRes.ok) {
+              const diffData = await diffRes.json();
+              const userDiff: Record<string, number> = {};
+              for (const r of diffData.ratings || []) {
+                userDiff[r.questionId] = r.difficulty;
+              }
+              // User ratings override defaults
+              setDifficulties((prev) => ({ ...prev, ...userDiff }));
+            }
+          } catch { /* ignore */ }
         }
       } catch (err) {
         console.error(err);
@@ -162,10 +176,10 @@ export default function ExamTakingPage() {
   async function handleSetDifficulty(questionId: string, diff: number) {
     setDifficulties((prev) => ({ ...prev, [questionId]: diff }));
     try {
-      await fetch(`/api/questions/${questionId}`, {
-        method: "PUT",
+      await fetch("/api/user-difficulty", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ difficulty: diff }),
+        body: JSON.stringify({ questionId, difficulty: diff }),
       });
     } catch (err) {
       console.error(err);

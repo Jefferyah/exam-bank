@@ -4,6 +4,12 @@ import { auth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
@@ -15,6 +21,11 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get("category");
 
     const where: Record<string, unknown> = {};
+
+    // Non-admin users only see questions from their own banks
+    if (!isAdmin) {
+      where.questionBank = { createdById: session.user.id };
+    }
 
     if (search) {
       where.OR = [

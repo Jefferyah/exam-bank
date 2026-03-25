@@ -4,7 +4,19 @@ import { auth } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+
+    // Each user only sees their own question banks
+    // Admin can see all
+    const where = isAdmin ? {} : { createdById: session.user.id };
+
     const questionBanks = await prisma.questionBank.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       include: {
         _count: { select: { questions: true } },

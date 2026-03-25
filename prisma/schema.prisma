@@ -26,6 +26,7 @@ model User {
   favorites           Favorite[]
   wrongRecords        WrongRecord[]
   questionBanks       QuestionBank[]
+  userDifficulties    UserDifficulty[]
   inviteCodesCreated  InviteCode[] @relation("InviteCodesCreated")
   usedInviteCode      InviteCode?  @relation("InviteCodeUsed")
 }
@@ -99,10 +100,23 @@ model Question {
 
   questionBank  QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
   createdBy     User?        @relation(fields: [createdById], references: [id])
-  examAnswers   ExamAnswer[]
-  notes         Note[]
-  favorites     Favorite[]
-  wrongRecords  WrongRecord[]
+  examAnswers      ExamAnswer[]
+  notes            Note[]
+  favorites        Favorite[]
+  wrongRecords     WrongRecord[]
+  userDifficulties UserDifficulty[]
+}
+
+model UserDifficulty {
+  id         String @id @default(cuid())
+  userId     String
+  questionId String
+  difficulty Int    // 1-5
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
 }
 
 model Exam {

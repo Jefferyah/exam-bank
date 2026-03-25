@@ -42,6 +42,7 @@ export default function QuestionDetailPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [aiResults, setAiResults] = useState<{ claude: AiResult; openai: AiResult; gemini: AiResult } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [userDifficulty, setUserDifficulty] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchQuestion() {
@@ -67,9 +68,10 @@ export default function QuestionDetailPage() {
 
     async function checkFavoriteAndNote() {
       try {
-        const [favRes, noteRes] = await Promise.all([
+        const [favRes, noteRes, diffRes] = await Promise.all([
           fetch(`/api/favorites?questionId=${params.id}`),
           fetch(`/api/notes?questionId=${params.id}`),
+          fetch(`/api/user-difficulty?questionId=${params.id}`),
         ]);
 
         if (favRes.ok) {
@@ -84,6 +86,13 @@ export default function QuestionDetailPage() {
           if (found) {
             setNote(found.content);
             setSavedNote(found.content);
+          }
+        }
+
+        if (diffRes.ok) {
+          const data = await diffRes.json();
+          if (data.ratings?.[0]?.difficulty) {
+            setUserDifficulty(data.ratings[0].difficulty);
           }
         }
       } catch (err) {
@@ -226,8 +235,29 @@ export default function QuestionDetailPage() {
         <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
           {question.type === "SINGLE" ? "單選題" : question.type === "MULTI" ? "多選題" : "情境題"}
         </span>
-        <span className="px-2.5 py-1 bg-amber-50 text-amber-600 text-sm rounded-full">
-          {"★".repeat(question.difficulty)}{"☆".repeat(5 - question.difficulty)} {DIFFICULTY_LABELS[question.difficulty]}
+        <span className="px-2.5 py-1 bg-amber-50 text-amber-600 text-sm rounded-full inline-flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => {
+            const d = userDifficulty ?? question.difficulty;
+            return (
+              <button
+                key={star}
+                onClick={async () => {
+                  setUserDifficulty(star);
+                  try {
+                    await fetch("/api/user-difficulty", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ questionId: question.id, difficulty: star }),
+                    });
+                  } catch {}
+                }}
+                className={cn("transition-colors", star <= d ? "text-amber-500" : "text-amber-200 hover:text-amber-400")}
+              >
+                ★
+              </button>
+            );
+          })}
+          <span className="ml-1">{DIFFICULTY_LABELS[userDifficulty ?? question.difficulty]}</span>
         </span>
         {question.category && (
           <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-sm rounded-full">
