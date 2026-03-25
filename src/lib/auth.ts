@@ -25,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (existingUser) {
-          if (existingUser.email === "demo@example.com" && existingUser.role !== "ADMIN") {
+          if (existingUser.email === "Jeffer@gmail.com" && existingUser.role !== "ADMIN") {
             return prisma.user.update({
               where: { id: existingUser.id },
               data: { role: "ADMIN" },
