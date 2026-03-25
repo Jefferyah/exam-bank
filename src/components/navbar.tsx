@@ -36,8 +36,8 @@ function Logo({ isDark }: { isDark: boolean }) {
         </span>
       ) : (
         /* Light mode: no icon, gradient purple text */
-        <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-[#6366f1] via-[#8b5cf6] to-[#a855f7] bg-clip-text text-transparent">
-          ExamBank
+        <span className="text-2xl font-bold tracking-tight">
+          <span className="text-gray-900">Exam</span><span className="bg-gradient-to-r from-[#6366f1] via-[#8b5cf6] to-[#a855f7] bg-clip-text text-transparent">Bank</span>
         </span>
       )}
     </Link>
