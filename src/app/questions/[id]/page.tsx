@@ -320,18 +320,30 @@ export default function QuestionDetailPage() {
       {/* AI Solve */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
+            <p className="text-sm text-amber-500 mt-1">⚠️ 功能開發中，尚未設定 API Key</p>
+          </div>
           <button
-            onClick={handleAiSolve}
-            disabled={aiLoading}
-            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
+            disabled
+            className="px-4 py-2 bg-gray-200 text-gray-400 cursor-not-allowed rounded-full text-sm font-medium"
+            title="尚未設定 API Key，功能暫時無法使用"
           >
-            {aiLoading ? "分析中..." : "AI 解題"}
+            AI 解題（即將推出）
           </button>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(["Claude", "OpenAI", "Gemini"] as const).map((model) => (
+            <div key={model} className="bg-gray-50 border border-gray-200 border-dashed rounded-xl p-4 opacity-60">
+              <h3 className="font-semibold text-gray-400 mb-2">{model}</h3>
+              <p className="text-sm text-gray-400">需要設定 {model} API Key 才能使用</p>
+            </div>
+          ))}
+        </div>
+
         {aiResults && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             {(["claude", "openai", "gemini"] as const).map((model) => {
               const result = aiResults[model];
               return (
@@ -379,7 +391,7 @@ export default function QuestionDetailPage() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="在此輸入你的筆記..."
-            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full min-h-[200px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
           <div className="flex items-center justify-between mt-3">
             {savedNote && note === savedNote && (
