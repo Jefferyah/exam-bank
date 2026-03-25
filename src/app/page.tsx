@@ -91,39 +91,35 @@ export default function HomePage() {
           全方位備考平台，讓每次練習都有效率
         </p>
 
-        <div className="flex items-center justify-center gap-4 pt-2">
+        <div className="flex items-center justify-center gap-3 pt-2">
           {session ? (
             <>
               <Link
                 href="/exam"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-base md:text-lg font-medium transition-all shadow-lg hover:shadow-xl whitespace-nowrap"
               >
-                開始練習
-                <span>→</span>
+                開始練習 →
               </Link>
               <Link
                 href="/questions"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-base md:text-lg font-medium transition-all whitespace-nowrap"
               >
-                瀏覽題庫
-                <span className="text-gray-400">→</span>
+                瀏覽題庫 →
               </Link>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-base md:text-lg font-medium transition-all shadow-lg hover:shadow-xl whitespace-nowrap"
               >
-                開始使用
-                <span>→</span>
+                開始使用 →
               </Link>
               <Link
                 href="/questions"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
+                className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-base md:text-lg font-medium transition-all whitespace-nowrap"
               >
-                瀏覽題庫
-                <span className="text-gray-400">→</span>
+                瀏覽題庫 →
               </Link>
             </>
           )}

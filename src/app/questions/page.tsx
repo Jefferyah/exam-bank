@@ -283,9 +283,11 @@ export default function QuestionsPage() {
           />
           <button
             type="submit"
-            className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium shadow-sm transition-all"
+            className="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-sm font-medium shadow-sm transition-all flex-shrink-0"
+            title="搜尋"
           >
-            搜尋
+            <svg className="w-4 h-4 md:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            <span className="hidden md:inline">搜尋</span>
           </button>
         </form>
 

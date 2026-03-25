@@ -160,13 +160,13 @@ export default function ExamSetupPage() {
       {/* Difficulty */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">難度範圍</h2>
-        <div className="flex gap-3">
+        <div className="flex gap-2 md:gap-3 overflow-x-auto pb-1 -mx-1 px-1">
           {[1, 2, 3, 4, 5].map((d) => (
             <button
               key={d}
               type="button"
               onClick={() => toggleDifficulty(d)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+              className={`flex-shrink-0 px-3 md:px-4 py-2 rounded-full text-sm font-medium transition-all border ${
                 difficultyRange.includes(d)
                   ? "bg-blue-50 border-blue-200 shadow-sm"
                   : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
