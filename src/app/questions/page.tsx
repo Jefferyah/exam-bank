@@ -41,6 +41,9 @@ export default function QuestionsPage() {
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
   const [showBankManager, setShowBankManager] = useState(false);
   const [deletingBankId, setDeletingBankId] = useState<string | null>(null);
+  const [editingBankId, setEditingBankId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [savingBankId, setSavingBankId] = useState<string | null>(null);
 
   const fetchBanks = useCallback(async () => {
     try {
@@ -116,6 +119,30 @@ export default function QuestionsPage() {
     }
   }
 
+  async function handleRenameBank(bankId: string) {
+    if (!editingName.trim()) return;
+    setSavingBankId(bankId);
+    try {
+      const res = await fetch(`/api/question-banks/${bankId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingName.trim() }),
+      });
+      if (res.ok) {
+        await fetchBanks();
+        setEditingBankId(null);
+        setEditingName("");
+      } else {
+        const data = await res.json();
+        alert(data.error || "修改失敗");
+      }
+    } catch {
+      alert("修改失敗，請重試");
+    } finally {
+      setSavingBankId(null);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
@@ -169,35 +196,72 @@ export default function QuestionsPage() {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 truncate">{bank.name}</p>
-                      <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
-                        {bank._count?.questions ?? 0} 題
-                      </span>
-                    </div>
-                    {bank.description && (
+                    {editingBankId === bank.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleRenameBank(bank.id); if (e.key === "Escape") { setEditingBankId(null); setEditingName(""); } }}
+                          className="flex-1 px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleRenameBank(bank.id)}
+                          disabled={savingBankId === bank.id}
+                          className="px-3 py-1 text-xs text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-all disabled:opacity-50"
+                        >
+                          {savingBankId === bank.id ? "..." : "儲存"}
+                        </button>
+                        <button
+                          onClick={() => { setEditingBankId(null); setEditingName(""); }}
+                          className="px-3 py-1 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900 truncate">{bank.name}</p>
+                        <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
+                          {bank._count?.questions ?? 0} 題
+                        </span>
+                      </div>
+                    )}
+                    {bank.description && editingBankId !== bank.id && (
                       <p className="text-sm text-gray-600 mt-0.5 truncate">{bank.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                    {/* Filter by this bank */}
-                    <button
-                      onClick={() => {
-                        setQuestionBankId(bank.id);
-                        setShowBankManager(false);
-                      }}
-                      className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
-                    >
-                      篩選
-                    </button>
-                    {/* Delete bank */}
-                    <button
-                      onClick={() => handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
-                      disabled={deletingBankId === bank.id}
-                      className="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-full transition-colors disabled:opacity-50"
-                    >
-                      {deletingBankId === bank.id ? "刪除中..." : "刪除"}
-                    </button>
+                    {editingBankId !== bank.id && (
+                      <>
+                        {/* Rename bank */}
+                        <button
+                          onClick={() => { setEditingBankId(bank.id); setEditingName(bank.name); }}
+                          className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                        >
+                          改名
+                        </button>
+                        {/* Filter by this bank */}
+                        <button
+                          onClick={() => {
+                            setQuestionBankId(bank.id);
+                            setShowBankManager(false);
+                          }}
+                          className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
+                        >
+                          篩選
+                        </button>
+                        {/* Delete bank */}
+                        <button
+                          onClick={() => handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
+                          disabled={deletingBankId === bank.id}
+                          className="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-full transition-colors disabled:opacity-50"
+                        >
+                          {deletingBankId === bank.id ? "刪除中..." : "刪除"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

@@ -10,7 +10,7 @@ interface AnalyticsData {
   completedExams: number;
   avgScore: number;
   bankAccuracy: { questionBankId: string; questionBankName: string; total: number; correct: number; accuracy: number }[];
-  recentTrend: { id: string; title: string; score: number | null; finishedAt: string; startedAt: string }[];
+  recentTrend: { id: string; title: string; score: number | null; finishedAt: string; startedAt: string; questionBankNames?: string[] }[];
   mostWrongQuestions: { questionId: string; stem: string; questionBankName: string; difficulty: number; wrongCount: number; lastWrongAt: string }[];
 }
 
@@ -181,11 +181,18 @@ export default function HomePage() {
               >
                 <div>
                   <p className="font-medium text-gray-900">{exam.title || "測驗"}</p>
-                  <p className="text-sm text-gray-500">
-                    {exam.finishedAt
-                      ? new Date(exam.finishedAt).toLocaleDateString("zh-TW")
-                      : "進行中"}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-sm text-gray-500">
+                      {exam.finishedAt
+                        ? new Date(exam.finishedAt).toLocaleDateString("zh-TW")
+                        : "進行中"}
+                    </p>
+                    {exam.questionBankNames && exam.questionBankNames.length > 0 && (
+                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full truncate max-w-[200px]">
+                        {exam.questionBankNames.join(", ")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className={cn(
                   "text-lg font-bold",

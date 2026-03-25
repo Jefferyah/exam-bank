@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
           id: true,
           title: true,
           score: true,
+          config: true,
           finishedAt: true,
           startedAt: true,
         },
@@ -139,14 +140,23 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => a.difficulty - b.difficulty);
 
-    // Recent trend (last 10 exams)
-    const recentTrend = recentExams.map((e) => ({
-      id: e.id,
-      title: e.title,
-      score: e.score,
-      finishedAt: e.finishedAt,
-      startedAt: e.startedAt,
-    }));
+    // Recent trend (last 10 exams) — include question bank names
+    const recentTrend = recentExams.map((e) => {
+      let bankNames: string[] = [];
+      try {
+        const cfg = JSON.parse(e.config);
+        const bankIds: string[] = cfg.questionBankIds || [];
+        bankNames = bankIds.map((id: string) => bankMap.get(id) || id);
+      } catch { /* ignore */ }
+      return {
+        id: e.id,
+        title: e.title,
+        score: e.score,
+        finishedAt: e.finishedAt,
+        startedAt: e.startedAt,
+        questionBankNames: bankNames,
+      };
+    });
 
     // Most wrong questions
     const allWrongQuestions = wrongRecords.map((r) => ({
