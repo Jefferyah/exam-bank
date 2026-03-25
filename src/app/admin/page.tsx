@@ -14,6 +14,8 @@ interface AdminStats {
 interface InviteCode {
   id: string;
   code: string;
+  maxUses: number;
+  usedCount: number;
   createdAt: string;
   usedAt: string | null;
   createdBy: { name: string | null; email: string | null };
@@ -27,6 +29,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [generateCount, setGenerateCount] = useState(1);
+  const [generateMaxUses, setGenerateMaxUses] = useState(0); // 0 = unlimited
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function AdminPage() {
       const res = await fetch("/api/invite-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count: generateCount }),
+        body: JSON.stringify({ count: generateCount, maxUses: generateMaxUses }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -125,8 +128,8 @@ export default function AdminPage() {
     );
   }
 
-  const unusedCodes = inviteCodes.filter((c) => !c.usedBy);
-  const usedCodes = inviteCodes.filter((c) => c.usedBy);
+  const unusedCodes = inviteCodes.filter((c) => c.maxUses === 0 || c.usedCount < c.maxUses);
+  const usedCodes = inviteCodes.filter((c) => c.maxUses > 0 && c.usedCount >= c.maxUses);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -195,6 +198,18 @@ export default function AdminPage() {
                     <option key={n} value={n}>{n} 組</option>
                   ))}
                 </select>
+                <select
+                  value={generateMaxUses}
+                  onChange={(e) => setGenerateMaxUses(parseInt(e.target.value))}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={0}>不限次數</option>
+                  <option value={1}>限用 1 次</option>
+                  <option value={5}>限用 5 次</option>
+                  <option value={10}>限用 10 次</option>
+                  <option value={50}>限用 50 次</option>
+                  <option value={100}>限用 100 次</option>
+                </select>
                 <button
                   onClick={handleGenerateCodes}
                   disabled={generating}
@@ -214,7 +229,7 @@ export default function AdminPage() {
                     key={ic.id}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-xl border",
-                      ic.usedBy
+                      (ic.maxUses > 0 && ic.usedCount >= ic.maxUses)
                         ? "bg-gray-50 border-gray-200"
                         : "bg-blue-50/50 border-blue-200"
                     )}
@@ -222,32 +237,33 @@ export default function AdminPage() {
                     <div className="flex items-center gap-3">
                       <code className={cn(
                         "font-mono text-sm font-bold px-2.5 py-1 rounded-lg",
-                        ic.usedBy
+                        (ic.maxUses > 0 && ic.usedCount >= ic.maxUses)
                           ? "bg-gray-100 text-gray-400 line-through"
                           : "bg-white text-blue-600 border border-blue-200"
                       )}>
                         {ic.code}
                       </code>
-                      <div className="text-xs text-gray-600">
-                        {ic.usedBy ? (
-                          <span>已被 <span className="text-gray-700 font-medium">{ic.usedBy.name || ic.usedBy.email}</span> 使用</span>
-                        ) : (
-                          <span className="text-blue-600 font-medium">未使用</span>
-                        )}
+                      <div className="text-xs text-gray-600 space-y-0.5">
+                        <div>
+                          已使用 <span className="font-medium text-gray-700">{ic.usedCount}</span> 次
+                          {ic.maxUses > 0 ? (
+                            <span> / {ic.maxUses} 次</span>
+                          ) : (
+                            <span className="text-blue-500 ml-1">（不限）</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-400 hidden sm:block">
                         {new Date(ic.createdAt).toLocaleDateString("zh-TW")}
                       </span>
-                      {!ic.usedBy && (
-                        <button
-                          onClick={() => copyCode(ic.code)}
-                          className="px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-600 transition-colors"
-                        >
-                          {copied === ic.code ? "已複製!" : "複製"}
-                        </button>
-                      )}
+                      <button
+                        onClick={() => copyCode(ic.code)}
+                        className="px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-600 transition-colors"
+                      >
+                        {copied === ic.code ? "已複製!" : "複製"}
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -50,11 +50,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("INVITE_CODE_INVALID");
         }
 
-        if (code.usedById) {
+        // Check if code has remaining uses (maxUses=0 means unlimited)
+        if (code.maxUses > 0 && code.usedCount >= code.maxUses) {
           throw new Error("INVITE_CODE_USED");
         }
 
-        // Create new user and mark invite code as used
+        // Create new user and increment invite code usage
         const newUser = await prisma.user.create({
           data: {
             email,
@@ -66,7 +67,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         await prisma.inviteCode.update({
           where: { id: code.id },
           data: {
-            usedById: newUser.id,
+            usedCount: { increment: 1 },
+            // Keep first user reference for backward compat
+            ...(!code.usedById ? { usedById: newUser.id } : {}),
             usedAt: new Date(),
           },
         });

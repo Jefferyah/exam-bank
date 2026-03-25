@@ -195,7 +195,9 @@ model InviteCode {
   id          String    @id @default(cuid())
   code        String    @unique
   createdById String
-  usedById    String?   @unique
+  maxUses     Int       @default(0)  // 0 = unlimited
+  usedCount   Int       @default(0)
+  usedById    String?   @unique      // kept for backward compat (first user)
   usedAt      DateTime?
   createdAt   DateTime  @default(now())
 

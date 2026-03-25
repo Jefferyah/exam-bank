@@ -67,55 +67,83 @@ export default function HomePage() {
     );
   }
 
-  if (!session) {
-    return (
-      <div className="hero-gradient flex flex-col items-center justify-center min-h-[80vh] px-4">
-        <div className="text-center space-y-8 max-w-3xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
-            <span>✨</span>
-            <span>支援 AI 三模型同步解題</span>
-            <span className="text-gray-400">→</span>
-          </div>
+  // Hero section — always shown (top of page)
+  const heroSection = (
+    <div className="hero-gradient flex flex-col items-center justify-center px-4 py-16 md:py-24">
+      <div className="text-center space-y-8 max-w-3xl mx-auto">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
+          <span>✨</span>
+          <span>多題庫管理、智慧出題、模擬考</span>
+          <span className="text-gray-400">→</span>
+        </div>
 
-          {/* Hero heading */}
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1]">
-            <span className="text-gray-900">打造</span>{" "}
-            <span className="text-gradient">最強</span>
-            <br />
-            <span className="text-gray-900">題庫練習系統</span>
-          </h1>
+        {/* Hero heading */}
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+          <span className="text-gray-900">打造</span>{" "}
+          <span className="text-gradient">最強</span>
+          <br />
+          <span className="text-gray-900">題庫練習系統</span>
+        </h1>
 
-          <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto leading-relaxed">
-            多題庫管理、智慧出題、模擬考、AI 解題、學習分析。
-            全方位備考平台，讓每次練習都有效率。
-          </p>
+        <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto leading-relaxed">
+          多題庫管理、智慧出題、模擬考、學習分析<br />
+          全方位備考平台，讓每次練習都有效率
+        </p>
 
-          <div className="flex items-center justify-center gap-4 pt-2">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
-            >
-              開始使用
-              <span>→</span>
-            </Link>
-            <Link
-              href="/questions"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
-            >
-              瀏覽題庫
-              <span className="text-gray-400">→</span>
-            </Link>
-          </div>
+        <div className="flex items-center justify-center gap-4 pt-2">
+          {session ? (
+            <>
+              <Link
+                href="/exam"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
+              >
+                開始練習
+                <span>→</span>
+              </Link>
+              <Link
+                href="/questions"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
+              >
+                瀏覽題庫
+                <span className="text-gray-400">→</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-lg font-medium transition-all shadow-lg hover:shadow-xl"
+              >
+                開始使用
+                <span>→</span>
+              </Link>
+              <Link
+                href="/questions"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-lg font-medium transition-all"
+              >
+                瀏覽題庫
+                <span className="text-gray-400">→</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
-    );
+    </div>
+  );
+
+  if (!session) {
+    return heroSection;
   }
 
   const wrongCount = analytics?.mostWrongQuestions?.reduce((sum, q) => sum + q.wrongCount, 0) || 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div>
+      {/* Hero — always visible */}
+      {heroSection}
+
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
       {/* Welcome */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
@@ -261,6 +289,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

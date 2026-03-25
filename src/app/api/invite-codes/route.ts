@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const count = Math.min(Math.max(body.count || 1, 1), 20); // 1-20 codes at a time
+    const maxUses = Math.max(body.maxUses ?? 0, 0); // 0 = unlimited
 
     const codes = [];
     for (let i = 0; i < count; i++) {
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
         data: {
           code: generateCode(),
           createdById: session.user.id,
+          maxUses,
         },
       });
       codes.push(code);
