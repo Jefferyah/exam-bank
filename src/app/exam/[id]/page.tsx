@@ -51,6 +51,14 @@ export default function ExamTakingPage() {
   const [elapsed, setElapsed] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Per-question note
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [savingNote, setSavingNote] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+  // Per-question difficulty override
+  const [difficulties, setDifficulties] = useState<Record<string, number>>({});
+  // Scroll ref
+  const questionTopRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchExam() {
@@ -64,20 +72,19 @@ export default function ExamTakingPage() {
           }
           setExam(data);
           const startedAt = new Date(data.startedAt).getTime();
-          const initialElapsed = Math.max(
-            0,
-            Math.floor((Date.now() - startedAt) / 1000)
-          );
+          const initialElapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
           setElapsed(initialElapsed);
-          // Restore any existing answers
           const existing: Record<string, string> = {};
           const existingFlags = new Set<string>();
+          const existingDiff: Record<string, number> = {};
           for (const a of data.answers) {
             if (a.userAnswer) existing[a.questionId] = a.userAnswer;
             if (a.flagged) existingFlags.add(a.questionId);
+            existingDiff[a.questionId] = a.question.difficulty;
           }
           setUserAnswers(existing);
           setFlagged(existingFlags);
+          setDifficulties(existingDiff);
         }
       } catch (err) {
         console.error(err);
@@ -89,20 +96,33 @@ export default function ExamTakingPage() {
     if (params.id) fetchExam();
   }, [params.id, router]);
 
+  // Fetch notes for current question
+  const currentAnswer = exam?.answers[currentIndex];
+  const currentQuestion = currentAnswer?.question;
+
+  useEffect(() => {
+    if (!currentQuestion) return;
+    const qId = currentQuestion.id;
+    if (notes[qId] !== undefined) return; // already loaded
+    fetch(`/api/notes?questionId=${qId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.notes?.[0]?.content) {
+          setNotes((prev) => ({ ...prev, [qId]: data.notes[0].content }));
+        } else {
+          setNotes((prev) => ({ ...prev, [qId]: "" }));
+        }
+      })
+      .catch(() => {});
+  }, [currentQuestion, notes]);
+
   // Timer
   useEffect(() => {
     if (!exam) return;
-    timerRef.current = setInterval(() => {
-      setElapsed((prev) => prev + 1);
-    }, 1000);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [exam]);
 
-  // Auto-submit if time's up (mock mode)
-  const currentAnswer = exam?.answers[currentIndex];
-  const currentQuestion = currentAnswer?.question;
   const isPractice = exam?.mode === "PRACTICE";
   const remaining = exam?.timeLimit ? exam.timeLimit - elapsed : null;
 
@@ -139,6 +159,46 @@ export default function ExamTakingPage() {
     });
   }
 
+  async function handleSetDifficulty(questionId: string, diff: number) {
+    setDifficulties((prev) => ({ ...prev, [questionId]: diff }));
+    try {
+      await fetch(`/api/questions/${questionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficulty: diff }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function handleSaveNote(questionId: string) {
+    const content = notes[questionId];
+    if (content === undefined) return;
+    setSavingNote(true);
+    try {
+      await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId, content: content || " " }),
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
+  function goToQuestion(index: number) {
+    setCurrentIndex(index);
+    setShowExplanation(false);
+    setShowNote(false);
+    // Scroll to top of question area
+    setTimeout(() => {
+      questionTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
   const saveAnswers = useCallback(async () => {
     if (!exam) return;
     const answers = Object.entries(userAnswers).map(([questionId, userAnswer]) => ({
@@ -157,7 +217,6 @@ export default function ExamTakingPage() {
     }
   }, [exam, userAnswers, flagged]);
 
-  // Auto-save periodically
   useEffect(() => {
     if (!exam) return;
     const interval = setInterval(saveAnswers, 30000);
@@ -194,12 +253,7 @@ export default function ExamTakingPage() {
   }, [exam, flagged, isPractice, router, submitting, userAnswers]);
 
   useEffect(() => {
-    if (
-      exam?.mode === "MOCK" &&
-      exam.timeLimit &&
-      elapsed >= exam.timeLimit &&
-      !submitting
-    ) {
+    if (exam?.mode === "MOCK" && exam.timeLimit && elapsed >= exam.timeLimit && !submitting) {
       handleFinish(true);
     }
   }, [elapsed, exam, handleFinish, submitting]);
@@ -226,6 +280,7 @@ export default function ExamTakingPage() {
   const answeredCount = Object.keys(userAnswers).length;
   const totalCount = exam.answers.length;
   const isMulti = currentQuestion.type === "MULTI";
+  const currentDifficulty = difficulties[currentQuestion.id] ?? currentQuestion.difficulty;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-4">
@@ -267,7 +322,7 @@ export default function ExamTakingPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Question navigation sidebar */}
         <div className="lg:w-48 flex-shrink-0">
-          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm lg:sticky lg:top-20">
             <p className="text-sm text-gray-600 mb-2">題目導覽</p>
             <div className="grid grid-cols-8 lg:grid-cols-4 gap-1.5">
               {exam.answers.map((a, i) => {
@@ -277,7 +332,7 @@ export default function ExamTakingPage() {
                 return (
                   <button
                     key={a.id}
-                    onClick={() => { setCurrentIndex(i); setShowExplanation(false); }}
+                    onClick={() => goToQuestion(i)}
                     className={cn(
                       "w-full aspect-square rounded-lg text-xs font-medium transition-colors relative",
                       isCurrent
@@ -312,7 +367,7 @@ export default function ExamTakingPage() {
         </div>
 
         {/* Main question area */}
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4" ref={questionTopRef}>
           {/* Progress */}
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
@@ -326,6 +381,22 @@ export default function ExamTakingPage() {
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-gray-600">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
               <div className="flex items-center gap-2">
+                {/* Difficulty stars */}
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => handleSetDifficulty(currentQuestion.id, star)}
+                      className={cn(
+                        "text-sm transition-colors",
+                        star <= currentDifficulty ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                      )}
+                      title={`難度 ${star}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={() => toggleFlag(currentQuestion.id)}
                   className={cn(
@@ -337,6 +408,19 @@ export default function ExamTakingPage() {
                 >
                   {flagged.has(currentQuestion.id) ? "★ 已標記" : "☆ 標記"}
                 </button>
+                <button
+                  onClick={() => setShowNote(!showNote)}
+                  className={cn(
+                    "px-2 py-1 rounded-full text-xs transition-all",
+                    showNote
+                      ? "bg-blue-50 text-blue-600 border border-blue-200"
+                      : notes[currentQuestion.id]
+                        ? "bg-blue-50 text-blue-500 border border-blue-100"
+                        : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
+                  )}
+                >
+                  📝 筆記
+                </button>
               </div>
             </div>
 
@@ -346,6 +430,28 @@ export default function ExamTakingPage() {
               <p className="text-sm text-amber-500 mt-2">（多選題，可選擇多個答案）</p>
             )}
           </div>
+
+          {/* Inline note */}
+          {showNote && (
+            <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-gray-700">📝 我的筆記</p>
+                <button
+                  onClick={() => handleSaveNote(currentQuestion.id)}
+                  disabled={savingNote}
+                  className="px-3 py-1 text-xs bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full transition-all"
+                >
+                  {savingNote ? "..." : "儲存"}
+                </button>
+              </div>
+              <textarea
+                value={notes[currentQuestion.id] ?? ""}
+                onChange={(e) => setNotes((prev) => ({ ...prev, [currentQuestion.id]: e.target.value }))}
+                placeholder="輸入筆記..."
+                className="w-full min-h-[80px] px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              />
+            </div>
+          )}
 
           {/* Options */}
           <div className="space-y-3">
@@ -412,23 +518,37 @@ export default function ExamTakingPage() {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between pt-4">
+          {/* Navigation — sticky bottom */}
+          <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-gray-100 -mx-4 px-4 py-3 flex items-center justify-between">
             <button
-              onClick={() => { setCurrentIndex((i) => Math.max(0, i - 1)); setShowExplanation(false); }}
+              onClick={() => goToQuestion(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
               className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
             >
-              上一題
+              ← 上一題
             </button>
             <span className="text-sm text-gray-400">{currentIndex + 1} / {totalCount}</span>
-            <button
-              onClick={() => { setCurrentIndex((i) => Math.min(totalCount - 1, i + 1)); setShowExplanation(false); }}
-              disabled={currentIndex === totalCount - 1}
-              className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
-            >
-              下一題
-            </button>
+            {currentIndex === totalCount - 1 ? (
+              <button
+                onClick={() => handleFinish()}
+                disabled={submitting}
+                className={cn(
+                  "px-6 py-2.5 rounded-full font-medium transition-all",
+                  isPractice
+                    ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                )}
+              >
+                {isPractice ? "結束練習" : "交卷"}
+              </button>
+            ) : (
+              <button
+                onClick={() => goToQuestion(Math.min(totalCount - 1, currentIndex + 1))}
+                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium transition-all"
+              >
+                下一題 →
+              </button>
+            )}
           </div>
         </div>
       </div>
