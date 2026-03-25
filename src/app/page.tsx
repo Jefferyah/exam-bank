@@ -176,15 +176,15 @@ export default function HomePage() {
             {analytics.recentTrend.map((exam) => {
               const pct = exam.score ?? 0;
               const barColor =
-                pct >= 80 ? "from-emerald-400 to-emerald-500"
-                : pct >= 60 ? "from-blue-400 to-blue-500"
-                : pct >= 40 ? "from-amber-400 to-amber-500"
-                : "from-red-400 to-red-500";
+                pct >= 80 ? "from-emerald-200 to-emerald-300"
+                : pct >= 60 ? "from-blue-200 to-blue-300"
+                : pct >= 40 ? "from-amber-200 to-amber-300"
+                : "from-red-200 to-red-300";
               const textColor =
-                pct >= 80 ? "text-emerald-600"
-                : pct >= 60 ? "text-blue-600"
-                : pct >= 40 ? "text-amber-600"
-                : "text-red-600";
+                pct >= 80 ? "text-emerald-500"
+                : pct >= 60 ? "text-blue-500"
+                : pct >= 40 ? "text-amber-500"
+                : "text-red-500";
               return (
                 <Link
                   key={exam.id}
@@ -251,7 +251,7 @@ export default function HomePage() {
                   <div
                     className={cn(
                       "h-2 rounded-full transition-all",
-                      d.accuracy >= 70 ? "bg-emerald-500" : d.accuracy >= 50 ? "bg-amber-500" : "bg-red-500"
+                      d.accuracy >= 70 ? "bg-emerald-300" : d.accuracy >= 50 ? "bg-amber-300" : "bg-red-300"
                     )}
                     style={{ width: `${d.accuracy}%` }}
                   />
