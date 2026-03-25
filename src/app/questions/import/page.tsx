@@ -131,8 +131,14 @@ export default function ImportPage() {
         try {
           parsed = JSON.parse(text);
         } catch {
-          // Auto-fix common JSON issues: double-escaped quotes \\" → \"
-          const fixed = text.replace(/\\\\"/g, '\\"');
+          // Auto-fix common JSON issues
+          let fixed = text;
+          // 1. Remove backslash before smart/curly quotes (invalid JSON escape)
+          fixed = fixed.replace(/\\[\u201c\u201d\u2018\u2019]/g, (m) => m.slice(1));
+          // 2. Fix double-escaped quotes \\" → \"
+          fixed = fixed.replace(/\\\\"/g, '\\"');
+          // 3. Remove BOM if present
+          fixed = fixed.replace(/^\uFEFF/, '');
           parsed = JSON.parse(fixed);
           setFileContent(fixed);
         }
