@@ -386,21 +386,27 @@ export default function ExamTakingPage() {
         {/* Answer feedback animation */}
         {answerFeedback && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            {/* Dim backdrop */}
+            <div className="absolute inset-0 bg-black/20 animate-[fadeIn_0.15s_ease-out]" />
+            {/* Card */}
             <div className={cn(
-              "rounded-full p-6 animate-[ping_0.6s_ease-out] opacity-0",
-              answerFeedback === "correct" ? "bg-emerald-400/20" : "bg-red-400/20"
-            )} />
-            <div className={cn(
-              "absolute text-6xl animate-[bounceIn_0.5s_ease-out]",
+              "relative rounded-3xl px-10 py-8 backdrop-blur-xl shadow-2xl animate-[bounceIn_0.5s_ease-out]",
+              answerFeedback === "correct"
+                ? "bg-white/90 border border-emerald-200"
+                : "bg-white/90 border border-red-200"
             )}>
               {answerFeedback === "correct" ? (
-                <div className="flex flex-col items-center gap-2">
-                  <svg className="w-16 h-16 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  </div>
                   <span className="text-lg font-bold text-emerald-600">答對了！</span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <svg className="w-16 h-16 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  </div>
                   <span className="text-lg font-bold text-red-600">再想想！</span>
                 </div>
               )}
