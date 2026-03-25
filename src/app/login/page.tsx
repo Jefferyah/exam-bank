@@ -48,20 +48,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50">
+    <div className="hero-gradient min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            <span className="text-blue-500">Powerful</span> 題庫系統
+          <p className="text-4xl mb-3">🌿</p>
+          <h1 className="text-3xl font-bold">
+            <span className="text-emerald-700">Exam</span>
+            <span className="text-amber-600">Bank</span>
           </h1>
-          <p className="mt-2 text-gray-500">登入以開始學習</p>
+          <p className="mt-2" style={{ color: 'var(--muted)' }}>登入以開始學習</p>
         </div>
 
-        <div className="bg-white shadow-lg rounded-2xl p-8 space-y-6 border border-gray-200">
+        <div className="glass-card rounded-2xl p-8 space-y-6">
           {/* Email login */}
           <form onSubmit={handleCredentialLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
                 Email
               </label>
               <input
@@ -70,14 +72,15 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-1">
-                邀請碼 <span className="text-gray-400 font-normal">（新用戶必填）</span>
+              <label htmlFor="inviteCode" className="block text-sm font-medium mb-1">
+                邀請碼 <span style={{ color: 'var(--muted)' }} className="font-normal">（新用戶必填）</span>
               </label>
               <input
                 id="inviteCode"
@@ -85,10 +88,11 @@ export default function LoginPage() {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 placeholder="輸入邀請碼"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
                 disabled={loading}
               />
-              <p className="mt-1 text-xs text-gray-400">已有帳號直接輸入 Email 即可登入</p>
+              <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>已有帳號直接輸入 Email 即可登入</p>
             </div>
 
             {error && (
@@ -100,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed rounded-full text-white font-medium shadow-sm transition-colors"
+              className="w-full py-2.5 btn-nature text-sm"
             >
               {loading ? "登入中..." : "登入 / 註冊"}
             </button>

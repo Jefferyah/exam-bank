@@ -177,7 +177,7 @@ export default function QuestionDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
         <p className="text-gray-500 text-lg">找不到此題目</p>
-        <Link href="/questions" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">
+        <Link href="/questions" className="text-emerald-600 hover:text-emerald-700 mt-2 inline-block">
           返回題庫
         </Link>
       </div>
@@ -205,7 +205,7 @@ export default function QuestionDetailPage() {
           </button>
           <Link
             href={`/questions/create?edit=${question.id}`}
-            className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors"
+            className="btn-secondary px-3 py-1.5 text-sm font-medium"
           >
             編輯
           </Link>
@@ -220,7 +220,7 @@ export default function QuestionDetailPage() {
 
       {/* Meta info */}
       <div className="flex flex-wrap gap-2">
-        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-sm rounded-full font-medium">
+        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-sm rounded-full font-medium">
           {question.questionBank?.name || "未分類"}
         </span>
         <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
@@ -247,13 +247,13 @@ export default function QuestionDetailPage() {
       </div>
 
       {/* Question stem */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="glass-card rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題目</h2>
         <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{question.stem}</p>
       </div>
 
       {/* Options */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="glass-card rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">選項</h2>
         <div className="space-y-3">
           {question.options.map((opt) => (
@@ -266,7 +266,7 @@ export default function QuestionDetailPage() {
                   : "border-gray-200 bg-gray-50"
               )}
             >
-              <span className="font-semibold text-blue-500 mr-2">{opt.label}.</span>
+              <span className="font-semibold text-emerald-600 mr-2">{opt.label}.</span>
               <span className="text-gray-700">{opt.text}</span>
             </div>
           ))}
@@ -276,7 +276,7 @@ export default function QuestionDetailPage() {
       {/* Show/hide answer toggle */}
       <button
         onClick={() => setShowAnswer(!showAnswer)}
-        className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
+        className="w-full btn-nature py-3 font-medium"
       >
         {showAnswer ? "隱藏答案" : "顯示答案"}
       </button>
@@ -284,18 +284,18 @@ export default function QuestionDetailPage() {
       {/* Answer & Explanation */}
       {showAnswer && (
         <>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="glass-card rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">正確答案</h2>
             <p className="text-2xl font-bold text-emerald-500">{question.answer}</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="glass-card rounded-2xl p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">解析</h2>
             <p className="text-gray-500 whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
           </div>
 
           {question.wrongOptionExplanations && Object.keys(question.wrongOptionExplanations).length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="glass-card rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">各選項說明</h2>
               <div className="space-y-3">
                 {Object.entries(question.wrongOptionExplanations).map(([label, explanation]) => (
@@ -309,7 +309,7 @@ export default function QuestionDetailPage() {
           )}
 
           {question.extendedKnowledge && (
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="glass-card rounded-2xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">延伸知識</h2>
               <p className="text-gray-500 whitespace-pre-wrap leading-relaxed">{question.extendedKnowledge}</p>
             </div>
@@ -318,7 +318,7 @@ export default function QuestionDetailPage() {
       )}
 
       {/* AI Solve */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
           <button
@@ -335,8 +335,8 @@ export default function QuestionDetailPage() {
             {(["claude", "openai", "gemini"] as const).map((model) => {
               const result = aiResults[model];
               return (
-                <div key={model} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <h3 className="font-semibold text-blue-500 mb-2 capitalize">{model}</h3>
+                <div key={model} className="rounded-xl p-4" style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}>
+                  <h3 className="font-semibold text-emerald-600 mb-2 capitalize">{model}</h3>
                   {result.success && result.data ? (
                     <div className="space-y-2 text-sm">
                       <p>
@@ -373,13 +373,14 @@ export default function QuestionDetailPage() {
 
       {/* Notes - inline per question */}
       {session && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">我的筆記</h2>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="在此輸入你的筆記..."
-            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full h-32 px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-y"
+            style={{ background: 'var(--accent-bg)', border: '1px solid var(--border)' }}
           />
           <div className="flex items-center justify-between mt-3">
             {savedNote && note === savedNote && (
@@ -389,7 +390,7 @@ export default function QuestionDetailPage() {
             <button
               onClick={handleSaveNote}
               disabled={savingNote || !note.trim() || note === savedNote}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
+              className="btn-nature px-4 py-2 text-sm font-medium disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               {savingNote ? "儲存中..." : "儲存筆記"}
             </button>
