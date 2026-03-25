@@ -50,6 +50,7 @@ export default function ExamTakingPage() {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [showExplanation, setShowExplanation] = useState(false);
+  const [answerFeedback, setAnswerFeedback] = useState<"correct" | "wrong" | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -382,6 +383,31 @@ export default function ExamTakingPage() {
           </div>
         </div>
 
+        {/* Answer feedback animation */}
+        {answerFeedback && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className={cn(
+              "rounded-full p-6 animate-[ping_0.6s_ease-out] opacity-0",
+              answerFeedback === "correct" ? "bg-emerald-400/20" : "bg-red-400/20"
+            )} />
+            <div className={cn(
+              "absolute text-6xl animate-[bounceIn_0.5s_ease-out]",
+            )}>
+              {answerFeedback === "correct" ? (
+                <div className="flex flex-col items-center gap-2">
+                  <svg className="w-16 h-16 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  <span className="text-lg font-bold text-emerald-600">答對了！</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <svg className="w-16 h-16 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  <span className="text-lg font-bold text-red-600">再想想！</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Main question area */}
         <div className="flex-1 space-y-4" ref={questionTopRef}>
           {/* Progress */}
@@ -394,11 +420,12 @@ export default function ExamTakingPage() {
 
           {/* Question */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-gray-600">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
-              <div className="flex items-center gap-2">
-                {/* Difficulty stars */}
+            <div className="mb-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
                 <DifficultyStarsClickable value={currentDifficulty} onChange={(d) => handleSetDifficulty(currentQuestion.id, d)} />
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <CopyQuestionButton
                   stem={currentQuestion.stem}
                   options={currentQuestion.options}
@@ -408,26 +435,26 @@ export default function ExamTakingPage() {
                 <button
                   onClick={() => toggleFlag(currentQuestion.id)}
                   className={cn(
-                    "px-2 py-1 rounded-full text-xs transition-all",
+                    "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all",
                     flagged.has(currentQuestion.id)
                       ? "bg-amber-100 text-amber-700 border border-amber-300"
-                      : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
+                      : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200"
                   )}
                 >
-                  {flagged.has(currentQuestion.id) ? <><FlagFilled className="w-3.5 h-3.5" /> 已標記</> : <><FlagEmpty className="w-3.5 h-3.5" /> 標記</>}
+                  {flagged.has(currentQuestion.id) ? <><FlagFilled className="w-3 h-3" /> 已標記</> : <><FlagEmpty className="w-3 h-3" /> 標記</>}
                 </button>
                 <button
                   onClick={() => setShowNote(!showNote)}
                   className={cn(
-                    "px-2 py-1 rounded-full text-xs transition-all",
+                    "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all",
                     showNote
                       ? "bg-blue-50 text-blue-600 border border-blue-200"
                       : notes[currentQuestion.id]
                         ? "bg-blue-50 text-blue-500 border border-blue-100"
-                        : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
+                        : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200"
                   )}
                 >
-                  <NoteIcon className="w-3.5 h-3.5" /> 筆記
+                  <NoteIcon className="w-3 h-3" /> 筆記
                 </button>
               </div>
             </div>
@@ -500,7 +527,19 @@ export default function ExamTakingPage() {
           {/* Practice mode: show answer button */}
           {isPractice && userAnswers[currentQuestion.id] && (
             <button
-              onClick={() => setShowExplanation(!showExplanation)}
+              onClick={() => {
+                const next = !showExplanation;
+                setShowExplanation(next);
+                if (next) {
+                  const userAns = userAnswers[currentQuestion.id] || "";
+                  const correctAns = currentQuestion.answer;
+                  const isRight = userAns === correctAns || (correctAns.includes(",") && userAns.split(",").sort().join(",") === correctAns.split(",").sort().join(","));
+                  setAnswerFeedback(isRight ? "correct" : "wrong");
+                  setTimeout(() => setAnswerFeedback(null), 1200);
+                } else {
+                  setAnswerFeedback(null);
+                }
+              }}
               className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium transition-all"
             >
               {showExplanation ? "隱藏答案" : "查看答案"}

@@ -47,6 +47,14 @@ body {
   transition: background-color 200ms ease, color 200ms ease;
 }
 
+/* Answer feedback animation */
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* Hero badge dark mode */
 [data-theme="dark"] .hero-badge {
   background: rgba(255, 255, 255, 0.05) !important;

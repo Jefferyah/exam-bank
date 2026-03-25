@@ -64,7 +64,7 @@ export async function GET(
       where: { id },
       include: {
         answers: {
-          include: { question: true },
+          include: { question: { include: { questionBank: { select: { name: true } } } } },
           orderBy: { order: "asc" },
         },
       },
@@ -104,7 +104,7 @@ export async function PUT(
       where: { id },
       include: {
         answers: {
-          include: { question: true },
+          include: { question: { include: { questionBank: { select: { name: true } } } } },
         },
       },
     });
@@ -156,7 +156,7 @@ export async function PUT(
     if (finish) {
       const updatedAnswers = await prisma.examAnswer.findMany({
         where: { examId: id },
-        include: { question: true },
+        include: { question: { include: { questionBank: { select: { name: true } } } } },
       });
 
       const correctCount = updatedAnswers.filter(
@@ -200,7 +200,7 @@ export async function PUT(
         },
         include: {
           answers: {
-            include: { question: true },
+            include: { question: { include: { questionBank: { select: { name: true } } } } },
             orderBy: { order: "asc" },
           },
         },
@@ -214,7 +214,7 @@ export async function PUT(
       where: { id },
       include: {
         answers: {
-          include: { question: true },
+          include: { question: { include: { questionBank: { select: { name: true } } } } },
           orderBy: { order: "asc" },
         },
       },
