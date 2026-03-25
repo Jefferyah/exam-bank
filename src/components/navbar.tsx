@@ -69,11 +69,19 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-3">
             <button
               onClick={toggleTheme}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="切換深色模式"
+              className="inline-flex h-10 w-10 items-center justify-center text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label={isDark ? "切換為淺色模式" : "切換為暗色模式"}
+              title={isDark ? "切換為淺色模式" : "切換為暗色模式"}
             >
-              <span>{isDark ? "月" : "日"}</span>
-              <span>切換主題</span>
+              {isDark ? (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+                </svg>
+              )}
             </button>
             {status === "loading" ? (
               <div className="h-8 w-20 bg-gray-100 rounded-full animate-pulse" />
@@ -142,9 +150,18 @@ export function Navbar() {
                 toggleTheme();
                 setMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg"
             >
-              切換主題模式
+              {isDark ? (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5M12 19.5V21M4.72 4.72l1.06 1.06M18.22 18.22l1.06 1.06M3 12h1.5M19.5 12H21M4.72 19.28l1.06-1.06M18.22 5.78l1.06-1.06M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+                </svg>
+              )}
+              <span>{isDark ? "切換為淺色模式" : "切換為暗色模式"}</span>
             </button>
             {session?.user ? (
               <div className="space-y-2">

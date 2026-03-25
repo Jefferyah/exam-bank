@@ -72,10 +72,10 @@ export default function HomePage() {
       <div className="hero-gradient flex flex-col items-center justify-center min-h-[80vh] px-4">
         <div className="text-center space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-            <span className="text-blue-500">星核</span>題庫引擎
+            <span className="text-blue-500">Powerful</span> 題庫系統
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            把題海整理成你的專屬作戰指揮台，支援多題庫管理、模擬測驗與成績分析。
+          <p className="text-lg text-gray-500 max-w-md mx-auto">
+            全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
