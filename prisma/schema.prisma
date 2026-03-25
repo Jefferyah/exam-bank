@@ -18,14 +18,16 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  questions      Question[]
-  exams          Exam[]
-  notes          Note[]
-  favorites      Favorite[]
-  wrongRecords   WrongRecord[]
-  questionBanks  QuestionBank[]
+  accounts            Account[]
+  sessions            Session[]
+  questions           Question[]
+  exams               Exam[]
+  notes               Note[]
+  favorites           Favorite[]
+  wrongRecords        WrongRecord[]
+  questionBanks       QuestionBank[]
+  inviteCodesCreated  InviteCode[] @relation("InviteCodesCreated")
+  usedInviteCode      InviteCode?  @relation("InviteCodeUsed")
 }
 
 model Account {
@@ -173,4 +175,16 @@ model WrongRecord {
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId])
+}
+
+model InviteCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  createdById String
+  usedById    String?   @unique
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  createdBy User  @relation("InviteCodesCreated", fields: [createdById], references: [id])
+  usedBy    User? @relation("InviteCodeUsed", fields: [usedById], references: [id])
 }

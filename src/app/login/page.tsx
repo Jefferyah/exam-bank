@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -23,11 +24,20 @@ export default function LoginPage() {
     try {
       const result = await signIn("credentials", {
         email: email.trim(),
+        inviteCode: inviteCode.trim(),
         redirect: false,
       });
 
       if (result?.error) {
-        setError("登入失敗，請重試");
+        if (result.error.includes("INVITE_CODE_REQUIRED")) {
+          setError("新用戶需要邀請碼才能註冊");
+        } else if (result.error.includes("INVITE_CODE_INVALID")) {
+          setError("邀請碼無效");
+        } else if (result.error.includes("INVITE_CODE_USED")) {
+          setError("此邀請碼已被使用");
+        } else {
+          setError("登入失敗，請重試");
+        }
       } else {
         router.push("/");
       }
@@ -68,8 +78,26 @@ export default function LoginPage() {
               />
             </div>
 
+            <div>
+              <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-1">
+                邀請碼 <span className="text-gray-400 font-normal">（新用戶必填）</span>
+              </label>
+              <input
+                id="inviteCode"
+                type="text"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="輸入邀請碼"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={loading}
+              />
+              <p className="mt-1 text-xs text-gray-400">已有帳號直接輸入 Email 即可登入</p>
+            </div>
+
             {error && (
-              <p className="text-sm text-red-500">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
             )}
 
             <button
@@ -77,7 +105,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed rounded-full text-white font-medium shadow-sm transition-colors"
             >
-              {loading ? "登入中..." : "以 Email 登入"}
+              {loading ? "登入中..." : "登入 / 註冊"}
             </button>
           </form>
 
