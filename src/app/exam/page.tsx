@@ -94,62 +94,62 @@ export default function ExamSetupPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold">測驗設定</h1>
+      <h1 className="text-2xl font-bold text-gray-900">測驗設定</h1>
 
       {/* Mode selector */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">測驗模式</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">測驗模式</h2>
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setMode("PRACTICE")}
-            className={`p-4 rounded-lg border-2 transition-colors text-left ${
+            className={`p-4 rounded-2xl border-2 transition-colors text-left ${
               mode === "PRACTICE"
-                ? "border-indigo-500 bg-indigo-500/10"
-                : "border-slate-600 hover:border-slate-500"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
           >
-            <p className="font-semibold">練習模式</p>
-            <p className="text-sm text-slate-400 mt-1">可隨時查看答案，無時間限制</p>
+            <p className="font-semibold text-gray-900">練習模式</p>
+            <p className="text-sm text-gray-500 mt-1">可隨時查看答案，無時間限制</p>
           </button>
           <button
             type="button"
             onClick={() => setMode("MOCK")}
-            className={`p-4 rounded-lg border-2 transition-colors text-left ${
+            className={`p-4 rounded-2xl border-2 transition-colors text-left ${
               mode === "MOCK"
-                ? "border-indigo-500 bg-indigo-500/10"
-                : "border-slate-600 hover:border-slate-500"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
           >
-            <p className="font-semibold">模擬考模式</p>
-            <p className="text-sm text-slate-400 mt-1">計時作答，交卷後顯示結果</p>
+            <p className="font-semibold text-gray-900">模擬考模式</p>
+            <p className="text-sm text-gray-500 mt-1">計時作答，交卷後顯示結果</p>
           </button>
         </div>
       </div>
 
       {/* Question bank selection */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">選擇題庫</h2>
-        <p className="text-sm text-slate-400">不選則包含所有題庫</p>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">選擇題庫</h2>
+        <p className="text-sm text-gray-500">不選則包含所有題庫</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {questionBanks.map((bank) => (
             <label
               key={bank.id}
-              className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                 selectedBankIds.includes(bank.id)
-                  ? "bg-indigo-500/10 ring-1 ring-indigo-500"
-                  : "bg-slate-700/50 hover:bg-slate-700"
+                  ? "bg-blue-50 ring-1 ring-blue-400"
+                  : "bg-gray-50 hover:bg-gray-100"
               }`}
             >
               <input
                 type="checkbox"
                 checked={selectedBankIds.includes(bank.id)}
                 onChange={() => toggleBank(bank.id)}
-                className="accent-indigo-500 mt-0.5"
+                className="accent-blue-500 mt-0.5"
               />
-              <span className="text-sm">
+              <span className="text-sm text-gray-900">
                 {bank.name}
-                <span className="text-slate-500 ml-2">({bank._count.questions} 題)</span>
+                <span className="text-gray-400 ml-2">({bank._count.questions} 題)</span>
               </span>
             </label>
           ))}
@@ -157,18 +157,18 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Difficulty */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">難度範圍</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">難度範圍</h2>
         <div className="flex gap-3">
           {[1, 2, 3, 4, 5].map((d) => (
             <button
               key={d}
               type="button"
               onClick={() => toggleDifficulty(d)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 difficultyRange.includes(d)
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
               {"★".repeat(d)}
@@ -178,29 +178,29 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Count and Time */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">題目數量</label>
+            <label className="block text-sm font-medium text-gray-500 mb-1">題目數量</label>
             <input
               type="number"
               min={1}
               max={200}
               value={count}
               onChange={(e) => setCount(parseInt(e.target.value) || 20)}
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {mode === "MOCK" && (
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">時間限制（分鐘）</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">時間限制（分鐘）</label>
               <input
                 type="number"
                 min={1}
                 max={360}
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)}
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
@@ -208,32 +208,32 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Special options */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-3">
-        <h2 className="text-lg font-semibold">特殊選項</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900">特殊選項</h2>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={wrongOnly}
             onChange={(e) => setWrongOnly(e.target.checked)}
-            className="accent-indigo-500"
+            className="accent-blue-500"
           />
-          <span>只出錯題</span>
+          <span className="text-gray-700">只出錯題</span>
         </label>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={favoriteOnly}
             onChange={(e) => setFavoriteOnly(e.target.checked)}
-            className="accent-indigo-500"
+            className="accent-blue-500"
           />
-          <span>只出收藏題</span>
+          <span className="text-gray-700">只出收藏題</span>
         </label>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p className="text-red-500">{error}</p>
         </div>
       )}
 
@@ -241,7 +241,7 @@ export default function ExamSetupPage() {
       <button
         onClick={handleStart}
         disabled={creating}
-        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed rounded-lg text-lg font-bold transition-colors"
+        className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-lg font-bold transition-colors"
       >
         {creating ? "建立中..." : "開始測驗"}
       </button>

@@ -66,7 +66,7 @@ export default function BankAnalysisPage() {
 
   if (!session) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入</p>
       </div>
     );
@@ -76,8 +76,8 @@ export default function BankAnalysisPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-slate-800 rounded" />
-          <div className="h-64 bg-slate-800 rounded-lg" />
+          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
+          <div className="h-64 bg-gray-100 rounded-2xl" />
         </div>
       </div>
     );
@@ -90,15 +90,15 @@ export default function BankAnalysisPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/analytics" className="text-slate-400 hover:text-white">&larr; 返回分析</Link>
-        <h1 className="text-2xl font-bold">題庫分析</h1>
+        <Link href="/analytics" className="text-gray-500 hover:text-gray-900">&larr; 返回分析</Link>
+        <h1 className="text-2xl font-bold text-gray-900">題庫分析</h1>
       </div>
 
       {/* Bar chart overview */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">題庫總覽</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">題庫總覽</h2>
         {bankAccuracy.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無作答記錄</p>
+          <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
         ) : (
           <div className="space-y-3">
             {bankAccuracy
@@ -106,12 +106,12 @@ export default function BankAnalysisPage() {
               .map((d) => (
                 <div key={d.questionBankId}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-300 truncate mr-2">{d.questionBankName}</span>
-                    <span className="text-slate-400 flex-shrink-0">
+                    <span className="text-gray-900 truncate mr-2">{d.questionBankName}</span>
+                    <span className="text-gray-500 flex-shrink-0">
                       {d.accuracy}% ({d.correct}/{d.total})
                     </span>
                   </div>
-                  <div className="w-full bg-slate-700 rounded-full h-3">
+                  <div className="w-full bg-gray-100 rounded-full h-3">
                     <div
                       className={cn(
                         "h-3 rounded-full transition-all",
@@ -128,16 +128,16 @@ export default function BankAnalysisPage() {
 
       {/* Weakest bank highlight */}
       {weakest && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-red-400 font-medium">最弱題庫</p>
-              <p className="text-lg font-semibold">{weakest.questionBankName}</p>
-              <p className="text-sm text-slate-400">{weakest.accuracy}% 正確率 ({weakest.correct}/{weakest.total})</p>
+              <p className="text-sm text-red-600 font-medium">最弱題庫</p>
+              <p className="text-lg font-semibold text-gray-900">{weakest.questionBankName}</p>
+              <p className="text-sm text-gray-500">{weakest.accuracy}% 正確率 ({weakest.correct}/{weakest.total})</p>
             </div>
             <button
               onClick={() => handlePracticeBank(weakest.questionBankId, weakest.questionBankName)}
-              className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-colors"
             >
               加強練習
             </button>
@@ -148,26 +148,26 @@ export default function BankAnalysisPage() {
       {/* Per-bank detail cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {bankAccuracy.map((d) => (
-          <div key={d.questionBankId} className="bg-slate-800 rounded-lg p-5">
+          <div key={d.questionBankId} className="bg-white border border-gray-200 rounded-2xl p-5">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="font-semibold text-sm">{d.questionBankName}</p>
+                <p className="font-semibold text-sm text-gray-900">{d.questionBankName}</p>
               </div>
               <span className={cn(
                 "text-2xl font-bold",
                 d.total === 0
-                  ? "text-slate-600"
+                  ? "text-gray-300"
                   : d.accuracy >= 70
-                    ? "text-emerald-400"
+                    ? "text-emerald-500"
                     : d.accuracy >= 50
-                      ? "text-amber-400"
-                      : "text-red-400"
+                      ? "text-amber-500"
+                      : "text-red-500"
               )}>
                 {d.total > 0 ? `${d.accuracy}%` : "--"}
               </span>
             </div>
 
-            <div className="w-full bg-slate-700 rounded-full h-2 mb-3">
+            <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
               <div
                 className={cn(
                   "h-2 rounded-full transition-all",
@@ -177,11 +177,11 @@ export default function BankAnalysisPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-gray-500">
               <span>已答 {d.total} 題 | 正確 {d.correct} 題</span>
               <button
                 onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
-                className="text-indigo-400 hover:text-indigo-300"
+                className="text-blue-500 hover:text-blue-600"
               >
                 練習此題庫
               </button>

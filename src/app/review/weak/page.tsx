@@ -78,7 +78,7 @@ export default function WeakPointsPage() {
 
   if (!session) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入</p>
       </div>
     );
@@ -88,9 +88,9 @@ export default function WeakPointsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-slate-800 rounded" />
+          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-slate-800 rounded-lg" />
+            <div key={i} className="h-24 bg-gray-100 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -100,39 +100,39 @@ export default function WeakPointsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/review" className="text-slate-400 hover:text-white">&larr; 返回複習</Link>
-        <h1 className="text-2xl font-bold">弱點分析</h1>
+        <Link href="/review" className="text-gray-500 hover:text-gray-900">&larr; 返回複習</Link>
+        <h1 className="text-2xl font-bold text-gray-900">弱點分析</h1>
       </div>
 
       {/* Bank weakness ranking */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">各題庫弱點排名</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫弱點排名</h2>
         {bankAccuracy.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無作答記錄，無法分析弱點</p>
+          <p className="text-gray-400 text-center py-8">尚無作答記錄，無法分析弱點</p>
         ) : (
           <div className="space-y-4">
             {bankAccuracy.map((d, i) => (
               <div
                 key={d.questionBankId}
                 className={cn(
-                  "p-4 rounded-lg",
-                  i === 0 ? "bg-red-500/10 border border-red-500/30" : "bg-slate-700/50"
+                  "p-4 rounded-2xl",
+                  i === 0 ? "bg-red-50 border border-red-200" : "bg-gray-50 border border-gray-200"
                 )}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       {i === 0 && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full font-medium">
+                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-medium">
                           最弱
                         </span>
                       )}
-                      <span className="font-medium">
+                      <span className="font-medium text-gray-900">
                         {d.questionBankName}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 mt-2">
-                      <div className="flex-1 bg-slate-700 rounded-full h-2.5">
+                      <div className="flex-1 bg-gray-100 rounded-full h-2.5">
                         <div
                           className={cn(
                             "h-2.5 rounded-full",
@@ -141,14 +141,14 @@ export default function WeakPointsPage() {
                           style={{ width: `${d.accuracy}%` }}
                         />
                       </div>
-                      <span className="text-sm text-slate-400 flex-shrink-0 w-24 text-right">
+                      <span className="text-sm text-gray-500 flex-shrink-0 w-24 text-right">
                         {d.accuracy}% ({d.correct}/{d.total})
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium transition-colors flex-shrink-0"
                   >
                     加強練習
                   </button>
@@ -160,23 +160,23 @@ export default function WeakPointsPage() {
       </div>
 
       {/* Most frequently wrong */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">最常錯的題目</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">最常錯的題目</h2>
         {mostWrong.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無錯題記錄</p>
+          <p className="text-gray-400 text-center py-8">尚無錯題記錄</p>
         ) : (
           <div className="space-y-3">
             {mostWrong.map((q) => (
               <Link
                 key={q.questionId}
                 href={`/questions/${q.questionId}`}
-                className="block p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors"
+                className="block p-3 bg-gray-50 border border-gray-200 rounded-2xl hover:border-blue-300 hover:shadow-sm transition-all"
               >
-                <p className="text-sm line-clamp-2">{q.stem}</p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                  <span className="text-red-400 font-semibold">錯 {q.wrongCount} 次</span>
+                <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                  <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full font-semibold">錯 {q.wrongCount} 次</span>
                   <span>{q.questionBankName}</span>
-                  <span className="text-amber-400">{"★".repeat(q.difficulty)}</span>
+                  <span className="text-amber-500">{"★".repeat(q.difficulty)}</span>
                 </div>
               </Link>
             ))}

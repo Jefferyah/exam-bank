@@ -44,9 +44,9 @@ export default function AnalyticsPage() {
 
   if (!session) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入以查看學習分析</p>
-        <Link href="/login" className="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
       </div>
     );
   }
@@ -55,13 +55,13 @@ export default function AnalyticsPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-slate-800 rounded" />
+          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-28 bg-slate-800 rounded-lg" />
+              <div key={i} className="h-28 bg-gray-100 rounded-2xl" />
             ))}
           </div>
-          <div className="h-64 bg-slate-800 rounded-lg" />
+          <div className="h-64 bg-gray-100 rounded-2xl" />
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
 
   if (!data) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>無法載入分析資料</p>
       </div>
     );
@@ -82,10 +82,10 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold">學習分析</h1>
+        <h1 className="text-2xl font-bold text-gray-900">學習分析</h1>
         <Link
           href="/analytics/domain"
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
         >
           題庫詳細分析
         </Link>
@@ -93,29 +93,29 @@ export default function AnalyticsPage() {
 
       {/* Overall stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-800 rounded-lg p-4">
-          <p className="text-3xl font-bold text-indigo-400">{overallAccuracy.toFixed(1)}%</p>
-          <p className="text-sm text-slate-400">整體正確率</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+          <p className="text-3xl font-bold text-blue-500">{overallAccuracy.toFixed(1)}%</p>
+          <p className="text-sm text-gray-500">整體正確率</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-4">
-          <p className="text-3xl font-bold">{data.completedExams}</p>
-          <p className="text-sm text-slate-400">已完成測驗</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+          <p className="text-3xl font-bold text-gray-900">{data.completedExams}</p>
+          <p className="text-sm text-gray-500">已完成測驗</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-4">
-          <p className="text-3xl font-bold">{totalAnswered}</p>
-          <p className="text-sm text-slate-400">已答題數</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+          <p className="text-3xl font-bold text-gray-900">{totalAnswered}</p>
+          <p className="text-sm text-gray-500">已答題數</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-4">
-          <p className="text-3xl font-bold text-emerald-400">{data.avgScore.toFixed(1)}%</p>
-          <p className="text-sm text-slate-400">平均分數</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+          <p className="text-3xl font-bold text-emerald-500">{data.avgScore.toFixed(1)}%</p>
+          <p className="text-sm text-gray-500">平均分數</p>
         </div>
       </div>
 
-      {/* Score trend (line chart using CSS) */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">分數趨勢（最近測驗）</h2>
+      {/* Score trend (bar chart) */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">分數趨勢（最近測驗）</h2>
         {data.recentTrend.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無測驗記錄</p>
+          <p className="text-gray-400 text-center py-8">尚無測驗記錄</p>
         ) : (
           <div className="space-y-4">
             <div className="flex items-end gap-1 h-48">
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
                     key={exam.id}
                     className="flex-1 flex flex-col items-center justify-end gap-1"
                   >
-                    <span className="text-xs text-slate-400">{score.toFixed(0)}%</span>
+                    <span className="text-xs text-gray-500">{score.toFixed(0)}%</span>
                     <div
                       className={cn(
                         "w-full rounded-t transition-all min-h-[4px]",
@@ -134,7 +134,7 @@ export default function AnalyticsPage() {
                       )}
                       style={{ height: `${Math.max(score * 1.6, 4)}px` }}
                     />
-                    <span className="text-[10px] text-slate-500 truncate w-full text-center">
+                    <span className="text-[10px] text-gray-400 truncate w-full text-center">
                       {exam.finishedAt ? new Date(exam.finishedAt).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" }) : ""}
                     </span>
                   </div>
@@ -142,20 +142,20 @@ export default function AnalyticsPage() {
               })}
             </div>
             {/* Reference line at 70% */}
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <div className="flex-1 border-t border-dashed border-slate-600" />
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex-1 border-t border-dashed border-gray-300" />
               <span>70% 及格線</span>
-              <div className="flex-1 border-t border-dashed border-slate-600" />
+              <div className="flex-1 border-t border-dashed border-gray-300" />
             </div>
           </div>
         )}
       </div>
 
       {/* Bank accuracy bar chart */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">各題庫正確率</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
         {data.bankAccuracy.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無作答記錄</p>
+          <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
         ) : (
           <div className="space-y-3">
             {data.bankAccuracy
@@ -163,14 +163,14 @@ export default function AnalyticsPage() {
               .map((d) => (
                 <div key={d.questionBankId}>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-300 truncate mr-2">
+                    <span className="text-gray-900 truncate mr-2">
                       {d.questionBankName}
                     </span>
-                    <span className="text-slate-400 flex-shrink-0">
+                    <span className="text-gray-500 flex-shrink-0">
                       {d.accuracy}%
                     </span>
                   </div>
-                  <div className="w-full bg-slate-700 rounded-full h-3">
+                  <div className="w-full bg-gray-100 rounded-full h-3">
                     <div
                       className={cn(
                         "h-3 rounded-full transition-all",
@@ -185,11 +185,11 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {/* Difficulty distribution pie chart (CSS-based) */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">難度分佈</h2>
+      {/* Difficulty distribution (circular SVGs) */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">難度分佈</h2>
         {data.difficultyDistribution.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">尚無作答記錄</p>
+          <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
             {data.difficultyDistribution.map((d) => {
@@ -197,14 +197,14 @@ export default function AnalyticsPage() {
               const percentage = totalAll > 0 ? (d.total / totalAll) * 100 : 0;
               return (
                 <div key={d.difficulty} className="text-center">
-                  <div className="mx-auto w-20 h-20 rounded-full border-4 border-slate-700 flex items-center justify-center relative">
+                  <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center relative">
                     <svg className="absolute inset-0 w-20 h-20 -rotate-90" viewBox="0 0 36 36">
                       <circle
                         cx="18" cy="18" r="14"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="3"
-                        className="text-slate-700"
+                        className="text-gray-100"
                       />
                       <circle
                         cx="18" cy="18" r="14"
@@ -217,11 +217,11 @@ export default function AnalyticsPage() {
                         )}
                       />
                     </svg>
-                    <span className="text-sm font-bold z-10">{d.accuracy.toFixed(0)}%</span>
+                    <span className="text-sm font-bold z-10 text-gray-900">{d.accuracy.toFixed(0)}%</span>
                   </div>
-                  <p className="text-xs text-amber-400 mt-2">{"★".repeat(d.difficulty)}</p>
-                  <p className="text-xs text-slate-400">{d.total} 題 ({percentage.toFixed(0)}%)</p>
-                  <p className="text-xs text-slate-500">{DIFFICULTY_LABELS[d.difficulty]}</p>
+                  <p className="text-xs text-amber-500 mt-2">{"★".repeat(d.difficulty)}</p>
+                  <p className="text-xs text-gray-500">{d.total} 題 ({percentage.toFixed(0)}%)</p>
+                  <p className="text-xs text-gray-400">{DIFFICULTY_LABELS[d.difficulty]}</p>
                 </div>
               );
             })}

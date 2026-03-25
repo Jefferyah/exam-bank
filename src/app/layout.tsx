@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CISSP 題庫系統",
-  description: "CISSP 考試準備與練習平台",
+  title: "ExamBank - 萬用題庫系統",
+  description: "全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="zh-TW"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-900 text-white">
+      <body className="min-h-full flex flex-col bg-white text-gray-900">
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

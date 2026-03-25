@@ -146,38 +146,38 @@ export default function ImportPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/questions" className="text-slate-400 hover:text-white">&larr; 返回題庫</Link>
-        <h1 className="text-2xl font-bold">匯入/匯出題目</h1>
+        <Link href="/questions" className="text-gray-500 hover:text-gray-900">&larr; 返回題庫</Link>
+        <h1 className="text-2xl font-bold text-gray-900">匯入/匯出題目</h1>
       </div>
 
       {/* Upload area */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">匯入題目 (JSON)</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">匯入題目 (JSON)</h2>
 
         {/* Question bank name */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">題庫名稱 *</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">題庫名稱 *</label>
           <input
             type="text"
             value={bankName}
             onChange={(e) => setBankName(e.target.value)}
             placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文N1 文法"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">題庫描述（選填）</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">題庫描述（選填）</label>
           <input
             type="text"
             value={bankDescription}
             onChange={(e) => setBankDescription(e.target.value)}
             placeholder="簡短描述這個題庫的內容"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
+        <div className="border-2 border-dashed border-gray-300 bg-gray-50 rounded-2xl p-8 text-center">
           <input
             type="file"
             accept=".json"
@@ -187,34 +187,34 @@ export default function ImportPage() {
           />
           <label
             htmlFor="file-upload"
-            className="cursor-pointer text-slate-400 hover:text-indigo-400 transition-colors"
+            className="cursor-pointer text-gray-400 hover:text-blue-500 transition-colors"
           >
             <div className="space-y-2">
               <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p>點擊選擇 JSON 檔案</p>
-              <p className="text-sm text-slate-500">支援 .json 格式</p>
+              <p className="text-gray-600">點擊選擇 JSON 檔案</p>
+              <p className="text-sm text-gray-400">支援 .json 格式</p>
             </div>
           </label>
         </div>
 
         {parseError && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-            <p className="text-red-400 text-sm">{parseError}</p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-red-500 text-sm">{parseError}</p>
           </div>
         )}
       </div>
 
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold">預覽匯入題目 ({preview.length} 題)</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">預覽匯入題目 ({preview.length} 題)</h2>
           <div className="max-h-96 overflow-y-auto space-y-3">
             {preview.map((q, i) => (
-              <div key={i} className="p-3 bg-slate-700/50 rounded-lg">
-                <p className="text-sm font-medium line-clamp-2">{q.stem}</p>
-                <div className="flex gap-2 mt-2 text-xs text-slate-400">
+              <div key={i} className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                <p className="text-sm font-medium text-gray-900 line-clamp-2">{q.stem}</p>
+                <div className="flex gap-2 mt-2 text-xs text-gray-400">
                   <span>{q.type || "SINGLE"}</span>
                   <span>|</span>
                   <span>{q.category || "無分類"}</span>
@@ -229,7 +229,7 @@ export default function ImportPage() {
           <button
             onClick={handleImport}
             disabled={importing || !bankName.trim()}
-            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+            className="w-full py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors"
           >
             {importing ? "匯入中..." : `確認匯入 ${preview.length} 題到「${bankName || "..."}」`}
           </button>
@@ -238,23 +238,23 @@ export default function ImportPage() {
 
       {/* Import result */}
       {result && (
-        <div className="bg-slate-800 rounded-lg p-6 space-y-3">
-          <h2 className="text-lg font-semibold">匯入結果</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900">匯入結果</h2>
           {result.questionBankName && (
-            <p className="text-sm text-slate-400">題庫：{result.questionBankName}</p>
+            <p className="text-sm text-gray-500">題庫：{result.questionBankName}</p>
           )}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-emerald-500/10 rounded-lg text-center">
-              <p className="text-2xl font-bold text-emerald-400">{result.imported}</p>
-              <p className="text-sm text-slate-400">成功匯入</p>
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+              <p className="text-2xl font-bold text-emerald-500">{result.imported}</p>
+              <p className="text-sm text-gray-500">成功匯入</p>
             </div>
-            <div className="p-3 bg-amber-500/10 rounded-lg text-center">
-              <p className="text-2xl font-bold text-amber-400">{result.skipped}</p>
-              <p className="text-sm text-slate-400">已跳過</p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+              <p className="text-2xl font-bold text-amber-500">{result.skipped}</p>
+              <p className="text-sm text-gray-500">已跳過</p>
             </div>
           </div>
           {result.errors.length > 0 && (
-            <div className="text-sm text-red-400 space-y-1">
+            <div className="text-sm text-red-500 space-y-1">
               {result.errors.map((err, i) => (
                 <p key={i}>{err}</p>
               ))}
@@ -264,24 +264,24 @@ export default function ImportPage() {
       )}
 
       {/* Export */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">匯出全部題目</h2>
-        <p className="text-sm text-slate-400">將所有題目匯出為 JSON 檔案</p>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">匯出全部題目</h2>
+        <p className="text-sm text-gray-500">將所有題目匯出為 JSON 檔案</p>
         <button
           onClick={handleExport}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium transition-colors"
         >
           匯出 JSON
         </button>
       </div>
 
       {/* Sample format */}
-      <div className="bg-slate-800 rounded-lg p-6 space-y-4">
-        <h2 className="text-lg font-semibold">JSON 格式範例</h2>
-        <p className="text-sm text-slate-400">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">JSON 格式範例</h2>
+        <p className="text-sm text-gray-500">
           匯入時需要提供題庫名稱。JSON 檔案可以包含 questionBankName 欄位，或在匯入時手動輸入。
         </p>
-        <pre className="bg-slate-900 p-4 rounded-lg text-sm text-slate-300 overflow-x-auto whitespace-pre">
+        <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
           {SAMPLE_JSON}
         </pre>
       </div>

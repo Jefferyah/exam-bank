@@ -14,9 +14,9 @@ interface User {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  ADMIN: "bg-red-500/20 text-red-400",
-  TEACHER: "bg-amber-500/20 text-amber-400",
-  STUDENT: "bg-emerald-500/20 text-emerald-400",
+  ADMIN: "bg-red-50 text-red-600 border border-red-200",
+  TEACHER: "bg-amber-50 text-amber-600 border border-amber-200",
+  STUDENT: "bg-emerald-50 text-emerald-600 border border-emerald-200",
 };
 
 export default function AdminUsersPage() {
@@ -28,8 +28,6 @@ export default function AdminUsersPage() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        // This would need an admin users API endpoint
-        // For now, show a placeholder
         setUsers([]);
       } catch (err) {
         console.error(err);
@@ -43,7 +41,6 @@ export default function AdminUsersPage() {
 
   async function handleRoleChange(userId: string, newRole: string) {
     try {
-      // This would call an admin API to change user role
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
@@ -56,9 +53,9 @@ export default function AdminUsersPage() {
 
   if (!session || (role !== "ADMIN" && role !== "TEACHER")) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p className="text-lg">權限不足</p>
-        <Link href="/" className="text-indigo-400 hover:text-indigo-300 mt-4 inline-block">回首頁</Link>
+        <Link href="/" className="text-blue-500 hover:text-blue-600 mt-4 inline-block">回首頁</Link>
       </div>
     );
   }
@@ -75,71 +72,70 @@ export default function AdminUsersPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/admin" className="text-slate-400 hover:text-white">&larr; 返回管理</Link>
-        <h1 className="text-2xl font-bold">使用者管理</h1>
+        <Link href="/admin" className="text-gray-500 hover:text-gray-900">&larr; 返回管理</Link>
+        <h1 className="text-2xl font-bold text-gray-900">使用者管理</h1>
       </div>
 
-      {/* Search */}
       <input
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋使用者..."
-        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-slate-800 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="bg-slate-800 rounded-lg p-8 text-center">
-          <p className="text-slate-500">
+        <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
+          <p className="text-gray-500">
             {users.length === 0
               ? "需要建立管理員 API 端點以載入使用者列表"
               : "找不到符合的使用者"
             }
           </p>
-          <p className="text-sm text-slate-600 mt-2">
+          <p className="text-sm text-gray-400 mt-2">
             建議在 /api/admin/users 建立相關 API
           </p>
         </div>
       ) : (
-        <div className="bg-slate-800 rounded-lg overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">名稱</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">Email</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">角色</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">建立日期</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-400">操作</th>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">名稱</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Email</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">角色</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">建立日期</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-700/50 hover:bg-slate-700/30">
-                    <td className="px-4 py-3 text-sm">{user.name || "--"}</td>
-                    <td className="px-4 py-3 text-sm text-slate-400">{user.email || "--"}</td>
+                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-900">{user.name || "--"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{user.email || "--"}</td>
                     <td className="px-4 py-3">
                       <span className={cn(
-                        "px-2 py-0.5 text-xs rounded-full font-medium",
-                        ROLE_COLORS[user.role] || "bg-slate-700 text-slate-400"
+                        "px-2.5 py-0.5 text-xs rounded-full font-medium",
+                        ROLE_COLORS[user.role] || "bg-gray-100 text-gray-500"
                       )}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-500">
+                    <td className="px-4 py-3 text-sm text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString("zh-TW")}
                     </td>
                     <td className="px-4 py-3">
                       <select
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="px-2 py-1 bg-slate-700 border border-slate-600 rounded text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         <option value="STUDENT">STUDENT</option>
                         <option value="TEACHER">TEACHER</option>

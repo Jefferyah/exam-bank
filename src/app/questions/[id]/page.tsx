@@ -165,9 +165,9 @@ export default function QuestionDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-slate-800 rounded" />
-          <div className="h-32 bg-slate-800 rounded-lg" />
-          <div className="h-48 bg-slate-800 rounded-lg" />
+          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
+          <div className="h-32 bg-gray-100 rounded-2xl" />
+          <div className="h-48 bg-gray-100 rounded-2xl" />
         </div>
       </div>
     );
@@ -176,8 +176,8 @@ export default function QuestionDetailPage() {
   if (!question) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-        <p className="text-slate-400 text-lg">找不到此題目</p>
-        <Link href="/questions" className="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">
+        <p className="text-gray-500 text-lg">找不到此題目</p>
+        <Link href="/questions" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">
           返回題庫
         </Link>
       </div>
@@ -189,7 +189,7 @@ export default function QuestionDetailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link href="/questions" className="text-slate-400 hover:text-white">
+          <Link href="/questions" className="text-gray-500 hover:text-gray-900">
             &larr; 返回題庫
           </Link>
         </div>
@@ -197,21 +197,21 @@ export default function QuestionDetailPage() {
           <button
             onClick={handleToggleFavorite}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-              isFavorited ? "bg-amber-600 text-white" : "bg-slate-700 hover:bg-slate-600 text-slate-300"
+              "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+              isFavorited ? "bg-amber-100 text-amber-700 border border-amber-300" : "bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200"
             )}
           >
             {isFavorited ? "★ 已收藏" : "☆ 收藏"}
           </button>
           <Link
             href={`/questions/create?edit=${question.id}`}
-            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors"
           >
             編輯
           </Link>
           <button
             onClick={handleDelete}
-            className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-full text-sm font-medium transition-colors"
           >
             刪除
           </button>
@@ -220,54 +220,54 @@ export default function QuestionDetailPage() {
 
       {/* Meta info */}
       <div className="flex flex-wrap gap-2">
-        <span className="px-2.5 py-1 bg-indigo-600/30 text-indigo-300 text-sm rounded-full">
+        <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-sm rounded-full font-medium">
           {question.questionBank?.name || "未分類"}
         </span>
-        <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-sm rounded-full">
+        <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
           {question.type === "SINGLE" ? "單選題" : question.type === "MULTI" ? "多選題" : "情境題"}
         </span>
-        <span className="px-2.5 py-1 bg-slate-700 text-amber-400 text-sm rounded-full">
+        <span className="px-2.5 py-1 bg-amber-50 text-amber-600 text-sm rounded-full">
           {"★".repeat(question.difficulty)}{"☆".repeat(5 - question.difficulty)} {DIFFICULTY_LABELS[question.difficulty]}
         </span>
         {question.category && (
-          <span className="px-2.5 py-1 bg-emerald-600/20 text-emerald-300 text-sm rounded-full">
+          <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-sm rounded-full">
             {question.category}
           </span>
         )}
         {question.chapter && (
-          <span className="px-2.5 py-1 bg-slate-700 text-slate-300 text-sm rounded-full">
+          <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
             {question.chapter}
           </span>
         )}
         {question.tags?.map((tag, i) => (
-          <span key={i} className="px-2.5 py-1 bg-slate-700 text-slate-400 text-sm rounded">
+          <span key={i} className="px-2.5 py-1 bg-gray-100 text-gray-500 text-sm rounded-full">
             {tag}
           </span>
         ))}
       </div>
 
       {/* Question stem */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">題目</h2>
-        <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">{question.stem}</p>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">題目</h2>
+        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{question.stem}</p>
       </div>
 
       {/* Options */}
-      <div className="bg-slate-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">選項</h2>
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">選項</h2>
         <div className="space-y-3">
           {question.options.map((opt) => (
             <div
               key={opt.label}
               className={cn(
-                "p-3 rounded-lg border transition-colors",
+                "p-3 rounded-xl border transition-colors",
                 showAnswer && question.answer.includes(opt.label)
-                  ? "border-emerald-500 bg-emerald-500/10"
-                  : "border-slate-600 bg-slate-700/50"
+                  ? "border-emerald-300 bg-emerald-50"
+                  : "border-gray-200 bg-gray-50"
               )}
             >
-              <span className="font-semibold text-indigo-400 mr-2">{opt.label}.</span>
-              <span className="text-slate-200">{opt.text}</span>
+              <span className="font-semibold text-blue-500 mr-2">{opt.label}.</span>
+              <span className="text-gray-700">{opt.text}</span>
             </div>
           ))}
         </div>
@@ -276,7 +276,7 @@ export default function QuestionDetailPage() {
       {/* Show/hide answer toggle */}
       <button
         onClick={() => setShowAnswer(!showAnswer)}
-        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors"
+        className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
       >
         {showAnswer ? "隱藏答案" : "顯示答案"}
       </button>
@@ -284,24 +284,24 @@ export default function QuestionDetailPage() {
       {/* Answer & Explanation */}
       {showAnswer && (
         <>
-          <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-2">正確答案</h2>
-            <p className="text-2xl font-bold text-emerald-400">{question.answer}</p>
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">正確答案</h2>
+            <p className="text-2xl font-bold text-emerald-500">{question.answer}</p>
           </div>
 
-          <div className="bg-slate-800 rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-3">解析</h2>
-            <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">解析</h2>
+            <p className="text-gray-500 whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
           </div>
 
           {question.wrongOptionExplanations && Object.keys(question.wrongOptionExplanations).length > 0 && (
-            <div className="bg-slate-800 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-3">各選項說明</h2>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">各選項說明</h2>
               <div className="space-y-3">
                 {Object.entries(question.wrongOptionExplanations).map(([label, explanation]) => (
                   <div key={label} className="flex gap-3">
-                    <span className="font-semibold text-red-400 flex-shrink-0">{label}.</span>
-                    <span className="text-slate-300">{explanation}</span>
+                    <span className="font-semibold text-red-500 flex-shrink-0">{label}.</span>
+                    <span className="text-gray-500">{explanation}</span>
                   </div>
                 ))}
               </div>
@@ -309,22 +309,22 @@ export default function QuestionDetailPage() {
           )}
 
           {question.extendedKnowledge && (
-            <div className="bg-slate-800 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-3">延伸知識</h2>
-              <p className="text-slate-300 whitespace-pre-wrap leading-relaxed">{question.extendedKnowledge}</p>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">延伸知識</h2>
+              <p className="text-gray-500 whitespace-pre-wrap leading-relaxed">{question.extendedKnowledge}</p>
             </div>
           )}
         </>
       )}
 
       {/* AI Solve */}
-      <div className="bg-slate-800 rounded-lg p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">AI 解題</h2>
+          <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
           <button
             onClick={handleAiSolve}
             disabled={aiLoading}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-800 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
           >
             {aiLoading ? "分析中..." : "AI 解題"}
           </button>
@@ -335,26 +335,26 @@ export default function QuestionDetailPage() {
             {(["claude", "openai", "gemini"] as const).map((model) => {
               const result = aiResults[model];
               return (
-                <div key={model} className="bg-slate-700/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-indigo-300 mb-2 capitalize">{model}</h3>
+                <div key={model} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <h3 className="font-semibold text-blue-500 mb-2 capitalize">{model}</h3>
                   {result.success && result.data ? (
                     <div className="space-y-2 text-sm">
                       <p>
-                        <span className="text-slate-400">答案：</span>
+                        <span className="text-gray-500">答案：</span>
                         <span className={cn(
                           "font-bold",
-                          result.data.answer === question.answer ? "text-emerald-400" : "text-red-400"
+                          result.data.answer === question.answer ? "text-emerald-500" : "text-red-500"
                         )}>
                           {result.data.answer}
                         </span>
                       </p>
                       <p>
-                        <span className="text-slate-400">信心度：</span>
-                        <span>{(result.data.confidence * 100).toFixed(0)}%</span>
+                        <span className="text-gray-500">信心度：</span>
+                        <span className="text-gray-900">{(result.data.confidence * 100).toFixed(0)}%</span>
                       </p>
-                      <p className="text-slate-300">{result.data.reasoning}</p>
+                      <p className="text-gray-500">{result.data.reasoning}</p>
                       {result.data.keyPoints && result.data.keyPoints.length > 0 && (
-                        <ul className="list-disc list-inside text-slate-400 space-y-1">
+                        <ul className="list-disc list-inside text-gray-500 space-y-1">
                           {result.data.keyPoints.map((p, i) => (
                             <li key={i}>{p}</li>
                           ))}
@@ -362,7 +362,7 @@ export default function QuestionDetailPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-red-400 text-sm">{result.error || "API 呼叫失敗"}</p>
+                    <p className="text-red-500 text-sm">{result.error || "API 呼叫失敗"}</p>
                   )}
                 </div>
               );
@@ -373,23 +373,23 @@ export default function QuestionDetailPage() {
 
       {/* Notes - inline per question */}
       {session && (
-        <div className="bg-slate-800 rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-3">我的筆記</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">我的筆記</h2>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="在此輸入你的筆記..."
-            className="w-full h-32 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
           <div className="flex items-center justify-between mt-3">
             {savedNote && note === savedNote && (
-              <span className="text-sm text-emerald-400">已儲存</span>
+              <span className="text-sm text-emerald-500">已儲存</span>
             )}
             {(!savedNote || note !== savedNote) && <span />}
             <button
               onClick={handleSaveNote}
               disabled={savingNote || !note.trim() || note === savedNote}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-600 disabled:cursor-not-allowed rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-full text-sm font-medium transition-colors"
             >
               {savingNote ? "儲存中..." : "儲存筆記"}
             </button>

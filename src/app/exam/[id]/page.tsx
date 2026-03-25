@@ -196,8 +196,8 @@ export default function ExamTakingPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-10 w-48 bg-slate-800 rounded" />
-          <div className="h-64 bg-slate-800 rounded-lg" />
+          <div className="h-10 w-48 bg-gray-100 rounded-2xl" />
+          <div className="h-64 bg-gray-100 rounded-2xl" />
         </div>
       </div>
     );
@@ -205,7 +205,7 @@ export default function ExamTakingPage() {
 
   if (!exam || !currentQuestion) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-8 text-center text-slate-400">
+      <div className="max-w-5xl mx-auto px-4 py-8 text-center text-gray-500">
         找不到此測驗
       </div>
     );
@@ -218,17 +218,17 @@ export default function ExamTakingPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-4">
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-4 bg-slate-800 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-4 bg-white border border-gray-200 rounded-2xl p-3">
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold hidden sm:block">{exam.title}</h1>
-          <span className="text-sm text-slate-400">
+          <h1 className="text-lg font-semibold text-gray-900 hidden sm:block">{exam.title}</h1>
+          <span className="text-sm text-gray-500">
             {answeredCount}/{totalCount} 已作答
           </span>
         </div>
         <div className="flex items-center gap-4">
           <span className={cn(
             "font-mono text-lg font-bold",
-            remaining !== null && remaining < 300 ? "text-red-400" : "text-indigo-400"
+            remaining !== null && remaining < 300 ? "text-red-500" : "text-blue-500"
           )}>
             {remaining !== null ? formatTime(Math.max(0, remaining)) : formatTime(elapsed)}
           </span>
@@ -236,7 +236,7 @@ export default function ExamTakingPage() {
             <button
               onClick={handleFinish}
               disabled={submitting}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-sm font-medium transition-colors"
             >
               結束練習
             </button>
@@ -244,7 +244,7 @@ export default function ExamTakingPage() {
             <button
               onClick={handleFinish}
               disabled={submitting}
-              className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-colors"
             >
               {submitting ? "交卷中..." : "交卷"}
             </button>
@@ -255,8 +255,8 @@ export default function ExamTakingPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Question navigation sidebar */}
         <div className="lg:w-48 flex-shrink-0">
-          <div className="bg-slate-800 rounded-lg p-3">
-            <p className="text-sm text-slate-400 mb-2">題目導覽</p>
+          <div className="bg-white border border-gray-200 rounded-2xl p-3">
+            <p className="text-sm text-gray-500 mb-2">題目導覽</p>
             <div className="grid grid-cols-8 lg:grid-cols-4 gap-1.5">
               {exam.answers.map((a, i) => {
                 const answered = !!userAnswers[a.questionId];
@@ -267,12 +267,12 @@ export default function ExamTakingPage() {
                     key={a.id}
                     onClick={() => { setCurrentIndex(i); setShowExplanation(false); }}
                     className={cn(
-                      "w-full aspect-square rounded text-xs font-medium transition-colors relative",
+                      "w-full aspect-square rounded-lg text-xs font-medium transition-colors relative",
                       isCurrent
-                        ? "bg-indigo-600 text-white ring-2 ring-indigo-400"
+                        ? "bg-blue-500 text-white ring-2 ring-blue-300"
                         : answered
-                          ? "bg-emerald-600/30 text-emerald-300"
-                          : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200"
                     )}
                   >
                     {i + 1}
@@ -283,15 +283,15 @@ export default function ExamTakingPage() {
                 );
               })}
             </div>
-            <div className="mt-3 space-y-1 text-xs text-slate-500">
+            <div className="mt-3 space-y-1 text-xs text-gray-400">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-emerald-600/30 rounded" /> 已作答
+                <span className="w-3 h-3 bg-emerald-100 rounded border border-emerald-200" /> 已作答
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-indigo-600 rounded" /> 目前題目
+                <span className="w-3 h-3 bg-blue-500 rounded" /> 目前題目
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-slate-700 rounded relative">
+                <span className="w-3 h-3 bg-gray-50 border border-gray-200 rounded relative">
                   <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-amber-400 rounded-full" />
                 </span> 已標記
               </div>
@@ -302,25 +302,25 @@ export default function ExamTakingPage() {
         {/* Main question area */}
         <div className="flex-1 space-y-4">
           {/* Progress */}
-          <div className="w-full bg-slate-700 rounded-full h-1.5">
+          <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
-              className="h-1.5 bg-indigo-500 rounded-full transition-all"
+              className="h-1.5 bg-blue-500 rounded-full transition-all"
               style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
             />
           </div>
 
           {/* Question */}
-          <div className="bg-slate-800 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-slate-400">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
+              <span className="text-sm text-gray-500">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleFlag(currentQuestion.id)}
                   className={cn(
-                    "px-2 py-1 rounded text-xs transition-colors",
+                    "px-2 py-1 rounded-full text-xs transition-colors",
                     flagged.has(currentQuestion.id)
-                      ? "bg-amber-600 text-white"
-                      : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                      ? "bg-amber-100 text-amber-700 border border-amber-300"
+                      : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200"
                   )}
                 >
                   {flagged.has(currentQuestion.id) ? "★ 已標記" : "☆ 標記"}
@@ -328,10 +328,10 @@ export default function ExamTakingPage() {
               </div>
             </div>
 
-            <p className="text-lg leading-relaxed whitespace-pre-wrap">{currentQuestion.stem}</p>
+            <p className="text-lg leading-relaxed whitespace-pre-wrap text-gray-900">{currentQuestion.stem}</p>
 
             {isMulti && (
-              <p className="text-sm text-amber-400 mt-2">（多選題，可選擇多個答案）</p>
+              <p className="text-sm text-amber-500 mt-2">（多選題，可選擇多個答案）</p>
             )}
           </div>
 
@@ -342,16 +342,16 @@ export default function ExamTakingPage() {
                 ? (userAnswers[currentQuestion.id] || "").split(",").includes(opt.label)
                 : userAnswers[currentQuestion.id] === opt.label;
 
-              let optionStyle = "border-slate-600 bg-slate-800 hover:border-slate-500";
+              let optionStyle = "border-gray-200 bg-white hover:border-gray-300";
               if (selected) {
-                optionStyle = "border-indigo-500 bg-indigo-500/10";
+                optionStyle = "border-blue-500 bg-blue-50";
               }
               if (showExplanation && isPractice) {
                 const isCorrect = currentQuestion.answer.includes(opt.label);
                 if (isCorrect) {
-                  optionStyle = "border-emerald-500 bg-emerald-500/10";
+                  optionStyle = "border-emerald-400 bg-emerald-50";
                 } else if (selected && !isCorrect) {
-                  optionStyle = "border-red-500 bg-red-500/10";
+                  optionStyle = "border-red-400 bg-red-50";
                 }
               }
 
@@ -360,12 +360,12 @@ export default function ExamTakingPage() {
                   key={opt.label}
                   onClick={() => selectAnswer(currentQuestion.id, opt.label, isMulti)}
                   className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-colors",
+                    "w-full text-left p-4 rounded-xl border-2 transition-colors",
                     optionStyle
                   )}
                 >
-                  <span className="font-semibold text-indigo-400 mr-3">{opt.label}.</span>
-                  <span>{opt.text}</span>
+                  <span className="font-semibold text-blue-500 mr-3">{opt.label}.</span>
+                  <span className="text-gray-700">{opt.text}</span>
                 </button>
               );
             })}
@@ -375,7 +375,7 @@ export default function ExamTakingPage() {
           {isPractice && userAnswers[currentQuestion.id] && (
             <button
               onClick={() => setShowExplanation(!showExplanation)}
-              className="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium transition-colors"
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
             >
               {showExplanation ? "隱藏答案" : "查看答案"}
             </button>
@@ -383,16 +383,16 @@ export default function ExamTakingPage() {
 
           {/* Explanation (practice mode only) */}
           {showExplanation && isPractice && (
-            <div className="bg-slate-800 rounded-lg p-6 space-y-3">
-              <p className="text-sm text-slate-400">
-                正確答案：<span className="text-emerald-400 font-bold text-lg">{currentQuestion.answer}</span>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-3">
+              <p className="text-sm text-gray-500">
+                正確答案：<span className="text-emerald-500 font-bold text-lg">{currentQuestion.answer}</span>
               </p>
-              <p className="text-slate-300 whitespace-pre-wrap">{currentQuestion.explanation}</p>
+              <p className="text-gray-500 whitespace-pre-wrap">{currentQuestion.explanation}</p>
               {currentQuestion.wrongOptionExplanations && (
-                <div className="space-y-2 pt-2 border-t border-slate-700">
+                <div className="space-y-2 pt-2 border-t border-gray-200">
                   {Object.entries(currentQuestion.wrongOptionExplanations).map(([label, text]) => (
-                    <p key={label} className="text-sm text-slate-400">
-                      <span className="text-red-400 font-semibold">{label}.</span> {text}
+                    <p key={label} className="text-sm text-gray-500">
+                      <span className="text-red-500 font-semibold">{label}.</span> {text}
                     </p>
                   ))}
                 </div>
@@ -405,15 +405,15 @@ export default function ExamTakingPage() {
             <button
               onClick={() => { setCurrentIndex((i) => Math.max(0, i - 1)); setShowExplanation(false); }}
               disabled={currentIndex === 0}
-              className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+              className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
             >
               上一題
             </button>
-            <span className="text-sm text-slate-500">{currentIndex + 1} / {totalCount}</span>
+            <span className="text-sm text-gray-400">{currentIndex + 1} / {totalCount}</span>
             <button
               onClick={() => { setCurrentIndex((i) => Math.min(totalCount - 1, i + 1)); setShowExplanation(false); }}
               disabled={currentIndex === totalCount - 1}
-              className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+              className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
             >
               下一題
             </button>

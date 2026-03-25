@@ -117,9 +117,9 @@ export default function ReviewPage() {
 
   if (!session) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-400">
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-gray-500">
         <p>請先登入以查看複習內容</p>
-        <Link href="/login" className="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">登入</Link>
+        <Link href="/login" className="text-blue-500 hover:text-blue-600 mt-2 inline-block">登入</Link>
       </div>
     );
   }
@@ -127,22 +127,22 @@ export default function ReviewPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold">複習中心</h1>
+        <h1 className="text-2xl font-bold text-gray-900">複習中心</h1>
         <Link
           href="/review/weak"
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
         >
           弱點分析
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-700">
+      <div className="flex border-b border-gray-200">
         <button
           onClick={() => setTab("wrong")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "wrong" ? "border-indigo-500 text-white" : "border-transparent text-slate-400 hover:text-white"
+            tab === "wrong" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
           )}
         >
           錯題本 ({wrongQuestions.length})
@@ -151,7 +151,7 @@ export default function ReviewPage() {
           onClick={() => setTab("favorites")}
           className={cn(
             "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
-            tab === "favorites" ? "border-indigo-500 text-white" : "border-transparent text-slate-400 hover:text-white"
+            tab === "favorites" ? "border-blue-500 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-900"
           )}
         >
           收藏題 ({favorites.length})
@@ -164,13 +164,13 @@ export default function ReviewPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋..."
-        className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 bg-slate-800 rounded-lg animate-pulse" />
+            <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : tab === "wrong" ? (
@@ -178,14 +178,14 @@ export default function ReviewPage() {
           {wrongQuestions.length > 0 && (
             <button
               onClick={handleReviewWrong}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-500 rounded-lg font-medium transition-colors"
+              className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium transition-colors"
             >
               重做所有錯題
             </button>
           )}
 
           {filteredWrong.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12 text-gray-400">
               <p>{search ? "找不到符合的錯題" : "目前沒有錯題記錄"}</p>
             </div>
           ) : (
@@ -194,13 +194,13 @@ export default function ReviewPage() {
                 <Link
                   key={q.questionId}
                   href={`/questions/${q.questionId}`}
-                  className="block bg-slate-800 rounded-lg p-4 hover:bg-slate-750 hover:ring-1 hover:ring-indigo-500/50 transition-all"
+                  className="block bg-white border border-gray-200 rounded-2xl p-4 hover:border-blue-300 hover:shadow-sm transition-all"
                 >
-                  <p className="text-sm line-clamp-2">{q.stem}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                    <span className="text-red-400 font-semibold">錯 {q.wrongCount} 次</span>
+                  <p className="text-sm text-gray-900 line-clamp-2">{q.stem}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <span className="px-2 py-0.5 bg-red-50 text-red-600 rounded-full font-semibold">錯 {q.wrongCount} 次</span>
                     <span>{q.questionBankName}</span>
-                    <span className="text-amber-400">{"★".repeat(q.difficulty)}</span>
+                    <span className="text-amber-500">{"★".repeat(q.difficulty)}</span>
                     <span>最後錯誤：{new Date(q.lastWrongAt).toLocaleDateString("zh-TW")}</span>
                   </div>
                 </Link>
@@ -211,7 +211,7 @@ export default function ReviewPage() {
       ) : (
         <>
           {filteredFav.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12 text-gray-400">
               <p>{search ? "找不到符合的收藏題" : "目前沒有收藏題目"}</p>
             </div>
           ) : (
@@ -219,21 +219,21 @@ export default function ReviewPage() {
               {filteredFav.map((f) => (
                 <div
                   key={f.id}
-                  className="bg-slate-800 rounded-lg p-4 flex items-center gap-4"
+                  className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4"
                 >
                   <Link
                     href={`/questions/${f.questionId}`}
-                    className="flex-1 min-w-0 hover:text-indigo-300 transition-colors"
+                    className="flex-1 min-w-0 hover:text-blue-500 transition-colors"
                   >
-                    <p className="text-sm line-clamp-2">{f.question.stem}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                    <p className="text-sm text-gray-900 line-clamp-2">{f.question.stem}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                       <span>{f.question.questionBank?.name || "未分類"}</span>
-                      <span className="text-amber-400">{"★".repeat(f.question.difficulty)}</span>
+                      <span className="text-amber-500">{"★".repeat(f.question.difficulty)}</span>
                     </div>
                   </Link>
                   <button
                     onClick={() => handleRemoveFavorite(f.questionId)}
-                    className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded text-xs transition-colors flex-shrink-0"
+                    className="px-3 py-1.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-full text-xs transition-colors flex-shrink-0"
                   >
                     移除
                   </button>
