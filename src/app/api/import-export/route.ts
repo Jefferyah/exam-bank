@@ -6,6 +6,16 @@ import { auth } from "@/lib/auth";
 
 const LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
+/** Strip HTML tags and convert <br> to newlines */
+function cleanHtml(text: unknown): string {
+  if (typeof text !== "string") return String(text ?? "");
+  return text
+    .replace(/<br\s*\/?>/gi, "\n")  // <br> → newline
+    .replace(/<[^>]*>/g, "")         // strip remaining HTML tags
+    .replace(/\n{3,}/g, "\n\n")      // collapse excessive newlines
+    .trim();
+}
+
 /** Map external type strings to our internal enum values */
 function normalizeType(raw?: string): string {
   if (!raw) return "SINGLE";
@@ -24,30 +34,51 @@ function normalizeType(raw?: string): string {
  *   Internal: { stem, options: [{label,text},...], answer: "B", ... }
  */
 function normalizeQuestion(q: Record<string, unknown>): Record<string, unknown> {
-  // 1. stem: support "question" alias
-  const stem = q.stem || q.question || "";
+  // 1. stem: support "question" alias, clean HTML
+  const stem = cleanHtml(q.stem || q.question || "");
 
-  // 2. options: convert plain string array → { label, text } objects
+  // 2. explanation: clean HTML
+  const explanation = cleanHtml(q.explanation || "");
+
+  // 3. options: convert plain string array → { label, text } objects, clean HTML
   let options = q.options;
   if (Array.isArray(options)) {
     if (options.length > 0 && typeof options[0] === "string") {
-      // Plain string array → auto-assign A, B, C, D labels
+      // Plain string array → auto-assign A, B, C, D labels, clean HTML
       options = (options as string[]).map((text, i) => ({
         label: LABELS[i] || String(i + 1),
-        text,
+        text: cleanHtml(text),
+      }));
+    } else {
+      // Already [{label, text}] format — still clean HTML in text
+      options = (options as { label: string; text: string }[]).map((opt) => ({
+        ...opt,
+        text: typeof opt.text === "string" ? cleanHtml(opt.text) : opt.text,
       }));
     }
-    // else: already [{label, text}] format — keep as is
   }
 
-  // 3. type normalization
+  // 4. type normalization
   const type = normalizeType(q.type as string | undefined);
+
+  // 5. other text fields: clean HTML
+  const extendedKnowledge = q.extendedKnowledge ? cleanHtml(q.extendedKnowledge) : null;
+  const wrongOptionExplanations = q.wrongOptionExplanations;
+  let cleanedWrongExplanations = wrongOptionExplanations;
+  if (wrongOptionExplanations && typeof wrongOptionExplanations === "object" && !Array.isArray(wrongOptionExplanations)) {
+    cleanedWrongExplanations = Object.fromEntries(
+      Object.entries(wrongOptionExplanations as Record<string, string>).map(([k, v]) => [k, cleanHtml(v)])
+    );
+  }
 
   return {
     ...q,
     stem,
+    explanation,
     options,
     type,
+    extendedKnowledge,
+    wrongOptionExplanations: cleanedWrongExplanations,
   };
 }
 
