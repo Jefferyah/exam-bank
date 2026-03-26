@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { DifficultyStarsClickable, FlagFilled, FlagEmpty, NoteIcon, ArrowLeft, ArrowRight } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
+import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface ExamAnswer {
   id: string;
@@ -60,6 +61,8 @@ export default function ExamTakingPage() {
   const [showNote, setShowNote] = useState(false);
   // Per-question difficulty override
   const [difficulties, setDifficulties] = useState<Record<string, number>>({});
+  // Custom AI prompt
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
   // Scroll ref
   const questionTopRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +115,14 @@ export default function ExamTakingPage() {
 
     if (params.id) fetchExam();
   }, [params.id, router]);
+
+  // Fetch user's custom AI prompt
+  useEffect(() => {
+    fetch("/api/user-settings")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.aiPromptTemplate) setCustomPrompt(data.aiPromptTemplate); })
+      .catch(() => {});
+  }, []);
 
   // Fetch notes for current question
   const currentAnswer = exam?.answers[currentIndex];
@@ -568,6 +579,28 @@ export default function ExamTakingPage() {
                   ))}
                 </div>
               )}
+
+              {/* AI solve buttons (practice mode only) */}
+              {(() => {
+                const urls = getAiWebUrls(buildAiPrompt(currentQuestion, customPrompt));
+                return (
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                    <span className="text-xs text-gray-400 w-full mb-1">AI 解題</span>
+                    <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#10a37f] hover:bg-[#0d8c6d] text-white rounded-full text-xs font-medium transition-all">
+                      🤖 ChatGPT
+                    </a>
+                    <a href={urls.claude} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#d97706] hover:bg-[#b45309] text-white rounded-full text-xs font-medium transition-all">
+                      🧠 Claude
+                    </a>
+                    <a href={urls.gemini} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4285f4] hover:bg-[#3367d6] text-white rounded-full text-xs font-medium transition-all">
+                      ✨ Gemini
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
