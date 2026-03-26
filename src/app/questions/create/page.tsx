@@ -54,15 +54,23 @@ function CreateQuestionContent() {
   const [newBankDescription, setNewBankDescription] = useState("");
   const [newBankIsPublic, setNewBankIsPublic] = useState(false);
   const [creatingBank, setCreatingBank] = useState(false);
+  const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
 
-  // Fetch question banks on mount
+  // Fetch question banks and hidden banks on mount
   useEffect(() => {
     async function fetchBanks() {
       try {
-        const res = await fetch("/api/question-banks");
-        if (res.ok) {
-          const data = await res.json();
+        const [banksRes, hiddenRes] = await Promise.all([
+          fetch("/api/question-banks"),
+          fetch("/api/hidden-banks"),
+        ]);
+        if (banksRes.ok) {
+          const data = await banksRes.json();
           setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        }
+        if (hiddenRes.ok) {
+          const hiddenData = await hiddenRes.json();
+          setHiddenBankIds(new Set(hiddenData.map((h: { questionBankId: string }) => h.questionBankId)));
         }
       } catch (err) {
         console.error("Failed to fetch question banks:", err);
@@ -284,7 +292,7 @@ function CreateQuestionContent() {
                 required
               >
                 <option value="">選擇題庫</option>
-                {questionBanks.map((bank) => (
+                {questionBanks.filter((b) => !hiddenBankIds.has(b.id)).map((bank) => (
                   <option key={bank.id} value={bank.id}>{bank.name}</option>
                 ))}
               </select>

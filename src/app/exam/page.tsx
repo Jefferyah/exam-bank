@@ -26,14 +26,22 @@ export default function ExamSetupPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loadingBanks, setLoadingBanks] = useState(true);
+  const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    async function fetchBanks() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/question-banks");
-        if (res.ok) {
-          const data = await res.json();
+        const [banksRes, hiddenRes] = await Promise.all([
+          fetch("/api/question-banks"),
+          fetch("/api/hidden-banks"),
+        ]);
+        if (banksRes.ok) {
+          const data = await banksRes.json();
           setQuestionBanks(data.questionBanks);
+        }
+        if (hiddenRes.ok) {
+          const hiddenData = await hiddenRes.json();
+          setHiddenBankIds(new Set(hiddenData.map((h: { questionBankId: string }) => h.questionBankId)));
         }
       } catch (err) {
         console.error(err);
@@ -41,7 +49,7 @@ export default function ExamSetupPage() {
         setLoadingBanks(false);
       }
     }
-    fetchBanks();
+    fetchData();
   }, []);
 
   function toggleBank(id: string) {
@@ -143,14 +151,14 @@ export default function ExamSetupPage() {
               <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
             ))}
           </div>
-        ) : questionBanks.length === 0 ? (
+        ) : questionBanks.filter((b) => !hiddenBankIds.has(b.id)).length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <p>尚無題庫</p>
             <p className="text-sm mt-1">請先到題庫頁面匯入或新增題目</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {questionBanks.map((bank) => (
+            {questionBanks.filter((b) => !hiddenBankIds.has(b.id)).map((bank) => (
               <label
                 key={bank.id}
                 className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${

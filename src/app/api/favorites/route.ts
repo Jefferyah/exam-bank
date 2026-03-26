@@ -114,21 +114,35 @@ export async function POST(req: NextRequest) {
         message: "Favorite removed",
       });
     } else {
-      // Add favorite
-      const favorite = await prisma.favorite.create({
-        data: {
-          userId: session.user.id,
-          questionId,
-        },
-      });
-      return NextResponse.json(
-        {
-          favorited: true,
-          favorite,
-          message: "Favorite added",
-        },
-        { status: 201 }
-      );
+      // Add favorite — handle race condition where duplicate request arrives
+      try {
+        const favorite = await prisma.favorite.create({
+          data: {
+            userId: session.user.id,
+            questionId,
+          },
+        });
+        return NextResponse.json(
+          {
+            favorited: true,
+            favorite,
+            message: "Favorite added",
+          },
+          { status: 201 }
+        );
+      } catch (createError: unknown) {
+        // Unique constraint violation → another request already created it, treat as toggle-off
+        if (createError && typeof createError === "object" && "code" in createError && (createError as { code: string }).code === "P2002") {
+          await prisma.favorite.deleteMany({
+            where: { userId: session.user.id, questionId },
+          });
+          return NextResponse.json({
+            favorited: false,
+            message: "Favorite removed",
+          });
+        }
+        throw createError;
+      }
     }
   } catch (error) {
     console.error("POST /api/favorites error:", error);

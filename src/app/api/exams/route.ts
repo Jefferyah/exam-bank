@@ -94,6 +94,13 @@ export async function POST(req: NextRequest) {
     const questionWhere: Record<string, unknown> = {};
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
 
+    // Get user's hidden banks to exclude from exam
+    const hiddenBanks = await prisma.hiddenBank.findMany({
+      where: { userId: session.user.id },
+      select: { questionBankId: true },
+    });
+    const hiddenBankIds = new Set(hiddenBanks.map((h) => h.questionBankId));
+
     if (questionBankIds && questionBankIds.length > 0) {
       // Verify user has access to all specified question banks
       if (!isAdmin) {
@@ -118,11 +125,18 @@ export async function POST(req: NextRequest) {
       }
       questionWhere.questionBankId = { in: questionBankIds };
     } else if (!isAdmin) {
-      // No specific banks requested — limit to accessible banks
+      // No specific banks requested — limit to accessible, non-hidden banks
       questionWhere.questionBank = {
-        OR: [
-          { createdById: session.user.id },
-          { isPublic: true },
+        AND: [
+          {
+            OR: [
+              { createdById: session.user.id },
+              { isPublic: true },
+            ],
+          },
+          ...(hiddenBankIds.size > 0
+            ? [{ id: { notIn: [...hiddenBankIds] } }]
+            : []),
         ],
       };
     }

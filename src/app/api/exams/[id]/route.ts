@@ -118,7 +118,7 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (exam.status === "COMPLETED") {
+    if (exam.status === "COMPLETED" || exam.status === "COMPLETING") {
       return NextResponse.json(
         { error: "此考試已完成，無法修改" },
         { status: 400 }
@@ -165,6 +165,18 @@ export async function PUT(
 
     // Finish exam: calculate score and update wrong records
     if (finish) {
+      // Optimistic lock: atomically set status to COMPLETED, fail if already completed
+      const lockResult = await prisma.exam.updateMany({
+        where: { id, status: "IN_PROGRESS" },
+        data: { status: "COMPLETING" },
+      });
+      if (lockResult.count === 0) {
+        return NextResponse.json(
+          { error: "此考試已完成或正在處理中" },
+          { status: 400 }
+        );
+      }
+
       const updatedAnswers = await prisma.examAnswer.findMany({
         where: { examId: id },
         include: { question: { include: { questionBank: { select: { name: true } } } } },
@@ -203,7 +215,7 @@ export async function PUT(
         })
       );
 
-      const finishedExam = await prisma.$transaction([
+      await prisma.$transaction([
         ...wrongOps,
         prisma.exam.update({
           where: { id },

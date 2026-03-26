@@ -254,21 +254,23 @@ export async function POST(req: NextRequest) {
       questionBankName: questionBank.name,
     };
 
+    // Pre-validate and build create data
+    const createOps = [];
     for (let i = 0; i < questionList.length; i++) {
       const raw = questionList[i];
       const q = normalizeQuestion(raw);
 
-      try {
-        // Validate required fields (explanation is optional)
-        if (!q.stem || !q.options || !q.answer) {
-          results.errors.push(
-            `Question ${i + 1}: Missing required fields (stem/question, options, answer)`
-          );
-          results.skipped++;
-          continue;
-        }
+      // Validate required fields (explanation is optional)
+      if (!q.stem || !q.options || !q.answer) {
+        results.errors.push(
+          `Question ${i + 1}: Missing required fields (stem/question, options, answer)`
+        );
+        results.skipped++;
+        continue;
+      }
 
-        await prisma.question.create({
+      createOps.push(
+        prisma.question.create({
           data: {
             stem: q.stem as string,
             type: q.type as string,
@@ -296,13 +298,19 @@ export async function POST(req: NextRequest) {
                 : "[]",
             createdById: session.user.id,
           },
-        });
+        })
+      );
+    }
 
-        results.imported++;
+    // Execute all creates in a transaction for atomicity
+    if (createOps.length > 0) {
+      try {
+        await prisma.$transaction(createOps);
+        results.imported = createOps.length;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        results.errors.push(`Question ${i + 1}: ${message}`);
-        results.skipped++;
+        results.errors.push(`Transaction failed: ${message}`);
+        results.skipped += createOps.length;
       }
     }
 
