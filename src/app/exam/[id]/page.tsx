@@ -170,20 +170,46 @@ export default function ExamTakingPage() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
+  // Save a single answer to the server immediately and notify goal tracker
+  const saveOneAnswer = useCallback(async (questionId: string, userAnswer: string) => {
+    if (!exam) return;
+    try {
+      await fetch(`/api/exams/${exam.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: [{ questionId, userAnswer }],
+        }),
+      });
+      // Notify daily-goal-tracker that a question was answered
+      window.dispatchEvent(new CustomEvent("question-answered"));
+    } catch {
+      // silently ignore — periodic save will catch up
+    }
+  }, [exam]);
+
   function selectAnswer(questionId: string, value: string, isMulti: boolean) {
+    let newAnswer: string;
     setUserAnswers((prev) => {
       if (isMulti) {
         const current = prev[questionId] || "";
         const labels = current.split(",").filter(Boolean);
         if (labels.includes(value)) {
-          return { ...prev, [questionId]: labels.filter((l) => l !== value).sort().join(",") };
+          newAnswer = labels.filter((l) => l !== value).sort().join(",");
         } else {
-          return { ...prev, [questionId]: [...labels, value].sort().join(",") };
+          newAnswer = [...labels, value].sort().join(",");
         }
+        return { ...prev, [questionId]: newAnswer };
       }
+      newAnswer = value;
       return { ...prev, [questionId]: value };
     });
     setShowExplanation(false);
+    // Save this answer to server immediately (fire-and-forget)
+    // Use setTimeout to ensure newAnswer is set after setState
+    setTimeout(() => {
+      if (newAnswer) saveOneAnswer(questionId, newAnswer);
+    }, 0);
     // Auto-scroll to "查看答案" button after selecting (single choice)
     if (!isMulti) {
       setTimeout(() => {

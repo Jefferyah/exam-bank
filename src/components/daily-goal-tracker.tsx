@@ -76,6 +76,17 @@ export function DailyGoalTracker() {
     return () => window.removeEventListener("exam-finished", handleExamFinished);
   }, [checkGoal]);
 
+  // Listen for "question-answered" custom event (fired after each answer is saved)
+  useEffect(() => {
+    function handleQuestionAnswered() {
+      // Small delay to let the server save the answer
+      setTimeout(checkGoal, 800);
+    }
+
+    window.addEventListener("question-answered", handleQuestionAnswered);
+    return () => window.removeEventListener("question-answered", handleQuestionAnswered);
+  }, [checkGoal]);
+
   if (!showCelebration) return null;
 
   return (

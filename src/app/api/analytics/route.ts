@@ -338,13 +338,35 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Today's progress (for daily goal, local timezone) ──
+    // Count answered questions from COMPLETED exams finished today
+    // PLUS answered questions from IN_PROGRESS exams started today
     const todayStart = localDayStart(todayKey);
-    const todayAnswered = allExamAnswers.filter((a) => {
+    const todayCompletedAnswered = allExamAnswers.filter((a) => {
       if (a.userAnswer == null) return false;
       const finished = examFinishMap.get(a.examId);
       if (!finished) return false;
       return new Date(finished) >= todayStart;
     }).length;
+
+    // Also count in-progress exams started today
+    const inProgressExams = await prisma.exam.findMany({
+      where: {
+        userId,
+        status: "IN_PROGRESS",
+        startedAt: { gte: todayStart },
+      },
+      select: { id: true },
+    });
+    let todayInProgressAnswered = 0;
+    if (inProgressExams.length > 0) {
+      todayInProgressAnswered = await prisma.examAnswer.count({
+        where: {
+          examId: { in: inProgressExams.map((e) => e.id) },
+          userAnswer: { not: null },
+        },
+      });
+    }
+    const todayAnswered = todayCompletedAnswered + todayInProgressAnswered;
 
     // Fetch user's daily goal
     const userSettings = await prisma.user.findUnique({
