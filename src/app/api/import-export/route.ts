@@ -208,7 +208,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let questionBank: { id: string; name: string } | null = null;
+    // Determine target bank (existing or to-be-created)
+    let existingBank: { id: string; name: string } | null = null;
+    const needsNewBank = !questionBankId;
 
     if (questionBankId) {
       const bank = await prisma.questionBank.findUnique({
@@ -232,104 +234,122 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      questionBank = bank;
-    } else {
-      if (!bankName) {
-        return NextResponse.json(
-          { error: "Missing required field: questionBankName or questionBankId" },
-          { status: 400 }
-        );
-      }
-
-      questionBank = await prisma.questionBank.create({
-        data: {
-          name: bankName,
-          description: questionBankDescription || null,
-          isPublic: isPublic === true,
-          createdById: session.user.id,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
+      existingBank = bank;
+    } else if (!bankName) {
+      return NextResponse.json(
+        { error: "Missing required field: questionBankName or questionBankId" },
+        { status: 400 }
+      );
     }
 
-    const results = {
-      imported: 0,
-      skipped: 0,
-      errors: [] as string[],
-      questionBankId: questionBank.id,
-      questionBankName: questionBank.name,
-    };
+    // Pre-validate questions before any DB writes
+    const validatedQuestions: Record<string, unknown>[] = [];
+    const validationErrors: string[] = [];
+    let skippedCount = 0;
 
-    // Pre-validate and build create data
-    const createOps = [];
     for (let i = 0; i < questionList.length; i++) {
       const raw = questionList[i];
       const q = normalizeQuestion(raw);
 
-      // Validate required fields (explanation is optional)
       if (!q.stem || !q.options || !q.answer) {
-        results.errors.push(
+        validationErrors.push(
           `Question ${i + 1}: Missing required fields (stem/question, options, answer)`
         );
-        results.skipped++;
+        skippedCount++;
         continue;
       }
 
-      createOps.push(
-        prisma.question.create({
-          data: {
-            stem: q.stem as string,
-            type: q.type as string,
-            options:
-              typeof q.options === "string"
-                ? q.options
-                : JSON.stringify(q.options),
-            answer: q.answer as string,
-            explanation: (q.explanation as string) || "",
-            wrongOptionExplanations: q.wrongOptionExplanations
-              ? typeof q.wrongOptionExplanations === "string"
-                ? q.wrongOptionExplanations
-                : JSON.stringify(q.wrongOptionExplanations)
-              : null,
-            extendedKnowledge: (q.extendedKnowledge as string) || null,
-            questionBankId: questionBank.id,
-            category: (q.category as string) || null,
-            chapter: (q.chapter as string) || null,
-            difficulty: (q.difficulty as number) || 3,
-            tags:
-              q.tags != null && q.tags !== ""
-                ? typeof q.tags === "string"
-                  ? q.tags
-                  : JSON.stringify(q.tags)
-                : "[]",
-            createdById: session.user.id,
-          },
-        })
+      validatedQuestions.push(q);
+    }
+
+    if (validatedQuestions.length === 0) {
+      return NextResponse.json(
+        {
+          message: "Import complete: 0 imported, all skipped",
+          imported: 0,
+          skipped: skippedCount,
+          errors: validationErrors,
+        },
+        { status: 200 }
       );
     }
 
-    // Execute all creates in a transaction for atomicity
-    if (createOps.length > 0) {
-      try {
-        await prisma.$transaction(createOps);
-        results.imported = createOps.length;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        results.errors.push(`Transaction failed: ${message}`);
-        results.skipped += createOps.length;
-      }
-    }
+    // Execute everything in a single transaction (bank creation + all questions)
+    const userId = session.user.id!;
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Create bank inside transaction if needed
+        const bank = needsNewBank
+          ? await tx.questionBank.create({
+              data: {
+                name: bankName!,
+                description: questionBankDescription || null,
+                isPublic: isPublic === true,
+                createdById: userId,
+              },
+              select: { id: true, name: true },
+            })
+          : existingBank!;
 
-    return NextResponse.json(
-      {
-        message: `Import complete: ${results.imported} imported, ${results.skipped} skipped`,
-        ...results,
-      },
-      { status: 200 }
-    );
+        // Create all questions
+        for (const q of validatedQuestions) {
+          await tx.question.create({
+            data: {
+              stem: q.stem as string,
+              type: q.type as string,
+              options:
+                typeof q.options === "string"
+                  ? q.options
+                  : JSON.stringify(q.options),
+              answer: q.answer as string,
+              explanation: (q.explanation as string) || "",
+              wrongOptionExplanations: q.wrongOptionExplanations
+                ? typeof q.wrongOptionExplanations === "string"
+                  ? q.wrongOptionExplanations
+                  : JSON.stringify(q.wrongOptionExplanations)
+                : null,
+              extendedKnowledge: (q.extendedKnowledge as string) || null,
+              questionBankId: bank.id,
+              category: (q.category as string) || null,
+              chapter: (q.chapter as string) || null,
+              difficulty: (q.difficulty as number) || 3,
+              tags:
+                q.tags != null && q.tags !== ""
+                  ? typeof q.tags === "string"
+                    ? q.tags
+                    : JSON.stringify(q.tags)
+                  : "[]",
+              createdById: userId,
+            },
+          });
+        }
+
+        return bank;
+      });
+
+      return NextResponse.json(
+        {
+          message: `Import complete: ${validatedQuestions.length} imported, ${skippedCount} skipped`,
+          imported: validatedQuestions.length,
+          skipped: skippedCount,
+          errors: validationErrors,
+          questionBankId: result.id,
+          questionBankName: result.name,
+        },
+        { status: 200 }
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json(
+        {
+          message: `Import failed: ${message}`,
+          imported: 0,
+          skipped: skippedCount + validatedQuestions.length,
+          errors: [...validationErrors, `Transaction failed: ${message}`],
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("POST /api/import-export error:", error);
     return NextResponse.json(
