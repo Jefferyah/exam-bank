@@ -7,7 +7,7 @@ import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
-import { buildAiPrompt, getAiWebUrls, DEFAULT_AI_PROMPT } from "@/lib/ai-prompt";
+import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface Question {
   id: string;
@@ -39,9 +39,6 @@ export default function QuestionDetailPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [userDifficulty, setUserDifficulty] = useState<number | null>(null);
   const [customPrompt, setCustomPrompt] = useState<string | null>(null);
-  const [promptDraft, setPromptDraft] = useState("");
-  const [showPromptEditor, setShowPromptEditor] = useState(false);
-  const [savingPrompt, setSavingPrompt] = useState(false);
 
   useEffect(() => {
     async function fetchQuestion() {
@@ -70,7 +67,6 @@ export default function QuestionDetailPage() {
         if (res.ok) {
           const data = await res.json();
           setCustomPrompt(data.aiPromptTemplate || null);
-          setPromptDraft(data.aiPromptTemplate || DEFAULT_AI_PROMPT);
         }
       } catch (err) {
         console.error("Failed to fetch prompt:", err);
@@ -78,27 +74,6 @@ export default function QuestionDetailPage() {
     }
     fetchPrompt();
   }, [session]);
-
-  async function handleSavePrompt() {
-    setSavingPrompt(true);
-    try {
-      const isDefault = promptDraft.trim() === DEFAULT_AI_PROMPT.trim();
-      const res = await fetch("/api/user-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aiPromptTemplate: isDefault ? null : promptDraft }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCustomPrompt(data.aiPromptTemplate);
-        setShowPromptEditor(false);
-      }
-    } catch (err) {
-      console.error("Failed to save prompt:", err);
-    } finally {
-      setSavingPrompt(false);
-    }
-  }
 
   // Check favorite status and note
   useEffect(() => {
@@ -371,59 +346,18 @@ export default function QuestionDetailPage() {
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
           {session && (
-            <button
-              onClick={() => { setShowPromptEditor(!showPromptEditor); if (!showPromptEditor) setPromptDraft(customPrompt || DEFAULT_AI_PROMPT); }}
-              className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
+            <Link
+              href="/admin"
+              className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
             >
-              {showPromptEditor ? "收起" : "自訂 Prompt"}
-            </button>
+              Prompt 設定 →
+            </Link>
           )}
         </div>
         <p className="text-sm text-gray-500 mb-4">
           點擊按鈕，自動帶入題目與 Prompt 到 AI 網頁進行解題
           {customPrompt && <span className="ml-1 text-blue-500">（使用自訂 Prompt）</span>}
         </p>
-
-        {/* Prompt editor */}
-        {showPromptEditor && (
-          <div className="mb-4 space-y-3 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-700">自訂 AI Prompt</p>
-              <button
-                onClick={() => setPromptDraft(DEFAULT_AI_PROMPT)}
-                className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                恢復預設
-              </button>
-            </div>
-            <textarea
-              value={promptDraft}
-              onChange={(e) => setPromptDraft(e.target.value)}
-              className="w-full min-h-[180px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
-            />
-            <div className="flex flex-wrap gap-1.5">
-              {["{{題型}}", "{{題目}}", "{{選項}}", "{{作答規則}}"].map((tag) => (
-                <span key={tag} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full font-mono">{tag}</span>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400">上方標籤會在送出時自動替換為實際題目內容。可自由調整 Prompt 結構與指令。</p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowPromptEditor(false)}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSavePrompt}
-                disabled={savingPrompt}
-                className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
-              >
-                {savingPrompt ? "儲存中..." : "儲存 Prompt"}
-              </button>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(() => {

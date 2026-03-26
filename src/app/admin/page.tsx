@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DEFAULT_AI_PROMPT } from "@/lib/ai-prompt";
 
 interface AdminStats {
   totalUsers: number;
@@ -43,6 +44,10 @@ export default function AdminPage() {
   const [questionBanks, setQuestionBanks] = useState<QuestionBankOption[]>([]);
   const [resetting, setResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+  const [promptDraft, setPromptDraft] = useState("");
+  const [savingPrompt, setSavingPrompt] = useState(false);
+  const [promptMessage, setPromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) {
@@ -71,6 +76,14 @@ export default function AdminPage() {
         if (codesRes.ok) {
           const data = await codesRes.json();
           setInviteCodes(data.inviteCodes || []);
+        }
+
+        // Fetch user's custom AI prompt
+        const promptRes = await fetch("/api/user-settings");
+        if (promptRes.ok) {
+          const promptData = await promptRes.json();
+          setCustomPrompt(promptData.aiPromptTemplate || null);
+          setPromptDraft(promptData.aiPromptTemplate || DEFAULT_AI_PROMPT);
         }
 
         // Fetch question banks for reset filter
@@ -164,6 +177,32 @@ export default function AdminPage() {
     }
   }
 
+  async function handleSavePrompt() {
+    setSavingPrompt(true);
+    setPromptMessage(null);
+    try {
+      const isDefault = promptDraft.trim() === DEFAULT_AI_PROMPT.trim();
+      const res = await fetch("/api/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiPromptTemplate: isDefault ? null : promptDraft }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCustomPrompt(data.aiPromptTemplate);
+        setPromptMessage({ type: "success", text: isDefault ? "已恢復為預設 Prompt" : "Prompt 已儲存" });
+      } else {
+        const data = await res.json();
+        setPromptMessage({ type: "error", text: data.error || "儲存失敗" });
+      }
+    } catch (err) {
+      console.error("Failed to save prompt:", err);
+      setPromptMessage({ type: "error", text: "儲存失敗，請稍後再試" });
+    } finally {
+      setSavingPrompt(false);
+    }
+  }
+
   const role = (session?.user as { role?: string } | undefined)?.role;
 
   if (status === "loading") {
@@ -191,6 +230,60 @@ export default function AdminPage() {
 
   const unusedCodes = inviteCodes.filter((c) => c.maxUses === 0 || c.usedCount < c.maxUses);
   const usedCodes = inviteCodes.filter((c) => c.maxUses > 0 && c.usedCount >= c.maxUses);
+
+  const promptSection = (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">AI Prompt 設定</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          自訂 AI 解題時使用的 Prompt 模板
+          {customPrompt && <span className="ml-1 text-blue-500">（目前使用自訂 Prompt）</span>}
+          {!customPrompt && <span className="ml-1 text-gray-400">（目前使用預設 Prompt）</span>}
+        </p>
+      </div>
+
+      <textarea
+        value={promptDraft}
+        onChange={(e) => setPromptDraft(e.target.value)}
+        className="w-full min-h-[200px] px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
+      />
+
+      <div>
+        <p className="text-xs text-gray-500 mb-2">可用變數（送出時自動替換為實際題目內容）：</p>
+        <div className="flex flex-wrap gap-1.5">
+          {["{{題型}}", "{{題目}}", "{{選項}}", "{{作答規則}}"].map((tag) => (
+            <span key={tag} className="inline-block px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs rounded-full font-mono">{tag}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSavePrompt}
+            disabled={savingPrompt}
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
+          >
+            {savingPrompt ? "儲存中..." : "儲存 Prompt"}
+          </button>
+          <button
+            onClick={() => { setPromptDraft(DEFAULT_AI_PROMPT); setPromptMessage(null); }}
+            className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          >
+            恢復預設
+          </button>
+          {promptMessage && (
+            <p className={cn(
+              "text-sm",
+              promptMessage.type === "success" ? "text-emerald-600" : "text-red-600"
+            )}>
+              {promptMessage.text}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const resetSection = (
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
@@ -284,6 +377,7 @@ export default function AdminPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">設定</h1>
+        {promptSection}
         {resetSection}
       </div>
     );
@@ -428,6 +522,9 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+
+          {/* AI Prompt Settings */}
+          {promptSection}
 
           {/* Reset Learning Records */}
           {resetSection}
