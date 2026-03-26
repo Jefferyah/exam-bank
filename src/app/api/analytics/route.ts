@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
       allExamAnswers,
       recentExams,
       wrongRecords,
+      allCompletedExams,
     ] = await Promise.all([
       prisma.exam.count({ where: { userId } }),
       prisma.exam.findMany({
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
       prisma.examAnswer.findMany({
         where: { exam: { userId } },
         include: {
+          exam: { select: { mode: true } },
           question: {
             select: {
               id: true,
@@ -62,6 +64,17 @@ export async function GET(req: NextRequest) {
               difficulty: true,
             },
           },
+        },
+      }),
+      // For mode comparison & daily activity
+      prisma.exam.findMany({
+        where: { userId, status: "COMPLETED" },
+        select: {
+          id: true,
+          mode: true,
+          score: true,
+          startedAt: true,
+          finishedAt: true,
         },
       }),
     ]);
@@ -181,6 +194,146 @@ export async function GET(req: NextRequest) {
       lastWrongAt: r.lastWrongAt,
     }));
 
+    // ── Time analysis ──
+    // Time analysis: only count MOCK (exam) mode for meaningful speed data
+    const answeredWithTime = allExamAnswers.filter(
+      (a) => a.userAnswer != null && (a.timeSpent ?? 0) > 0 && a.exam.mode === "MOCK"
+    );
+    const avgTimePerQuestion =
+      answeredWithTime.length > 0
+        ? Math.round(
+            answeredWithTime.reduce((s, a) => s + (a.timeSpent ?? 0), 0) /
+              answeredWithTime.length
+          )
+        : 0;
+
+    // Time per difficulty
+    const timeByDifficulty: Record<number, { totalTime: number; count: number }> = {};
+    for (const a of answeredWithTime) {
+      const d = a.question.difficulty;
+      if (!timeByDifficulty[d]) timeByDifficulty[d] = { totalTime: 0, count: 0 };
+      timeByDifficulty[d].totalTime += a.timeSpent ?? 0;
+      timeByDifficulty[d].count++;
+    }
+    const timePerDifficulty = Object.entries(timeByDifficulty)
+      .map(([d, s]) => ({
+        difficulty: parseInt(d, 10),
+        avgTime: Math.round(s.totalTime / s.count),
+        count: s.count,
+      }))
+      .sort((a, b) => a.difficulty - b.difficulty);
+
+    // Time per bank
+    const timeByBank: Record<string, { totalTime: number; count: number; correctTime: number; correctCount: number; wrongTime: number; wrongCount: number }> = {};
+    for (const a of answeredWithTime) {
+      const bId = a.question.questionBankId;
+      if (!timeByBank[bId]) timeByBank[bId] = { totalTime: 0, count: 0, correctTime: 0, correctCount: 0, wrongTime: 0, wrongCount: 0 };
+      timeByBank[bId].totalTime += a.timeSpent ?? 0;
+      timeByBank[bId].count++;
+      if (a.isCorrect) {
+        timeByBank[bId].correctTime += a.timeSpent ?? 0;
+        timeByBank[bId].correctCount++;
+      } else {
+        timeByBank[bId].wrongTime += a.timeSpent ?? 0;
+        timeByBank[bId].wrongCount++;
+      }
+    }
+    const timePerBank = Object.entries(timeByBank).map(([bId, s]) => ({
+      questionBankId: bId,
+      questionBankName: bankMap.get(bId) || bId,
+      avgTime: Math.round(s.totalTime / s.count),
+      avgCorrectTime: s.correctCount > 0 ? Math.round(s.correctTime / s.correctCount) : 0,
+      avgWrongTime: s.wrongCount > 0 ? Math.round(s.wrongTime / s.wrongCount) : 0,
+      count: s.count,
+    }));
+
+    // ── Mode comparison (PRACTICE vs MOCK) ──
+    const modeStats: Record<string, { count: number; totalScore: number; totalDuration: number }> = {};
+    for (const exam of allCompletedExams) {
+      const mode = exam.mode || "PRACTICE";
+      if (!modeStats[mode]) modeStats[mode] = { count: 0, totalScore: 0, totalDuration: 0 };
+      modeStats[mode].count++;
+      modeStats[mode].totalScore += exam.score || 0;
+      if (exam.startedAt && exam.finishedAt) {
+        modeStats[mode].totalDuration +=
+          (new Date(exam.finishedAt).getTime() - new Date(exam.startedAt).getTime()) / 1000;
+      }
+    }
+    const modeComparison = Object.entries(modeStats).map(([mode, s]) => ({
+      mode,
+      count: s.count,
+      avgScore: s.count > 0 ? Math.round((s.totalScore / s.count) * 100) / 100 : 0,
+      avgDuration: s.count > 0 ? Math.round(s.totalDuration / s.count) : 0,
+    }));
+
+    // ── Daily activity (last 30 days) ──
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailyActivity: Record<string, { exams: number; questions: number }> = {};
+    // Init all 30 days
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(thirtyDaysAgo);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      dailyActivity[key] = { exams: 0, questions: 0 };
+    }
+    // Count exams per day
+    for (const exam of allCompletedExams) {
+      if (!exam.finishedAt) continue;
+      const key = new Date(exam.finishedAt).toISOString().slice(0, 10);
+      if (dailyActivity[key]) dailyActivity[key].exams++;
+    }
+    // Count answered questions per day (from exam's finishedAt)
+    const examFinishMap = new Map(
+      allCompletedExams.map((e) => [e.id, e.finishedAt])
+    );
+    for (const a of allExamAnswers) {
+      if (a.userAnswer == null) continue;
+      const finished = examFinishMap.get(a.examId);
+      if (!finished) continue;
+      const key = new Date(finished).toISOString().slice(0, 10);
+      if (dailyActivity[key]) dailyActivity[key].questions++;
+    }
+    const dailyActivityArray = Object.entries(dailyActivity)
+      .map(([date, s]) => ({ date, ...s }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // ── Study streak ──
+    let currentStreak = 0;
+    const today = now.toISOString().slice(0, 10);
+    // Walk backwards from today
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const activity = dailyActivity[key];
+      // For days beyond 30-day window, check allCompletedExams directly
+      if (activity) {
+        if (activity.exams > 0 || activity.questions > 0) {
+          currentStreak++;
+        } else if (key !== today) {
+          // Allow today to be zero (day not over yet) on first iteration
+          break;
+        } else {
+          // Today with no activity - check if yesterday had activity
+          continue;
+        }
+      } else {
+        // Beyond 30-day cache, check exam data
+        const hasExam = allCompletedExams.some(
+          (e) => e.finishedAt && new Date(e.finishedAt).toISOString().slice(0, 10) === key
+        );
+        if (hasExam) {
+          currentStreak++;
+        } else if (key !== today) {
+          break;
+        }
+      }
+    }
+
     return NextResponse.json({
       totalExams,
       completedExams: completedExams.length,
@@ -189,6 +342,15 @@ export async function GET(req: NextRequest) {
       difficultyDistribution,
       recentTrend,
       mostWrongQuestions: allWrongQuestions.slice(0, 10),
+      // New analytics
+      timeAnalysis: {
+        avgTimePerQuestion,
+        timePerDifficulty,
+        timePerBank,
+      },
+      modeComparison,
+      dailyActivity: dailyActivityArray,
+      currentStreak,
     });
   } catch (error) {
     console.error("GET /api/analytics error:", error);
