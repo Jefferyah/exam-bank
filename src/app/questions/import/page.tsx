@@ -293,7 +293,7 @@ export default function ImportPage() {
       </div>
 
       {/* Upload area */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯入題目 (JSON)</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -338,7 +338,7 @@ export default function ImportPage() {
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文 N1 文法"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -351,7 +351,7 @@ export default function ImportPage() {
                 value={bankDescription}
                 onChange={(e) => setBankDescription(e.target.value)}
                 placeholder="簡短描述這個題庫的內容"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -399,7 +399,7 @@ export default function ImportPage() {
             <select
               value={selectedBankId}
               onChange={(e) => setSelectedBankId(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">選擇題庫</option>
               {questionBanks.map((bank) => (
@@ -411,7 +411,7 @@ export default function ImportPage() {
           </div>
         )}
 
-        <div className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-8 text-center">
+        <div className="border-2 border-dashed border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 text-center">
           <input
             type="file"
             accept=".json"
@@ -446,7 +446,7 @@ export default function ImportPage() {
         </div>
 
         {parseError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
             <p className="text-red-600 text-sm">{parseError}</p>
           </div>
         )}
@@ -454,7 +454,7 @@ export default function ImportPage() {
 
       {/* Preview */}
       {preview.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
               預覽匯入題目 ({preview.length} 題)
@@ -472,7 +472,7 @@ export default function ImportPage() {
             {preview.map((q, i) => (
               <div
                 key={i}
-                className="p-3 bg-gray-50 border border-gray-100 rounded-xl"
+                className="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-xl"
               >
                 <p
                   className="text-sm font-medium text-gray-900 line-clamp-2"
@@ -513,7 +513,7 @@ export default function ImportPage() {
 
       {/* Import result */}
       {result && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">匯入結果</h2>
           {result.questionBankName && (
             <p className="text-sm text-gray-600">
@@ -521,13 +521,13 @@ export default function ImportPage() {
             </p>
           )}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-center">
               <p className="text-2xl font-bold text-emerald-500">
                 {result.imported}
               </p>
               <p className="text-sm text-gray-600">成功匯入</p>
             </div>
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-center">
               <p className="text-2xl font-bold text-amber-500">
                 {result.skipped}
               </p>
@@ -545,7 +545,7 @@ export default function ImportPage() {
       )}
 
       {/* Export */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">匯出全部題目</h2>
         <p className="text-sm text-gray-600">將所有題目匯出為 JSON 檔案</p>
         <button
@@ -557,7 +557,7 @@ export default function ImportPage() {
       </div>
 
       {/* Sample formats */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">
           JSON 格式範例
         </h2>
@@ -591,7 +591,7 @@ export default function ImportPage() {
 
         {sampleTab === "A" ? (
           <div className="space-y-3">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-sm text-blue-700 space-y-1">
               <p className="font-medium">簡易格式特點：</p>
               <ul className="list-disc list-inside text-blue-600 space-y-0.5">
                 <li>
@@ -617,7 +617,7 @@ export default function ImportPage() {
               </ul>
             </div>
             <div className="relative">
-              <pre className="bg-gray-50 border border-gray-200 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+              <pre className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
                 {SAMPLE_FORMAT_A}
               </pre>
               <button
@@ -630,7 +630,7 @@ export default function ImportPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-sm text-purple-700 space-y-1">
+            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-3 text-sm text-purple-700 space-y-1">
               <p className="font-medium">完整格式特點：</p>
               <ul className="list-disc list-inside text-purple-600 space-y-0.5">
                 <li>
@@ -659,7 +659,7 @@ export default function ImportPage() {
               </ul>
             </div>
             <div className="relative">
-              <pre className="bg-gray-50 border border-gray-200 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+              <pre className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
                 {SAMPLE_FORMAT_B}
               </pre>
               <button
@@ -680,7 +680,7 @@ export default function ImportPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th className="text-left py-2 pr-4 text-gray-600 font-medium">
                     簡易格式
                   </th>

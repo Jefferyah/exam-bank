@@ -266,7 +266,7 @@ export default function QuestionsPage() {
 
       {/* Question Bank Manager */}
       {showBankManager && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">題庫列表</h2>
             <div className="flex items-center gap-3">
@@ -448,14 +448,14 @@ export default function QuestionsPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm space-y-4">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="搜尋關鍵字..."
-            className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             type="submit"
@@ -471,7 +471,7 @@ export default function QuestionsPage() {
           <select
             value={questionBankId}
             onChange={(e) => setQuestionBankId(e.target.value)}
-            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部題庫</option>
             {questionBanks
@@ -484,7 +484,7 @@ export default function QuestionsPage() {
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
-            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部難度</option>
             {Object.entries(DIFFICULTY_LABELS).map(([val, label]) => (
@@ -495,7 +495,7 @@ export default function QuestionsPage() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部類型</option>
             <option value="SINGLE">單選題</option>
@@ -512,7 +512,7 @@ export default function QuestionsPage() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : questions.length === 0 ? (
@@ -526,7 +526,7 @@ export default function QuestionsPage() {
             <Link
               key={q.id}
               href={`/questions/${q.id}`}
-              className="block bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+              className="block bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
             >
               <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                 <div className="flex-1 min-w-0">

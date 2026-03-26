@@ -290,8 +290,8 @@ export default function ExamTakingPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-10 w-48 bg-gray-100 rounded-2xl" />
-          <div className="h-64 bg-gray-100 rounded-2xl" />
+          <div className="h-10 w-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
         </div>
       </div>
     );
@@ -313,7 +313,7 @@ export default function ExamTakingPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-4">
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-4 bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+      <div className="flex items-center justify-between mb-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-3 shadow-sm">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold tracking-tight text-gray-900 hidden sm:block">{exam.title}</h1>
           <span className="text-sm text-gray-600">
@@ -350,7 +350,7 @@ export default function ExamTakingPage() {
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Question navigation sidebar */}
         <div className="lg:w-48 flex-shrink-0">
-          <div className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm lg:sticky lg:top-20">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-3 shadow-sm lg:sticky lg:top-20">
             <p className="text-sm text-gray-600 mb-2">題目導覽</p>
             <div className="grid grid-cols-8 lg:grid-cols-4 gap-1.5">
               {exam.answers.map((a, i) => {
@@ -428,7 +428,7 @@ export default function ExamTakingPage() {
         {/* Main question area */}
         <div className="flex-1 space-y-4" ref={questionTopRef}>
           {/* Progress */}
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
+          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
             <div
               className="h-1.5 bg-gray-900 rounded-full transition-all"
               style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
@@ -436,7 +436,7 @@ export default function ExamTakingPage() {
           </div>
 
           {/* Question */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
             <div className="mb-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">第 {currentIndex + 1} 題 / 共 {totalCount} 題</span>
@@ -500,7 +500,7 @@ export default function ExamTakingPage() {
                 value={notes[currentQuestion.id] ?? ""}
                 onChange={(e) => setNotes((prev) => ({ ...prev, [currentQuestion.id]: e.target.value }))}
                 placeholder="輸入筆記..."
-                className="w-full min-h-[80px] px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                className="w-full min-h-[80px] px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
               />
             </div>
           )}
@@ -512,16 +512,16 @@ export default function ExamTakingPage() {
                 ? (userAnswers[currentQuestion.id] || "").split(",").includes(opt.label)
                 : userAnswers[currentQuestion.id] === opt.label;
 
-              let optionStyle = "border-gray-100 bg-white hover:border-gray-200 hover:shadow-md";
+              let optionStyle = "border-gray-100 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-500 hover:shadow-md";
               if (selected) {
-                optionStyle = "border-blue-200 bg-blue-50";
+                optionStyle = "border-blue-200 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30";
               }
               if (showExplanation && isPractice) {
                 const isCorrect = currentQuestion.answer.includes(opt.label);
                 if (isCorrect) {
-                  optionStyle = "border-emerald-400 bg-emerald-50";
+                  optionStyle = "border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30";
                 } else if (selected && !isCorrect) {
-                  optionStyle = "border-red-400 bg-red-50";
+                  optionStyle = "border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-900/30";
                 }
               }
 
@@ -565,7 +565,7 @@ export default function ExamTakingPage() {
 
           {/* Explanation (practice mode only) */}
           {showExplanation && isPractice && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-3">
               <p className="text-sm text-gray-600">
                 正確答案：<span className="text-emerald-500 font-bold text-lg">{currentQuestion.answer}</span>
               </p>

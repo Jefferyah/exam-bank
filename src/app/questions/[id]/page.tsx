@@ -193,9 +193,9 @@ export default function QuestionDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
-          <div className="h-32 bg-gray-100 rounded-2xl" />
-          <div className="h-48 bg-gray-100 rounded-2xl" />
+          <div className="h-8 w-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
         </div>
       </div>
     );
@@ -288,7 +288,7 @@ export default function QuestionDetailPage() {
       </div>
 
       {/* Question stem */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">題目</h2>
           <CopyQuestionButton
@@ -302,7 +302,7 @@ export default function QuestionDetailPage() {
       </div>
 
       {/* Options */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">選項</h2>
         <div className="space-y-3">
           {question.options.map((opt) => (
@@ -311,8 +311,8 @@ export default function QuestionDetailPage() {
               className={cn(
                 "p-3 rounded-xl border transition-colors",
                 showAnswer && question.answer.includes(opt.label)
-                  ? "border-emerald-300 bg-emerald-50"
-                  : "border-gray-200 bg-gray-50"
+                  ? "border-emerald-300 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30"
+                  : "border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
               )}
             >
               <span className="font-semibold text-blue-500 mr-2">{opt.label}.</span>
@@ -333,18 +333,18 @@ export default function QuestionDetailPage() {
       {/* Answer & Explanation */}
       {showAnswer && (
         <>
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">正確答案</h2>
             <p className="text-2xl font-bold text-emerald-500">{question.answer}</p>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">解析</h2>
             <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
           </div>
 
           {question.wrongOptionExplanations && Object.keys(question.wrongOptionExplanations).length > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">各選項說明</h2>
               <div className="space-y-3">
                 {Object.entries(question.wrongOptionExplanations).map(([label, explanation]) => (
@@ -358,7 +358,7 @@ export default function QuestionDetailPage() {
           )}
 
           {question.extendedKnowledge && (
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">延伸知識</h2>
               <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{question.extendedKnowledge}</p>
             </div>
@@ -367,7 +367,7 @@ export default function QuestionDetailPage() {
       )}
 
       {/* AI Solve — open in external AI web */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
           {session && (
@@ -386,7 +386,7 @@ export default function QuestionDetailPage() {
 
         {/* Prompt editor */}
         {showPromptEditor && (
-          <div className="mb-4 space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="mb-4 space-y-3 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-700">自訂 AI Prompt</p>
               <button
@@ -454,13 +454,13 @@ export default function QuestionDetailPage() {
 
       {/* Notes - inline per question */}
       {session && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">我的筆記</h2>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="在此輸入你的筆記..."
-            className="w-full min-h-[200px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full min-h-[200px] px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
           />
           <div className="flex items-center justify-between mt-3">
             {savedNote && note === savedNote && (

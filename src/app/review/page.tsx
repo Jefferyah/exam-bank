@@ -188,14 +188,14 @@ export default function ReviewPage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">複習中心</h1>
         <Link
           href="/review/weak"
-          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-sm font-medium transition-colors"
         >
           弱點分析
         </Link>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setTab("wrong")}
           className={cn(
@@ -231,13 +231,13 @@ export default function ReviewPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋..."
-        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
+        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
       />
 
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-20 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : tab === "wrong" ? (
@@ -260,7 +260,7 @@ export default function ReviewPage() {
               {filteredWrong.map((q) => (
                 <div
                   key={q.questionId}
-                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <Link
@@ -293,7 +293,7 @@ export default function ReviewPage() {
               {filteredFav.map((f) => (
                 <div
                   key={f.id}
-                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center gap-4"
+                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm flex items-center gap-4"
                 >
                   <Link
                     href={`/questions/${f.questionId}`}
@@ -337,7 +337,7 @@ export default function ReviewPage() {
               {filteredNotes.map((n) => (
                 <div
                   key={n.id}
-                  className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
+                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <Link

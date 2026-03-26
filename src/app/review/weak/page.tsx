@@ -90,9 +90,9 @@ export default function WeakPointsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
+          <div className="h-8 w-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl" />
+            <div key={i} className="h-24 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function WeakPointsPage() {
       </div>
 
       {/* Bank weakness ranking */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫弱點排名</h2>
         {bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄，無法分析弱點</p>
@@ -162,7 +162,7 @@ export default function WeakPointsPage() {
       </div>
 
       {/* Most frequently wrong */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">最常錯的題目</h2>
         {mostWrong.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無錯題記錄</p>

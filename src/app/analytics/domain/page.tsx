@@ -77,8 +77,8 @@ export default function BankAnalysisPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
-          <div className="h-64 bg-gray-100 rounded-2xl" />
+          <div className="h-8 w-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ export default function BankAnalysisPage() {
       </div>
 
       {/* Bar chart overview */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題庫總覽</h2>
         {bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -112,7 +112,7 @@ export default function BankAnalysisPage() {
                       {d.accuracy}% ({d.correct}/{d.total})
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-3">
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
                     <div
                       className={cn(
                         "h-3 rounded-full transition-all",
@@ -129,7 +129,7 @@ export default function BankAnalysisPage() {
 
       {/* Weakest bank highlight */}
       {weakest && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-red-600 font-medium">最弱題庫</p>
@@ -149,7 +149,7 @@ export default function BankAnalysisPage() {
       {/* Per-bank detail cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {bankAccuracy.map((d) => (
-          <div key={d.questionBankId} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all">
+          <div key={d.questionBankId} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-gray-200 transition-all">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="font-semibold text-sm text-gray-900">{d.questionBankName}</p>
@@ -168,7 +168,7 @@ export default function BankAnalysisPage() {
               </span>
             </div>
 
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-3">
               <div
                 className={cn(
                   "h-2 rounded-full transition-all",

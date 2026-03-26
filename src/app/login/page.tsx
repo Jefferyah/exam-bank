@@ -65,7 +65,7 @@ export default function LoginPage() {
           <p className="mt-2 text-gray-500">登入 ExamBank 開始學習</p>
         </div>
 
-        <div className="bg-white shadow-xl rounded-2xl p-8 space-y-6 border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 space-y-6 border border-gray-200 dark:border-gray-700">
           {/* Email login */}
           <form onSubmit={handleCredentialLogin} className="space-y-4">
             <div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
             </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="輸入密碼"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
             </div>
@@ -108,14 +108,14 @@ export default function LoginPage() {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
                 placeholder="輸入邀請碼"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
               <p className="mt-1 text-xs text-gray-400">已有帳號輸入 Email 和密碼即可登入</p>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}

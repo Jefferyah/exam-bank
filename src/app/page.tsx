@@ -56,13 +56,13 @@ export default function HomePage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-6">
-          <div className="h-10 w-64 bg-gray-100 rounded-2xl" />
+          <div className="h-10 w-64 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
+              <div key={i} className="h-28 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
             ))}
           </div>
-          <div className="h-64 bg-gray-100 rounded-2xl animate-pulse" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -73,7 +73,7 @@ export default function HomePage() {
     <div className="hero-gradient flex flex-col items-center justify-center px-4 py-16 md:py-24">
       <div className="text-center space-y-8 max-w-3xl mx-auto">
         {/* Badge */}
-        <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 bg-white/60 backdrop-blur text-sm text-gray-600">
+        <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 backdrop-blur text-sm text-gray-600">
           <Sparkle className="w-4 h-4 text-amber-400" />
           <span>多題庫管理・智慧出題・模擬考</span>
         </div>
@@ -188,7 +188,7 @@ export default function HomePage() {
       </div>
 
       {/* Recent exams */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">最近測驗</h2>
           <Link href="/analytics" className="text-sm text-blue-500 hover:text-blue-600">
@@ -235,7 +235,7 @@ export default function HomePage() {
                       {exam.score != null ? `${exam.score.toFixed(1)}%` : "--"}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full bg-gradient-to-r transition-all duration-500 group-hover:opacity-80",
@@ -260,7 +260,7 @@ export default function HomePage() {
 
       {/* Bank accuracy overview */}
       {analytics?.bankAccuracy && analytics.bankAccuracy.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
           <div className="space-y-3">
             {analytics.bankAccuracy.map((d) => (
@@ -271,7 +271,7 @@ export default function HomePage() {
                   </span>
                   <span className="text-gray-500 flex-shrink-0">{d.accuracy}% ({d.correct}/{d.total})</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className={cn(
                       "h-2 rounded-full transition-all",
@@ -292,7 +292,7 @@ export default function HomePage() {
 
 function StatCard({ label, value, icon, iconBg, iconColor }: { label: string; value: string | number; icon: React.ReactNode; iconBg: string; iconColor: string }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", iconBg, iconColor)}>
         {icon}
       </div>

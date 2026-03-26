@@ -100,7 +100,7 @@ export default function ExamSetupPage() {
       <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">測驗設定</h1>
 
       {/* Mode selector */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">測驗模式</h2>
         <div className="grid grid-cols-2 gap-4">
           <button
@@ -131,7 +131,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Question bank selection */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">選擇題庫</h2>
         <p className="text-sm text-gray-600">不選則包含所有題庫</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -160,7 +160,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Difficulty */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">難度範圍</h2>
         <div className="flex gap-2 md:gap-3 overflow-x-auto pb-1 -mx-1 px-1">
           {[1, 2, 3, 4, 5].map((d) => (
@@ -181,7 +181,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Count and Time */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">題目數量</label>
@@ -191,7 +191,7 @@ export default function ExamSetupPage() {
               max={200}
               value={count}
               onChange={(e) => setCount(parseInt(e.target.value) || 20)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           {mode === "MOCK" && (
@@ -203,7 +203,7 @@ export default function ExamSetupPage() {
                 max={360}
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
@@ -211,7 +211,7 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Special options */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-3">
         <h2 className="text-lg font-semibold text-gray-900">特殊選項</h2>
         <label className="flex items-center gap-3 cursor-pointer">
           <input
@@ -244,7 +244,7 @@ export default function ExamSetupPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
           <p className="text-red-500">{error}</p>
         </div>
       )}

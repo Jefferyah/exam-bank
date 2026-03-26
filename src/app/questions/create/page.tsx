@@ -240,26 +240,26 @@ function CreateQuestionContent() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Stem */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">題幹</h2>
           <textarea
             value={stem}
             onChange={(e) => setStem(e.target.value)}
             placeholder="輸入題目（支援長題幹/情境題）..."
-            className="w-full h-40 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+            className="w-full h-40 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
             required
           />
         </div>
 
         {/* Type & Question Bank */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">題型</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as "SINGLE" | "MULTI" | "SCENARIO")}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="SINGLE">單選題 (SINGLE)</option>
                 <option value="MULTI">多選題 (MULTI)</option>
@@ -280,7 +280,7 @@ function CreateQuestionContent() {
               <select
                 value={questionBankId}
                 onChange={(e) => setQuestionBankId(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">選擇題庫</option>
@@ -359,7 +359,7 @@ function CreateQuestionContent() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="例如: 網路安全、資料庫管理"
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div>
@@ -369,7 +369,7 @@ function CreateQuestionContent() {
                 value={chapter}
                 onChange={(e) => setChapter(e.target.value)}
                 placeholder="例如: Chapter 3"
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -398,13 +398,13 @@ function CreateQuestionContent() {
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="例如: CIA, Risk Management, Access Control"
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* Options builder */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">選項</h2>
             <button
@@ -427,7 +427,7 @@ function CreateQuestionContent() {
                   value={opt.text}
                   onChange={(e) => updateOptionText(i, e.target.value)}
                   placeholder={`選項 ${opt.label} 內容`}
-                  className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <button
                   type="button"
@@ -443,7 +443,7 @@ function CreateQuestionContent() {
         </div>
 
         {/* Answer */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">答案</h2>
           {type === "MULTI" ? (
             <div className="flex flex-wrap gap-3">
@@ -492,19 +492,19 @@ function CreateQuestionContent() {
         </div>
 
         {/* Explanation */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">解析</h2>
           <textarea
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
             placeholder="輸入答案解析..."
-            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+            className="w-full h-32 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
             required
           />
         </div>
 
         {/* Wrong option explanations */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">各錯誤選項說明</h2>
           <div className="space-y-3">
             {options.filter((opt) => !answer.includes(opt.label)).map((opt) => (
@@ -517,7 +517,7 @@ function CreateQuestionContent() {
                     setWrongExplanations({ ...wrongExplanations, [opt.label]: e.target.value })
                   }
                   placeholder={`說明選項 ${opt.label} 為何不正確...`}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             ))}
@@ -525,19 +525,19 @@ function CreateQuestionContent() {
         </div>
 
         {/* Extended knowledge */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">延伸知識</h2>
           <textarea
             value={extendedKnowledge}
             onChange={(e) => setExtendedKnowledge(e.target.value)}
             placeholder="輸入相關的延伸知識..."
-            className="w-full h-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+            className="w-full h-32 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
           />
         </div>
 
         {/* Error & Submit */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 shadow-sm">
             <p className="text-red-600">{error}</p>
           </div>
         )}

@@ -69,13 +69,13 @@ export default function AnalyticsPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-100 rounded-2xl" />
+          <div className="h-8 w-48 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-28 bg-gray-100 rounded-2xl" />
+              <div key={i} className="h-28 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
             ))}
           </div>
-          <div className="h-64 bg-gray-100 rounded-2xl" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
         </div>
       </div>
     );
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">學習分析</h1>
         <Link
           href="/analytics/domain"
-          className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-sm font-medium transition-colors"
         >
           題庫詳細分析
         </Link>
@@ -119,30 +119,30 @@ export default function AnalyticsPage() {
 
       {/* ── Overall stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-gray-900">{overallAccuracy.toFixed(1)}%</p>
           <p className="text-sm text-gray-600">整體正確率</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-gray-900">{data.completedExams}</p>
           <p className="text-sm text-gray-600">已完成測驗</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-gray-900">{totalAnswered}</p>
           <p className="text-sm text-gray-600">已答題數</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-emerald-500">{data.avgScore.toFixed(1)}%</p>
           <p className="text-sm text-gray-600">平均分數</p>
         </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
           <p className="text-3xl font-bold text-blue-500">{data.currentStreak}</p>
           <p className="text-sm text-gray-600">連續學習天數</p>
         </div>
       </div>
 
       {/* ── Daily activity heatmap ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">學習活躍度（近 30 天）</h2>
         {data.dailyActivity.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無紀錄</p>
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Score trend (bar chart) ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">分數趨勢（最近測驗）</h2>
         {data.recentTrend.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無測驗記錄</p>
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
 
       {/* ── Mode comparison ── */}
       {data.modeComparison.length > 1 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {data.modeComparison.map((m) => {
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
 
       {/* ── Time analysis ── */}
       {data.timeAnalysis.avgTimePerQuestion > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">答題速度分析</h2>
           <p className="text-sm text-gray-500 mb-4">
             模擬考模式，每題平均 <span className="font-semibold text-gray-900">{formatDuration(data.timeAnalysis.avgTimePerQuestion)}</span>
@@ -337,7 +337,7 @@ export default function AnalyticsPage() {
                         <div className="flex gap-2">
                           {b.avgCorrectTime > 0 && (
                             <div className="flex-1">
-                              <div className="w-full bg-gray-100 rounded-full h-2.5">
+                              <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
                                 <div
                                   className="h-2.5 rounded-full bg-emerald-400 transition-all"
                                   style={{ width: `${(b.avgCorrectTime / maxBarTime) * 100}%` }}
@@ -348,7 +348,7 @@ export default function AnalyticsPage() {
                           )}
                           {b.avgWrongTime > 0 && (
                             <div className="flex-1">
-                              <div className="w-full bg-gray-100 rounded-full h-2.5">
+                              <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
                                 <div
                                   className="h-2.5 rounded-full bg-red-400 transition-all"
                                   style={{ width: `${(b.avgWrongTime / maxBarTime) * 100}%` }}
@@ -368,7 +368,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* ── Bank accuracy bar chart ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
         {data.bankAccuracy.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -386,7 +386,7 @@ export default function AnalyticsPage() {
                       {d.accuracy}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-3">
+                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
                     <div
                       className={cn(
                         "h-3 rounded-full transition-all",
@@ -402,7 +402,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Difficulty distribution (circular SVGs) ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">難度分佈</h2>
         {data.difficultyDistribution.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
@@ -447,13 +447,13 @@ export default function AnalyticsPage() {
 
       {/* ── Most wrong questions ── */}
       {data.mostWrongQuestions.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">錯題排行榜</h2>
           <div className="space-y-3">
             {data.mostWrongQuestions.map((q, i) => (
               <div
                 key={q.questionId}
-                className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl"
+                className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-xl"
               >
                 <span className={cn(
                   "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold",

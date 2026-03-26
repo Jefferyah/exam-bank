@@ -171,7 +171,7 @@ export default function AdminPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-28 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -193,7 +193,7 @@ export default function AdminPage() {
   const usedCodes = inviteCodes.filter((c) => c.maxUses > 0 && c.usedCount >= c.maxUses);
 
   const resetSection = (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
       <div>
         <h2 className="text-lg font-semibold text-gray-900">重置學習記錄</h2>
         <p className="text-sm text-gray-500 mt-1">清除你的學習數據，重新開始</p>
@@ -249,7 +249,7 @@ export default function AdminPage() {
           <select
             value={resetBankId}
             onChange={(e) => setResetBankId(e.target.value)}
-            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
           >
             <option value="">全部題庫</option>
             {questionBanks.map((bank) => (
@@ -296,22 +296,22 @@ export default function AdminPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-28 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : (
         <>
           {/* Stats cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <p className="text-3xl font-bold text-blue-500">{stats?.totalQuestions || 0}</p>
               <p className="text-sm text-gray-600 mt-1">題目總數</p>
             </div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <p className="text-3xl font-bold text-emerald-500">{unusedCodes.length}</p>
               <p className="text-sm text-gray-600 mt-1">可用邀請碼</p>
             </div>
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <p className="text-3xl font-bold text-amber-500">{usedCodes.length}</p>
               <p className="text-sm text-gray-600 mt-1">已使用邀請碼</p>
             </div>
@@ -343,14 +343,14 @@ export default function AdminPage() {
           </div>
 
           {/* Invite Codes Management */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-gray-900">邀請碼管理</h2>
               <div className="flex items-center gap-2">
                 <select
                   value={generateCount}
                   onChange={(e) => setGenerateCount(parseInt(e.target.value))}
-                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {[1, 3, 5, 10].map((n) => (
                     <option key={n} value={n}>{n} 組</option>
@@ -359,7 +359,7 @@ export default function AdminPage() {
                 <select
                   value={generateMaxUses}
                   onChange={(e) => setGenerateMaxUses(parseInt(e.target.value))}
-                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={0}>不限次數</option>
                   <option value={1}>限用 1 次</option>
@@ -418,7 +418,7 @@ export default function AdminPage() {
                       </span>
                       <button
                         onClick={() => copyCode(ic.code)}
-                        className="px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-600 transition-colors"
+                        className="px-3 py-1 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-full text-xs text-gray-600 transition-colors"
                       >
                         {copied === ic.code ? "已複製!" : "複製"}
                       </button>

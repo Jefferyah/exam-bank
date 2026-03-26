@@ -81,7 +81,7 @@ export default function AdminUsersPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -118,11 +118,11 @@ export default function AdminUsersPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋使用者..."
-        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
           <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
@@ -130,21 +130,21 @@ export default function AdminUsersPage() {
       {loading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-8 shadow-sm text-center">
           <p className="text-gray-600">
             {search ? "找不到符合的使用者" : "尚無使用者"}
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">名稱</th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Email</th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">角色</th>
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                          className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="px-2 py-1 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="STUDENT">STUDENT</option>
                           <option value="TEACHER">TEACHER</option>

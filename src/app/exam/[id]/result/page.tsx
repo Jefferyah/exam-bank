@@ -91,8 +91,8 @@ export default function ExamResultPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-gray-100 rounded-2xl" />
-          <div className="h-64 bg-gray-100 rounded-2xl" />
+          <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-2xl" />
         </div>
       </div>
     );
@@ -126,7 +126,7 @@ export default function ExamResultPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Score display */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-8 shadow-sm text-center">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 mb-2">{exam.title}</h1>
         <div className={cn(
           "text-6xl md:text-8xl font-bold",
@@ -145,7 +145,7 @@ export default function ExamResultPage() {
       </div>
 
       {/* Question bank breakdown */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫表現</h2>
         <div className="space-y-3">
           {Object.entries(bankStats).map(([bankId, stats]) => {
@@ -160,7 +160,7 @@ export default function ExamResultPage() {
                     {stats.correct}/{stats.total} ({accuracy.toFixed(0)}%)
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
                   <div
                     className={cn(
                       "h-3 rounded-full transition-all",
@@ -185,21 +185,21 @@ export default function ExamResultPage() {
         </Link>
         <Link
           href="/"
-          className="flex-1 py-3 bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 rounded-full font-medium text-center transition-all"
+          className="flex-1 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full font-medium text-center transition-all"
         >
           回首頁
         </Link>
       </div>
 
       {/* Question list */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">題目詳情</h2>
         <div className="space-y-3">
           {exam.answers.map((a, i) => (
-            <div key={a.id} className="border border-gray-100 rounded-2xl overflow-hidden">
+            <div key={a.id} className="border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden">
               <button
                 onClick={() => toggleExpand(a.id)}
-                className="w-full p-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors"
+                className="w-full p-4 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <span className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold flex-shrink-0">
                   {a.isCorrect ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
@@ -232,10 +232,10 @@ export default function ExamResultPage() {
                           className={cn(
                             "p-2 rounded-xl text-sm",
                             isCorrectOpt
-                              ? "bg-emerald-50 border border-emerald-200"
+                              ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800"
                               : isUserAnswer
-                                ? "bg-red-50 border border-red-200"
-                                : "bg-gray-50"
+                                ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                                : "bg-gray-50 dark:bg-gray-700"
                           )}
                         >
                           <span className="font-semibold mr-2 text-gray-900">{opt.label}.</span>
@@ -247,7 +247,7 @@ export default function ExamResultPage() {
                     })}
                   </div>
 
-                  <div className="bg-gray-50 rounded-xl p-3">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
                     <p className="text-sm text-gray-600 mb-1">解析</p>
                     <p className="text-sm text-gray-700">{a.question.explanation}</p>
                   </div>
