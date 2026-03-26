@@ -48,6 +48,8 @@ export default function AdminPage() {
   const [promptDraft, setPromptDraft] = useState("");
   const [savingPrompt, setSavingPrompt] = useState(false);
   const [promptMessage, setPromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [migratingTasks, setMigratingTasks] = useState(false);
+  const [migrateMessage, setMigrateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) {
@@ -522,6 +524,53 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* SRS Migration */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">間隔複習 (SRS) 資料遷移</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                將所有使用者的錯題記錄和歷史作答資料轉換為 SRS 複習卡片（只需執行一次）
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={async () => {
+                  setMigratingTasks(true);
+                  setMigrateMessage(null);
+                  try {
+                    const res = await fetch("/api/admin/migrate-srs", { method: "POST" });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setMigrateMessage({
+                        type: "success",
+                        text: `遷移完成！錯題 ${data.migratedFromWrong} 張 + 歷史作答 ${data.migratedFromExams} 張 = 共 ${data.total} 張卡片`,
+                      });
+                    } else {
+                      const data = await res.json();
+                      setMigrateMessage({ type: "error", text: data.error || "遷移失敗" });
+                    }
+                  } catch {
+                    setMigrateMessage({ type: "error", text: "遷移失敗，請稍後再試" });
+                  } finally {
+                    setMigratingTasks(false);
+                  }
+                }}
+                disabled={migratingTasks}
+                className="px-5 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
+              >
+                {migratingTasks ? "遷移中..." : "執行遷移"}
+              </button>
+              {migrateMessage && (
+                <p className={cn(
+                  "text-sm",
+                  migrateMessage.type === "success" ? "text-emerald-600" : "text-red-600"
+                )}>
+                  {migrateMessage.text}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* AI Prompt Settings */}
