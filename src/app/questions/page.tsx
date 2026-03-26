@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
@@ -519,16 +519,11 @@ export default function QuestionsPage() {
             <option value="SCENARIO">情境題</option>
           </select>
 
-          <select
+          <TagFilterCombobox
+            tags={allTags}
             value={selectedTag}
-            onChange={(e) => setSelectedTag(e.target.value)}
-            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">全部標籤</option>
-            {allTags.map((tag) => (
-              <option key={tag} value={tag}>{tag}</option>
-            ))}
-          </select>
+            onChange={setSelectedTag}
+          />
         </div>
       </div>
 
@@ -599,6 +594,85 @@ export default function QuestionsPage() {
           >
             下一頁
           </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Searchable tag filter combobox ── */
+function TagFilterCombobox({ tags, value, onChange }: { tags: string[]; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = search
+    ? tags.filter((t) => t.toLowerCase().includes(search.toLowerCase()))
+    : tags;
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen(!open); setSearch(""); setTimeout(() => inputRef.current?.focus(), 50); }}
+        className={cn(
+          "w-full text-left px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between gap-2",
+          !value && "text-gray-500"
+        )}
+      >
+        <span className="truncate">{value || "全部標籤"}</span>
+        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+            <input
+              ref={inputRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜尋標籤..."
+              className="w-full px-2.5 py-1.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            <button
+              onMouseDown={(e) => { e.preventDefault(); onChange(""); setOpen(false); }}
+              className={cn(
+                "w-full text-left px-3 py-2 text-sm transition-colors",
+                !value ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              )}
+            >
+              全部標籤
+            </button>
+            {filtered.map((tag) => (
+              <button
+                key={tag}
+                onMouseDown={(e) => { e.preventDefault(); onChange(tag); setOpen(false); }}
+                className={cn(
+                  "w-full text-left px-3 py-2 text-sm transition-colors",
+                  value === tag ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <div className="px-3 py-3 text-sm text-gray-400 text-center">找不到相符的標籤</div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -521,7 +521,7 @@ function DashboardTab({
         ) : dailyGoal ? (
           <div>
             <div className="flex items-end justify-between mb-2">
-              <span className="text-3xl font-bold text-gray-900">{a.todayQuestions}<span className="text-base font-normal text-gray-400">/{dailyGoal}</span></span>
+              <span className="text-3xl font-bold text-gray-900">{a.todayQuestions}<span className="text-lg font-normal text-gray-400 ml-0.5">/ {dailyGoal}</span></span>
               <span className={cn("text-sm font-medium", todayProgress >= 100 ? "text-emerald-600" : "text-gray-500")}>
                 {todayProgress >= 100 ? "已達成!" : `${todayProgress}%`}
               </span>

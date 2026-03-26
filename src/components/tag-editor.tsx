@@ -17,7 +17,9 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
   const [saving, setSaving] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const COLLAPSE_LIMIT = compact ? 3 : 6;
 
   // Fetch all tags for autocomplete when editing starts
   useEffect(() => {
@@ -90,9 +92,11 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
   }
 
   if (!editing) {
+    const visibleTags = expanded ? tags : tags.slice(0, COLLAPSE_LIMIT);
+    const hiddenCount = tags.length - COLLAPSE_LIMIT;
     return (
       <div className="flex flex-wrap items-center gap-1.5">
-        {tags.map((tag) => (
+        {visibleTags.map((tag) => (
           <span
             key={tag}
             className={cn(
@@ -103,6 +107,28 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
             {tag}
           </span>
         ))}
+        {!expanded && hiddenCount > 0 && (
+          <button
+            onClick={() => setExpanded(true)}
+            className={cn(
+              "inline-block rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300 hover:bg-gray-300 transition-colors",
+              compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs"
+            )}
+          >
+            +{hiddenCount} 更多
+          </button>
+        )}
+        {expanded && hiddenCount > 0 && (
+          <button
+            onClick={() => setExpanded(false)}
+            className={cn(
+              "inline-block rounded-full text-gray-400 hover:text-gray-600 transition-colors",
+              compact ? "px-1 text-[10px]" : "px-1.5 text-xs"
+            )}
+          >
+            收合
+          </button>
+        )}
         <button
           onClick={() => { setEditing(true); setTimeout(() => inputRef.current?.focus(), 50); }}
           className={cn(
