@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { autoRateFromExamAnswer, computeNextState, type CardStatus } from "@/lib/srs";
 
 function normalizeAnswerSet(answer: string | null | undefined) {
   return (answer || "")
@@ -226,6 +227,138 @@ export async function PUT(
           },
         }),
       ]);
+
+      // ── Auto-feed SRS review cards (best-effort, non-blocking) ──
+      try {
+        const answeredQuestions = updatedAnswers.filter((a) => a.userAnswer != null);
+
+        // Compute average time for auto-rating
+        const withTime = answeredQuestions.filter((a) => (a.timeSpent ?? 0) > 0);
+        const avgTime =
+          withTime.length > 0
+            ? withTime.reduce((s, a) => s + (a.timeSpent ?? 0), 0) / withTime.length
+            : 60;
+
+        // Fetch existing review cards for these questions
+        const existingCards = await prisma.reviewCard.findMany({
+          where: {
+            userId: session.user!.id!,
+            questionId: { in: answeredQuestions.map((a) => a.questionId) },
+          },
+        });
+        const cardMap = new Map(existingCards.map((c) => [c.questionId, c]));
+
+        const srsOps = [];
+        for (const answer of answeredQuestions) {
+          const rating = autoRateFromExamAnswer(answer.isCorrect, answer.timeSpent, avgTime);
+          const existing = cardMap.get(answer.questionId);
+
+          const currentState = existing
+            ? {
+                status: existing.status as CardStatus,
+                interval: existing.interval,
+                easeFactor: existing.easeFactor,
+                repetitions: existing.repetitions,
+                lapses: existing.lapses,
+              }
+            : {
+                status: "NEW" as CardStatus,
+                interval: 1,
+                easeFactor: 2.5,
+                repetitions: 0,
+                lapses: 0,
+              };
+
+          const next = computeNextState(currentState, rating);
+
+          // Upsert review card
+          srsOps.push(
+            prisma.reviewCard.upsert({
+              where: {
+                userId_questionId: {
+                  userId: session.user!.id!,
+                  questionId: answer.questionId,
+                },
+              },
+              create: {
+                userId: session.user!.id!,
+                questionId: answer.questionId,
+                status: next.status,
+                interval: next.interval,
+                easeFactor: next.easeFactor,
+                repetitions: next.repetitions,
+                lapses: next.lapses,
+                nextDueAt: next.nextDueAt,
+                lastReviewedAt: new Date(),
+              },
+              update: {
+                status: next.status,
+                interval: next.interval,
+                easeFactor: next.easeFactor,
+                repetitions: next.repetitions,
+                lapses: next.lapses,
+                nextDueAt: next.nextDueAt,
+                lastReviewedAt: new Date(),
+              },
+            })
+          );
+
+          // Create review log
+          const cardId = existing?.id;
+          if (cardId) {
+            srsOps.push(
+              prisma.reviewLog.create({
+                data: {
+                  userId: session.user!.id!,
+                  questionId: answer.questionId,
+                  reviewCardId: cardId,
+                  rating,
+                  intervalBefore: existing!.interval,
+                  intervalAfter: next.interval,
+                  examAnswerId: answer.id,
+                },
+              })
+            );
+          }
+        }
+
+        if (srsOps.length > 0) {
+          await prisma.$transaction(srsOps);
+
+          // Create review logs for newly created cards (didn't have cardId before)
+          const newCards = await prisma.reviewCard.findMany({
+            where: {
+              userId: session.user!.id!,
+              questionId: {
+                in: answeredQuestions
+                  .filter((a) => !cardMap.has(a.questionId))
+                  .map((a) => a.questionId),
+              },
+            },
+          });
+          if (newCards.length > 0) {
+            const logOps = newCards.map((card) => {
+              const answer = answeredQuestions.find((a) => a.questionId === card.questionId)!;
+              const rating = autoRateFromExamAnswer(answer.isCorrect, answer.timeSpent, avgTime);
+              return prisma.reviewLog.create({
+                data: {
+                  userId: session.user!.id!,
+                  questionId: card.questionId,
+                  reviewCardId: card.id,
+                  rating,
+                  intervalBefore: 1,
+                  intervalAfter: card.interval,
+                  examAnswerId: answer.id,
+                },
+              });
+            });
+            await prisma.$transaction(logOps);
+          }
+        }
+      } catch (srsError) {
+        // SRS failures should never break exam completion
+        console.error("SRS auto-feed error (non-fatal):", srsError);
+      }
 
       // Refetch for serialization
       const completedExam = await prisma.exam.findUnique({

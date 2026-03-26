@@ -123,11 +123,12 @@ interface AnalyticsData {
 export default function ReviewPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [tab, setTab] = useState<"dashboard" | "wrong" | "favorites" | "notes">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "wrong" | "favorites" | "notes" | "srs">("dashboard");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>([]);
   const [favorites, setFavorites] = useState<FavoriteQuestion[]>([]);
   const [notedQuestions, setNotedQuestions] = useState<NotedQuestion[]>([]);
+  const [srsStats, setSrsStats] = useState<{ totalCards: number; dueToday: number; byStatus: Record<string, number>; masteryRate: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
@@ -153,10 +154,11 @@ export default function ReviewPage() {
 
     async function fetchData() {
       try {
-        const [analyticsRes, favRes, notesRes] = await Promise.all([
+        const [analyticsRes, favRes, notesRes, srsRes] = await Promise.all([
           fetch("/api/analytics"),
           fetch("/api/favorites?limit=100"),
           fetch("/api/notes?limit=100"),
+          fetch("/api/review-cards?stats=true"),
         ]);
 
         if (analyticsRes.ok) {
@@ -173,6 +175,10 @@ export default function ReviewPage() {
         if (notesRes.ok) {
           const data = await notesRes.json();
           setNotedQuestions(data.notes || []);
+        }
+        if (srsRes.ok) {
+          const data = await srsRes.json();
+          setSrsStats(data.stats || null);
         }
       } catch (err) {
         console.error(err);
@@ -326,6 +332,7 @@ export default function ReviewPage() {
       <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {([
           ["dashboard", "總覽"],
+          ["srs", `間隔複習${srsStats?.dueToday ? ` (${srsStats.dueToday})` : ""}`],
           ["wrong", `錯題本 (${wrongQuestions.length})`],
           ["favorites", `收藏 (${favorites.length})`],
           ["notes", `筆記 (${notedQuestions.length})`],
@@ -373,6 +380,8 @@ export default function ReviewPage() {
           mastered={mastered}
           handlePracticeBank={handlePracticeBank}
         />
+      ) : tab === "srs" ? (
+        <SrsTab stats={srsStats} />
       ) : tab === "wrong" ? (
         <WrongTab
           wrongQuestions={processedWrong}
@@ -1162,6 +1171,143 @@ function SummaryCard({ label, value, unit, accent }: { label: string; value: str
         <span className="text-xs font-normal text-gray-400 ml-1">{unit}</span>
       </div>
       <div className="text-xs text-gray-500 mt-1">{label}</div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════
+   E. SRS Tab — Spaced Repetition Dashboard
+   ════════════════════════════════════════ */
+function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; byStatus: Record<string, number>; masteryRate: number } | null }) {
+  if (!stats) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <p>載入中...</p>
+      </div>
+    );
+  }
+
+  const total = stats.totalCards;
+  const { NEW: newCount = 0, LEARNING: learningCount = 0, REVIEW: reviewCount = 0, MASTERED: masteredCount = 0 } = stats.byStatus;
+
+  return (
+    <div className="space-y-6">
+      {/* Due today hero card */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm text-center">
+        <div className="text-5xl font-bold text-gray-900 mb-1">{stats.dueToday}</div>
+        <p className="text-gray-500 mb-4">今天需要複習的卡片</p>
+        {stats.dueToday > 0 ? (
+          <Link
+            href="/exam/review"
+            className="inline-flex px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
+          >
+            開始間隔複習
+          </Link>
+        ) : (
+          <p className="text-sm text-emerald-500 font-medium">
+            {total > 0 ? "今天的複習已完成！" : "做練習來建立複習排程"}
+          </p>
+        )}
+      </div>
+
+      {/* Status breakdown */}
+      {total > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 className="text-sm font-semibold text-gray-700">掌握度分佈</h3>
+
+          {/* Stacked bar */}
+          <div className="h-4 rounded-full overflow-hidden flex bg-gray-100 dark:bg-gray-700">
+            {newCount > 0 && (
+              <div
+                className="bg-gray-400 transition-all"
+                style={{ width: `${(newCount / total) * 100}%` }}
+                title={`新卡片 ${newCount}`}
+              />
+            )}
+            {learningCount > 0 && (
+              <div
+                className="bg-blue-400 transition-all"
+                style={{ width: `${(learningCount / total) * 100}%` }}
+                title={`學習中 ${learningCount}`}
+              />
+            )}
+            {reviewCount > 0 && (
+              <div
+                className="bg-amber-400 transition-all"
+                style={{ width: `${(reviewCount / total) * 100}%` }}
+                title={`複習中 ${reviewCount}`}
+              />
+            )}
+            {masteredCount > 0 && (
+              <div
+                className="bg-emerald-400 transition-all"
+                style={{ width: `${(masteredCount / total) * 100}%` }}
+                title={`已精熟 ${masteredCount}`}
+              />
+            )}
+          </div>
+
+          {/* Legend */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-gray-400" />
+              <div>
+                <div className="text-sm font-semibold text-gray-900">{newCount}</div>
+                <div className="text-xs text-gray-400">新卡片</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-400" />
+              <div>
+                <div className="text-sm font-semibold text-gray-900">{learningCount}</div>
+                <div className="text-xs text-gray-400">學習中</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-amber-400" />
+              <div>
+                <div className="text-sm font-semibold text-gray-900">{reviewCount}</div>
+                <div className="text-xs text-gray-400">複習中</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-400" />
+              <div>
+                <div className="text-sm font-semibold text-gray-900">{masteredCount}</div>
+                <div className="text-xs text-gray-400">已精熟</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mastery rate */}
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">精熟率</span>
+              <span className="text-lg font-bold text-gray-900">{stats.masteryRate}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 mt-1">
+              <div
+                className="h-2 rounded-full bg-emerald-400 transition-all"
+                style={{ width: `${stats.masteryRate}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* How it works */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">間隔複習如何運作？</h3>
+        <div className="space-y-2 text-sm text-gray-500">
+          <p>系統根據你對每道題的掌握程度，自動安排最佳複習時間：</p>
+          <ul className="list-disc list-inside space-y-1 ml-1">
+            <li>做練習或考試時，系統自動建立複習卡片</li>
+            <li>答錯的題目會更快出現在複習中</li>
+            <li>答對的題目間隔會逐漸拉長（1天 → 3天 → 7天 → ...）</li>
+            <li>你也可以手動將任何題目加入複習排程</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

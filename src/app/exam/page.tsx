@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DifficultyStars } from "@/components/icons";
 
@@ -27,13 +28,15 @@ export default function ExamSetupPage() {
   const [error, setError] = useState("");
   const [loadingBanks, setLoadingBanks] = useState(true);
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
+  const [srsDueCount, setSrsDueCount] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [banksRes, hiddenRes] = await Promise.all([
+        const [banksRes, hiddenRes, srsRes] = await Promise.all([
           fetch("/api/question-banks"),
           fetch("/api/hidden-banks"),
+          fetch("/api/review-cards?stats=true"),
         ]);
         if (banksRes.ok) {
           const data = await banksRes.json();
@@ -42,6 +45,10 @@ export default function ExamSetupPage() {
         if (hiddenRes.ok) {
           const hiddenData = await hiddenRes.json();
           setHiddenBankIds(new Set(hiddenData.map((h: { questionBankId: string }) => h.questionBankId)));
+        }
+        if (srsRes.ok) {
+          const srsData = await srsRes.json();
+          setSrsDueCount(srsData.stats?.dueToday || 0);
         }
       } catch (err) {
         console.error(err);
@@ -109,6 +116,26 @@ export default function ExamSetupPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">測驗設定</h1>
+
+      {/* SRS review banner */}
+      {srsDueCount > 0 && (
+        <Link
+          href="/exam/review"
+          className="block bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-4 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-blue-700 dark:text-blue-300">
+                今天有 {srsDueCount} 張卡片需要複習
+              </p>
+              <p className="text-sm text-blue-500 dark:text-blue-400 mt-0.5">
+                間隔複習幫你在最佳時間點鞏固記憶
+              </p>
+            </div>
+            <span className="text-blue-500 text-lg">→</span>
+          </div>
+        </Link>
+      )}
 
       {/* Mode selector */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
