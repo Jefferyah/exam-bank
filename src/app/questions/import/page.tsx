@@ -97,6 +97,28 @@ export default function ImportPage() {
     questionBankName?: string;
   } | null>(null);
   const [sampleTab, setSampleTab] = useState<"A" | "B">("A");
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopySample() {
+    const text = sampleTab === "A" ? SAMPLE_FORMAT_A : SAMPLE_FORMAT_B;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback for older browsers
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   useEffect(() => {
     async function fetchBanks() {
@@ -546,7 +568,7 @@ export default function ImportPage() {
         {/* Tabs */}
         <div className="flex gap-2">
           <button
-            onClick={() => setSampleTab("A")}
+            onClick={() => { setSampleTab("A"); setCopied(false); }}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               sampleTab === "A"
                 ? "bg-gray-900 text-white"
@@ -556,7 +578,7 @@ export default function ImportPage() {
             格式 A：簡易格式（推薦）
           </button>
           <button
-            onClick={() => setSampleTab("B")}
+            onClick={() => { setSampleTab("B"); setCopied(false); }}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               sampleTab === "B"
                 ? "bg-gray-900 text-white"
@@ -594,9 +616,17 @@ export default function ImportPage() {
                 </li>
               </ul>
             </div>
-            <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
-              {SAMPLE_FORMAT_A}
-            </pre>
+            <div className="relative">
+              <pre className="bg-gray-50 border border-gray-200 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+                {SAMPLE_FORMAT_A}
+              </pre>
+              <button
+                onClick={handleCopySample}
+                className="absolute top-3 right-3 px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900 shadow-sm"
+              >
+                {copied ? "✓ 已複製" : "複製範例"}
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -628,9 +658,17 @@ export default function ImportPage() {
                 <li>可自訂 difficulty、tags、category</li>
               </ul>
             </div>
-            <pre className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
-              {SAMPLE_FORMAT_B}
-            </pre>
+            <div className="relative">
+              <pre className="bg-gray-50 border border-gray-200 p-4 pr-20 rounded-xl text-sm text-gray-600 overflow-x-auto whitespace-pre">
+                {SAMPLE_FORMAT_B}
+              </pre>
+              <button
+                onClick={handleCopySample}
+                className="absolute top-3 right-3 px-3 py-1.5 text-xs font-medium rounded-lg transition-all bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900 shadow-sm"
+              >
+                {copied ? "✓ 已複製" : "複製範例"}
+              </button>
+            </div>
           </div>
         )}
 
