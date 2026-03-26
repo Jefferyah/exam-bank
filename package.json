@@ -12,9 +12,6 @@
     "db:studio": "npx prisma studio",
     "postinstall": "npx prisma generate"
   },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
     "@auth/prisma-adapter": "^2.11.1",
