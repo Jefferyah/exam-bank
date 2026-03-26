@@ -18,7 +18,7 @@ export async function GET(
       where: { id },
       include: {
         _count: { select: { questions: true } },
-        createdBy: { select: { name: true, email: true } },
+        createdBy: { select: { name: true } },
       },
     });
 

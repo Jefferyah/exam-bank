@@ -13,7 +13,7 @@ interface QuestionBank {
   isPublic?: boolean;
   createdById?: string;
   _count?: { questions: number };
-  createdBy?: { name: string | null; email: string };
+  createdBy?: { name: string | null };
 }
 
 interface Question {
@@ -356,7 +356,7 @@ export default function QuestionsPage() {
                         )}
                         {!isOwner && bank.createdBy && (
                           <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
-                            by {bank.createdBy.name || bank.createdBy.email}
+                            by {bank.createdBy.name || "匿名"}
                           </span>
                         )}
                       </div>
