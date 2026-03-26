@@ -695,21 +695,17 @@ function DashboardTab({
                 <div className="flex-shrink-0 w-16">
                   <DifficultyStars value={d.difficulty} />
                 </div>
-                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-5 relative overflow-hidden">
+                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
                   <div
                     className={cn(
-                      "h-5 rounded-full transition-all flex items-center justify-end pr-2",
+                      "h-4 rounded-full transition-all",
                       d.accuracy >= 80 ? "bg-emerald-500" : d.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
                     )}
-                    style={{ width: `${Math.max(d.accuracy, 8)}%` }}
-                  >
-                    {d.accuracy >= 20 && (
-                      <span className="text-[10px] text-white font-medium">{d.accuracy}%</span>
-                    )}
-                  </div>
+                    style={{ width: `${Math.max(d.accuracy, 3)}%` }}
+                  />
                 </div>
-                <span className="flex-shrink-0 w-20 text-right text-xs text-gray-500">
-                  {d.correct}/{d.total} 題
+                <span className="flex-shrink-0 w-28 text-right text-xs text-gray-600">
+                  {Math.round(d.accuracy)}% ({d.correct}/{d.total})
                 </span>
               </div>
             ))}
