@@ -266,24 +266,33 @@ export async function GET(req: NextRequest) {
       avgDuration: s.count > 0 ? Math.round(s.totalDuration / s.count) : 0,
     }));
 
+    // ── Timezone-aware date helper (Asia/Taipei) ──
+    const TZ = "Asia/Taipei";
+    function toLocalDateKey(date: Date): string {
+      return date.toLocaleDateString("sv-SE", { timeZone: TZ }); // "YYYY-MM-DD"
+    }
+    function localDayStart(dateKey: string): Date {
+      // Parse "YYYY-MM-DD" as local midnight in target timezone
+      // sv-SE locale gives ISO format, convert back via timezone offset
+      const d = new Date(dateKey + "T00:00:00+08:00");
+      return d;
+    }
+
     // ── Daily activity (last 30 days) ──
     const now = new Date();
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+    const todayKey = toLocalDateKey(now);
 
     const dailyActivity: Record<string, { exams: number; questions: number }> = {};
-    // Init all 30 days
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(thirtyDaysAgo);
-      d.setDate(d.getDate() + i);
-      const key = d.toISOString().slice(0, 10);
+    // Init all 30 days using local dates
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 86400000);
+      const key = toLocalDateKey(d);
       dailyActivity[key] = { exams: 0, questions: 0 };
     }
-    // Count exams per day
+    // Count exams per day (local timezone)
     for (const exam of allCompletedExams) {
       if (!exam.finishedAt) continue;
-      const key = new Date(exam.finishedAt).toISOString().slice(0, 10);
+      const key = toLocalDateKey(new Date(exam.finishedAt));
       if (dailyActivity[key]) dailyActivity[key].exams++;
     }
     // Count answered questions per day (from exam's finishedAt)
@@ -294,49 +303,42 @@ export async function GET(req: NextRequest) {
       if (a.userAnswer == null) continue;
       const finished = examFinishMap.get(a.examId);
       if (!finished) continue;
-      const key = new Date(finished).toISOString().slice(0, 10);
+      const key = toLocalDateKey(new Date(finished));
       if (dailyActivity[key]) dailyActivity[key].questions++;
     }
     const dailyActivityArray = Object.entries(dailyActivity)
       .map(([date, s]) => ({ date, ...s }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // ── Study streak ──
+    // ── Study streak (local timezone) ──
     let currentStreak = 0;
-    const today = now.toISOString().slice(0, 10);
-    // Walk backwards from today
     for (let i = 0; i < 365; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
+      const d = new Date(now.getTime() - i * 86400000);
+      const key = toLocalDateKey(d);
       const activity = dailyActivity[key];
-      // For days beyond 30-day window, check allCompletedExams directly
       if (activity) {
         if (activity.exams > 0 || activity.questions > 0) {
           currentStreak++;
-        } else if (key !== today) {
-          // Allow today to be zero (day not over yet) on first iteration
+        } else if (key !== todayKey) {
           break;
         } else {
-          // Today with no activity - check if yesterday had activity
-          continue;
+          continue; // Today with no activity yet — day not over
         }
       } else {
-        // Beyond 30-day cache, check exam data
+        // Beyond 30-day cache, check exam data directly
         const hasExam = allCompletedExams.some(
-          (e) => e.finishedAt && new Date(e.finishedAt).toISOString().slice(0, 10) === key
+          (e) => e.finishedAt && toLocalDateKey(new Date(e.finishedAt)) === key
         );
         if (hasExam) {
           currentStreak++;
-        } else if (key !== today) {
+        } else if (key !== todayKey) {
           break;
         }
       }
     }
 
-    // ── Today's progress (for daily goal) ──
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
+    // ── Today's progress (for daily goal, local timezone) ──
+    const todayStart = localDayStart(todayKey);
     const todayAnswered = allExamAnswers.filter((a) => {
       if (a.userAnswer == null) return false;
       const finished = examFinishMap.get(a.examId);
