@@ -5,14 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
-import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable, Warning } from "@/components/icons";
+import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
-
-interface AiResult {
-  success: boolean;
-  data?: { answer: string; confidence: number; reasoning: string; explanation: string; keyPoints: string[] };
-  error?: string;
-}
+import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface Question {
   id: string;
@@ -42,8 +37,6 @@ export default function QuestionDetailPage() {
   const [note, setNote] = useState("");
   const [savedNote, setSavedNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
-  const [aiResults, setAiResults] = useState<{ claude: AiResult; openai: AiResult; gemini: AiResult } | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [userDifficulty, setUserDifficulty] = useState<number | null>(null);
 
   useEffect(() => {
@@ -138,25 +131,6 @@ export default function QuestionDetailPage() {
       console.error(err);
     } finally {
       setSavingNote(false);
-    }
-  }
-
-  async function handleAiSolve() {
-    setAiLoading(true);
-    try {
-      const res = await fetch("/api/ai-solve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: params.id }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAiResults(data.results);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAiLoading(false);
     }
   }
 
@@ -349,70 +323,35 @@ export default function QuestionDetailPage() {
         </>
       )}
 
-      {/* AI Solve */}
+      {/* AI Solve — open in external AI web */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">AI 解題</h2>
-            <p className="text-sm text-amber-500 mt-1 flex items-center gap-1"><Warning className="w-4 h-4 text-amber-500" /> 功能開發中，尚未設定 API Key</p>
-          </div>
-          <button
-            disabled
-            className="px-4 py-2 bg-gray-200 text-gray-400 cursor-not-allowed rounded-full text-sm font-medium"
-            title="尚未設定 API Key，功能暫時無法使用"
-          >
-            AI 解題（即將推出）
-          </button>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">AI 解題</h2>
+        <p className="text-sm text-gray-500 mb-4">點擊按鈕，自動帶入題目與 Prompt 到 AI 網頁進行解題</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {(() => {
+            const urls = getAiWebUrls(buildAiPrompt(question));
+            const models = [
+              { key: "chatgpt" as const, label: "ChatGPT", color: "bg-[#10a37f] hover:bg-[#0d8c6d]", icon: "🤖" },
+              { key: "claude" as const, label: "Claude", color: "bg-[#d97706] hover:bg-[#b45309]", icon: "🧠" },
+              { key: "gemini" as const, label: "Gemini", color: "bg-[#4285f4] hover:bg-[#3367d6]", icon: "✨" },
+            ];
+            return models.map((m) => (
+              <a
+                key={m.key}
+                href={urls[m.key]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white font-medium text-sm transition-all shadow-sm",
+                  m.color
+                )}
+              >
+                <span className="text-lg">{m.icon}</span>
+                用 {m.label} 解題
+              </a>
+            ));
+          })()}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {(["Claude", "OpenAI", "Gemini"] as const).map((model) => (
-            <div key={model} className="bg-gray-50 border border-gray-100 border-dashed rounded-xl p-4 opacity-60">
-              <h3 className="font-semibold text-gray-400 mb-2">{model}</h3>
-              <p className="text-sm text-gray-400">需要設定 {model} API Key 才能使用</p>
-            </div>
-          ))}
-        </div>
-
-        {aiResults && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            {(["claude", "openai", "gemini"] as const).map((model) => {
-              const result = aiResults[model];
-              return (
-                <div key={model} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                  <h3 className="font-semibold text-blue-500 mb-2 capitalize">{model}</h3>
-                  {result.success && result.data ? (
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <span className="text-gray-600">答案：</span>
-                        <span className={cn(
-                          "font-bold",
-                          result.data.answer === question.answer ? "text-emerald-500" : "text-red-500"
-                        )}>
-                          {result.data.answer}
-                        </span>
-                      </p>
-                      <p>
-                        <span className="text-gray-600">信心度：</span>
-                        <span className="text-gray-900">{(result.data.confidence * 100).toFixed(0)}%</span>
-                      </p>
-                      <p className="text-gray-600">{result.data.reasoning}</p>
-                      {result.data.keyPoints && result.data.keyPoints.length > 0 && (
-                        <ul className="list-disc list-inside text-gray-600 space-y-1">
-                          {result.data.keyPoints.map((p, i) => (
-                            <li key={i}>{p}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-red-500 text-sm">{result.error || "API 呼叫失敗"}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* Notes - inline per question */}

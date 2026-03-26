@@ -15,7 +15,7 @@ export async function solveWithGemini(
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   const optionsText = options.map((o) => `${o.label}. ${o.text}`).join("\n");
 
-  const prompt = `You are a CISSP exam expert. Analyze this question and provide your answer.
+  const prompt = `You are an exam preparation expert. Analyze this question and provide your answer.
 
 Question: ${stem}
 

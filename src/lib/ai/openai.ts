@@ -15,7 +15,7 @@ export async function solveWithGPT(
     messages: [
       {
         role: "system",
-        content: "You are a CISSP exam expert. Analyze questions and provide answers in JSON format.",
+        content: "You are an exam preparation expert. Analyze questions and provide answers in JSON format. Respond in Traditional Chinese.",
       },
       {
         role: "user",

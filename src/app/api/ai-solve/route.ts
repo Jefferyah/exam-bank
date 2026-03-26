@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       questionId,
-      correctAnswer: question.answer,
       results,
     });
   } catch (error) {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn, DIFFICULTY_LABELS } from "@/lib/utils";
 import { CheckCircle, XCircle } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
+import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface ExamResult {
   id: string;
@@ -41,8 +42,6 @@ export default function ExamResultPage() {
   const [exam, setExam] = useState<ExamResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
-  const [aiResults, setAiResults] = useState<Record<string, Record<string, { success: boolean; data?: { answer: string; reasoning: string }; error?: string }>>>({});
 
   useEffect(() => {
     async function fetchResult() {
@@ -71,24 +70,6 @@ export default function ExamResultPage() {
     });
   }
 
-  async function handleAiSolve(questionId: string) {
-    setAiLoadingId(questionId);
-    try {
-      const res = await fetch("/api/ai-solve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAiResults((prev) => ({ ...prev, [questionId]: data.results }));
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAiLoadingId(null);
-    }
-  }
 
   if (loading) {
     return (
@@ -255,33 +236,26 @@ export default function ExamResultPage() {
                     <p className="text-sm text-gray-700">{a.question.explanation}</p>
                   </div>
 
-                  {/* AI solve per question */}
-                  <button
-                    onClick={() => handleAiSolve(a.questionId)}
-                    disabled={aiLoadingId === a.questionId}
-                    className="px-3 py-1.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-xs font-medium transition-all"
-                  >
-                    {aiLoadingId === a.questionId ? "分析中..." : "AI 解題"}
-                  </button>
-
-                  {aiResults[a.questionId] && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      {(["claude", "openai", "gemini"] as const).map((model) => {
-                        const r = aiResults[a.questionId]?.[model];
-                        if (!r) return null;
-                        return (
-                          <div key={model} className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs">
-                            <p className="font-semibold text-gray-900 capitalize mb-1">{model}</p>
-                            {r.success && r.data ? (
-                              <p className="text-gray-700">{r.data.answer}: {r.data.reasoning?.slice(0, 100)}...</p>
-                            ) : (
-                              <p className="text-red-500">{r.error}</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {/* AI solve — open in external AI web */}
+                  {(() => {
+                    const urls = getAiWebUrls(buildAiPrompt(a.question));
+                    return (
+                      <div className="flex flex-wrap gap-2">
+                        <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#10a37f] hover:bg-[#0d8c6d] text-white rounded-full text-xs font-medium transition-all">
+                          🤖 ChatGPT
+                        </a>
+                        <a href={urls.claude} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#d97706] hover:bg-[#b45309] text-white rounded-full text-xs font-medium transition-all">
+                          🧠 Claude
+                        </a>
+                        <a href={urls.gemini} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4285f4] hover:bg-[#3367d6] text-white rounded-full text-xs font-medium transition-all">
+                          ✨ Gemini
+                        </a>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
