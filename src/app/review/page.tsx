@@ -325,10 +325,10 @@ export default function ReviewPage() {
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {([
-          ["dashboard", "📊 總覽"],
-          ["wrong", `❌ 錯題本 (${wrongQuestions.length})`],
-          ["favorites", `⭐ 收藏 (${favorites.length})`],
-          ["notes", `📝 筆記 (${notedQuestions.length})`],
+          ["dashboard", "總覽"],
+          ["wrong", `錯題本 (${wrongQuestions.length})`],
+          ["favorites", `收藏 (${favorites.length})`],
+          ["notes", `筆記 (${notedQuestions.length})`],
         ] as const).map(([key, label]) => (
           <button
             key={key}
@@ -469,7 +469,7 @@ function DashboardTab({
       {/* ── Daily Goal ── */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-gray-900">🎯 每日目標</h2>
+          <h2 className="text-base font-semibold text-gray-900">每日目標</h2>
           {!editingGoal && (
             <button
               onClick={() => { setEditingGoal(true); setGoalDraft(dailyGoal?.toString() || ""); }}
@@ -506,7 +506,7 @@ function DashboardTab({
             <div className="flex items-end justify-between mb-2">
               <span className="text-3xl font-bold text-gray-900">{a.todayQuestions}<span className="text-base font-normal text-gray-400">/{dailyGoal}</span></span>
               <span className={cn("text-sm font-medium", todayProgress >= 100 ? "text-emerald-600" : "text-gray-500")}>
-                {todayProgress >= 100 ? "🎉 已達成!" : `${todayProgress}%`}
+                {todayProgress >= 100 ? "已達成!" : `${todayProgress}%`}
               </span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
@@ -532,25 +532,25 @@ function DashboardTab({
       {/* ── Quick Insight Banner ── */}
       {(scoreImprovement !== null || worstDiff) && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-800 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">💡 學習洞察</h3>
+          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">學習洞察</h3>
           <div className="flex flex-col gap-1.5 text-sm text-blue-800 dark:text-blue-300">
             {scoreImprovement !== null && (
               <p>
                 {scoreImprovement > 0
-                  ? `📈 近期分數提升了 ${scoreImprovement} 分，繼續保持！`
+                  ? `近期分數提升了 ${scoreImprovement} 分，繼續保持！`
                   : scoreImprovement < 0
-                    ? `📉 近期分數下降了 ${Math.abs(scoreImprovement)} 分，可以加強弱點題庫的練習`
-                    : `📊 近期分數持平，嘗試挑戰更高難度的題目吧`}
+                    ? `近期分數下降了 ${Math.abs(scoreImprovement)} 分，可以加強弱點題庫的練習`
+                    : `近期分數持平，嘗試挑戰更高難度的題目吧`}
               </p>
             )}
             {worstDiff && bestDiff && worstDiff.difficulty !== bestDiff.difficulty && (
               <p>
-                ⚡ 難度 {bestDiff.difficulty} 最擅長（{bestDiff.accuracy}%），難度 {worstDiff.difficulty} 需加強（{worstDiff.accuracy}%）
+                難度 {bestDiff.difficulty} 最擅長（{bestDiff.accuracy}%），難度 {worstDiff.difficulty} 需加強（{worstDiff.accuracy}%）
               </p>
             )}
             {sortedBanks.length > 0 && sortedBanks[0].accuracy < 60 && (
               <p>
-                🎯 「{sortedBanks[0].questionBankName}」正確率最低（{sortedBanks[0].accuracy}%），建議重點練習
+                「{sortedBanks[0].questionBankName}」正確率最低（{sortedBanks[0].accuracy}%），建議重點練習
               </p>
             )}
           </div>
@@ -561,7 +561,7 @@ function DashboardTab({
       {a.recentTrend.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">📈 分數走勢（最近 {a.recentTrend.length} 次）</h2>
+            <h2 className="text-base font-semibold text-gray-900">分數走勢（最近 {a.recentTrend.length} 次）</h2>
             {a.recentTrend.length >= 2 && (
               <span className="text-xs text-gray-400">
                 最高 {Math.max(...a.recentTrend.map(e => e.score ?? 0)).toFixed(0)} / 最低 {Math.min(...a.recentTrend.map(e => e.score ?? 0)).toFixed(0)}
@@ -618,7 +618,7 @@ function DashboardTab({
       {a.dailyActivity.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">🗓️ 近 30 天活動</h2>
+            <h2 className="text-base font-semibold text-gray-900">近 30 天活動</h2>
             <span className="text-xs text-gray-400">
               共 {a.dailyActivity.reduce((s, d) => s + d.questions, 0)} 題 / {a.dailyActivity.reduce((s, d) => s + d.exams, 0)} 次考試
             </span>
@@ -654,14 +654,14 @@ function DashboardTab({
       {/* ── Practice vs Mock Comparison ── */}
       {a.modeComparison.length > 1 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">🏋️ 練習 vs 模擬考</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
           <div className="grid grid-cols-2 gap-4">
             {a.modeComparison.map((m) => {
               const label = m.mode === "PRACTICE" ? "練習模式" : "模擬考";
-              const icon = m.mode === "PRACTICE" ? "📝" : "🎯";
+
               return (
                 <div key={m.mode} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <div className="text-sm font-medium text-gray-900 mb-3">{icon} {label}</div>
+                  <div className="text-sm font-medium text-gray-900 mb-3">{label}</div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">次數</span>
@@ -688,7 +688,7 @@ function DashboardTab({
       {/* ── Difficulty Accuracy ── */}
       {a.difficultyDistribution.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">⭐ 各難度正確率</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">各難度正確率</h2>
           <div className="space-y-3">
             {a.difficultyDistribution.map((d) => (
               <div key={d.difficulty} className="flex items-center gap-3">
@@ -716,7 +716,7 @@ function DashboardTab({
       {/* ── Time Analysis: Speed vs Accuracy ── */}
       {(a.timeAnalysis.timePerDifficulty.length > 0 || a.timeAnalysis.timePerBank.length > 0) && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">⏱️ 作答時間分析</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-1">作答時間分析</h2>
           <p className="text-xs text-gray-400 mb-4">資料來自模擬考模式</p>
 
           {/* Average time badge */}
@@ -739,7 +739,7 @@ function DashboardTab({
                     <div key={d.difficulty} className="flex-1 flex flex-col items-center gap-1">
                       <span className="text-xs font-bold text-gray-700">{d.avgTime}s</span>
                       <div className="w-full rounded-t-lg bg-gradient-to-t from-blue-600 to-blue-400 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
-                      <span className="text-[10px] text-gray-500">⭐{d.difficulty}</span>
+                      <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
                       <span className="text-[10px] text-gray-400">{d.count}題</span>
                     </div>
                   );
@@ -795,7 +795,7 @@ function DashboardTab({
       {/* ── Bank Accuracy + Practice Buttons (merged from /review/weak) ── */}
       {sortedBanks.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">🏆 各題庫正確率排名</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">各題庫正確率排名</h2>
           <div className="space-y-3">
             {sortedBanks.map((d, i) => (
               <div
@@ -857,7 +857,7 @@ function DashboardTab({
       {a.mostWrongQuestions.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">🔥 最常錯的題目</h2>
+            <h2 className="text-base font-semibold text-gray-900">最常錯的題目</h2>
             {a.allWrongQuestions.length > 5 && (
               <span className="text-xs text-gray-400">顯示前 5 題 · 完整列表請看錯題本</span>
             )}
