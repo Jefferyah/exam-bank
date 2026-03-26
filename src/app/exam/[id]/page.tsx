@@ -333,6 +333,8 @@ export default function ExamTakingPage() {
       });
 
       if (res.ok) {
+        // Notify global daily-goal-tracker that an exam was finished
+        window.dispatchEvent(new CustomEvent("exam-finished"));
         router.push(`/exam/${exam.id}/result`);
       }
     } catch (err) {

@@ -2,30 +2,34 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { GoalCelebration } from "@/components/confetti";
 
 /**
- * Global daily goal tracker that lives in the layout.
- * Periodically checks if the user has reached their daily goal
- * and shows a full-screen confetti celebration when they do.
+ * Global daily goal tracker.
+ * Triggers celebration immediately when:
+ * - Page loads and goal is already met
+ * - User finishes an exam (listens to "exam-finished" custom event)
+ * - User navigates to a new page (route change)
  */
 export function DailyGoalTracker() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [showCelebration, setShowCelebration] = useState(false);
   const prevProgressRef = useRef<number | null>(null);
   const hasShownRef = useRef(false);
-
-  // Track which calendar day we've already celebrated
   const celebratedDayRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Load celebrated day from sessionStorage (resets on new browser session)
     const stored = sessionStorage.getItem("exam-bank-goal-celebrated-day");
     if (stored) celebratedDayRef.current = stored;
   }, []);
 
   const checkGoal = useCallback(async () => {
     if (!session?.user?.id || hasShownRef.current) return;
+
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
+    if (celebratedDayRef.current === today) return;
 
     try {
       const res = await fetch("/api/analytics");
@@ -35,15 +39,9 @@ export function DailyGoalTracker() {
       const { todayQuestions, dailyGoal } = data;
       if (!dailyGoal || dailyGoal <= 0) return;
 
-      const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
-
-      // Already celebrated today
-      if (celebratedDayRef.current === today) return;
-
       const wasBelow = prevProgressRef.current !== null && prevProgressRef.current < dailyGoal;
       const isNowComplete = todayQuestions >= dailyGoal;
 
-      // Trigger: either first load already complete, or transition from below to complete
       if (isNowComplete && (wasBelow || prevProgressRef.current === null)) {
         hasShownRef.current = true;
         celebratedDayRef.current = today;
@@ -57,28 +55,26 @@ export function DailyGoalTracker() {
     }
   }, [session]);
 
+  // Check on mount
   useEffect(() => {
-    if (!session) return;
-
-    // Check on mount
-    checkGoal();
-
-    // Check every 30 seconds (catches goal completion during exam)
-    const interval = setInterval(checkGoal, 30000);
-
-    // Also check when page becomes visible again (e.g., switching tabs after finishing exam)
-    function handleVisibility() {
-      if (document.visibilityState === "visible") {
-        checkGoal();
-      }
-    }
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
+    if (session) checkGoal();
   }, [session, checkGoal]);
+
+  // Check on route change (e.g., navigating to result page after exam)
+  useEffect(() => {
+    if (session) checkGoal();
+  }, [pathname, session, checkGoal]);
+
+  // Listen for "exam-finished" custom event (fired immediately when exam is submitted)
+  useEffect(() => {
+    function handleExamFinished() {
+      // Small delay to let the server process the answers
+      setTimeout(checkGoal, 1500);
+    }
+
+    window.addEventListener("exam-finished", handleExamFinished);
+    return () => window.removeEventListener("exam-finished", handleExamFinished);
+  }, [checkGoal]);
 
   if (!showCelebration) return null;
 
