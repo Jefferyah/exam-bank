@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 // ── helpers ──
 
@@ -121,6 +122,7 @@ export async function GET(req: NextRequest) {
     const questions = await prisma.question.findMany({
       where,
       orderBy: { createdAt: "asc" },
+      take: 5000, // Limit export size to prevent memory issues
       include: {
         questionBank: { select: { name: true } },
       },
@@ -129,17 +131,17 @@ export async function GET(req: NextRequest) {
     const exported = questions.map((q) => ({
       stem: q.stem,
       type: q.type,
-      options: JSON.parse(q.options),
+      options: safeJsonParse(q.options, []),
       answer: q.answer,
       explanation: q.explanation,
       wrongOptionExplanations: q.wrongOptionExplanations
-        ? JSON.parse(q.wrongOptionExplanations)
+        ? safeJsonParse(q.wrongOptionExplanations, null)
         : null,
       extendedKnowledge: q.extendedKnowledge,
       category: q.category,
       chapter: q.chapter,
       difficulty: q.difficulty,
-      tags: JSON.parse(q.tags),
+      tags: safeJsonParse(q.tags, []),
     }));
 
     return NextResponse.json(exported);
@@ -278,7 +280,7 @@ export async function POST(req: NextRequest) {
             chapter: (q.chapter as string) || null,
             difficulty: (q.difficulty as number) || 3,
             tags:
-              q.tags != null
+              q.tags != null && q.tags !== ""
                 ? typeof q.tags === "string"
                   ? q.tags
                   : JSON.stringify(q.tags)

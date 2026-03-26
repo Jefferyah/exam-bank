@@ -72,6 +72,23 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Prevent removing the last admin
+    if (newRole !== "ADMIN") {
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      if (targetUser?.role === "ADMIN") {
+        const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+        if (adminCount <= 1) {
+          return NextResponse.json(
+            { error: "系統至少需要一位管理員，無法降級最後一位管理員" },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: { role: newRole },

@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
 
     const question = await prisma.question.findUnique({
       where: { id: questionId },
+      include: { questionBank: { select: { isPublic: true, createdById: true } } },
     });
 
     if (!question) {
@@ -33,7 +34,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const options = JSON.parse(question.options);
+    // Verify user has access to this question's bank
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    let options;
+    try {
+      options = JSON.parse(question.options);
+    } catch {
+      return NextResponse.json({ error: "Invalid question data" }, { status: 500 });
+    }
 
     const [claudeResult, openaiResult, geminiResult] = await Promise.allSettled([
       solveWithClaude(question.stem, options, question.type),

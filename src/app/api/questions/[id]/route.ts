@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 export async function GET(
   req: NextRequest,
@@ -36,10 +37,10 @@ export async function GET(
 
     return NextResponse.json({
       ...question,
-      options: JSON.parse(question.options),
-      tags: JSON.parse(question.tags),
+      options: safeJsonParse(question.options, []),
+      tags: safeJsonParse(question.tags, []),
       wrongOptionExplanations: question.wrongOptionExplanations
-        ? JSON.parse(question.wrongOptionExplanations)
+        ? safeJsonParse(question.wrongOptionExplanations, null)
         : null,
     });
   } catch (error) {
@@ -128,10 +129,10 @@ export async function PUT(
 
     return NextResponse.json({
       ...question,
-      options: JSON.parse(question.options),
-      tags: JSON.parse(question.tags),
+      options: safeJsonParse(question.options, []),
+      tags: safeJsonParse(question.tags, []),
       wrongOptionExplanations: question.wrongOptionExplanations
-        ? JSON.parse(question.wrongOptionExplanations)
+        ? safeJsonParse(question.wrongOptionExplanations, null)
         : null,
     });
   } catch (error) {

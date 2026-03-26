@@ -189,7 +189,6 @@ export async function GET(req: NextRequest) {
       difficultyDistribution,
       recentTrend,
       mostWrongQuestions: allWrongQuestions.slice(0, 10),
-      allWrongQuestions,
     });
   } catch (error) {
     console.error("GET /api/analytics error:", error);

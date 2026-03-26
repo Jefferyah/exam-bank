@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 function normalizeAnswerSet(answer: string | null | undefined) {
   return (answer || "")
@@ -33,15 +34,15 @@ function serializeExam(exam: {
 } & Record<string, unknown>) {
   return {
     ...exam,
-    config: JSON.parse(exam.config),
+    config: safeJsonParse(exam.config, {}),
     answers: exam.answers.map((a) => ({
       ...a,
       question: {
         ...a.question,
-        options: JSON.parse(a.question.options),
-        tags: JSON.parse(a.question.tags),
+        options: safeJsonParse(a.question.options, []),
+        tags: safeJsonParse(a.question.tags, []),
         wrongOptionExplanations: a.question.wrongOptionExplanations
-          ? JSON.parse(a.question.wrongOptionExplanations)
+          ? safeJsonParse(a.question.wrongOptionExplanations, null)
           : null,
       },
     })),
@@ -118,14 +119,18 @@ export async function PUT(
     }
 
     if (exam.status === "COMPLETED") {
-      return NextResponse.json(serializeExam(exam));
+      return NextResponse.json(
+        { error: "此考試已完成，無法修改" },
+        { status: 400 }
+      );
     }
 
     const body = await req.json();
     const { answers: submittedAnswers, finish = false } = body;
 
-    // Update individual answers if provided
+    // Update individual answers if provided — use transaction for atomicity
     if (submittedAnswers && Array.isArray(submittedAnswers)) {
+      const updates = [];
       for (const submitted of submittedAnswers) {
         const { questionId, userAnswer, timeSpent, flagged } = submitted;
 
@@ -136,7 +141,6 @@ export async function PUT(
 
         const question = examAnswer.question;
 
-        // Only recalculate isCorrect when userAnswer is explicitly provided
         const data: Record<string, unknown> = {};
         if (userAnswer != null) {
           data.userAnswer = userAnswer.toString();
@@ -146,11 +150,16 @@ export async function PUT(
         if (flagged != null) data.flagged = flagged;
 
         if (Object.keys(data).length > 0) {
-          await prisma.examAnswer.update({
-            where: { id: examAnswer.id },
-            data,
-          });
+          updates.push(
+            prisma.examAnswer.update({
+              where: { id: examAnswer.id },
+              data,
+            })
+          );
         }
+      }
+      if (updates.length > 0) {
+        await prisma.$transaction(updates);
       }
     }
 
@@ -172,16 +181,17 @@ export async function PUT(
         (a) => a.isCorrect === false
       );
 
-      for (const wrong of wrongAnswers) {
-        await prisma.wrongRecord.upsert({
+      // Batch wrong record upserts in transaction
+      const wrongOps = wrongAnswers.map((wrong) =>
+        prisma.wrongRecord.upsert({
           where: {
             userId_questionId: {
-              userId: session.user.id,
+              userId: session.user!.id!,
               questionId: wrong.questionId,
             },
           },
           create: {
-            userId: session.user.id,
+            userId: session.user!.id!,
             questionId: wrong.questionId,
             count: 1,
             lastWrongAt: new Date(),
@@ -190,16 +200,24 @@ export async function PUT(
             count: { increment: 1 },
             lastWrongAt: new Date(),
           },
-        });
-      }
+        })
+      );
 
-      const finishedExam = await prisma.exam.update({
+      const finishedExam = await prisma.$transaction([
+        ...wrongOps,
+        prisma.exam.update({
+          where: { id },
+          data: {
+            status: "COMPLETED",
+            score,
+            finishedAt: new Date(),
+          },
+        }),
+      ]);
+
+      // Refetch for serialization
+      const completedExam = await prisma.exam.findUnique({
         where: { id },
-        data: {
-          status: "COMPLETED",
-          score,
-          finishedAt: new Date(),
-        },
         include: {
           answers: {
             include: { question: { include: { questionBank: { select: { name: true } } } } },
@@ -208,7 +226,7 @@ export async function PUT(
         },
       });
 
-      return NextResponse.json(serializeExam(finishedExam));
+      return NextResponse.json(serializeExam(completedExam!));
     }
 
     // Return updated exam without finishing

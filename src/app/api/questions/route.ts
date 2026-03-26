@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 export async function GET(req: NextRequest) {
   try {
@@ -69,10 +70,10 @@ export async function GET(req: NextRequest) {
 
     const parsed = questions.map((q) => ({
       ...q,
-      options: JSON.parse(q.options),
-      tags: JSON.parse(q.tags),
+      options: safeJsonParse(q.options, []),
+      tags: safeJsonParse(q.tags, []),
       wrongOptionExplanations: q.wrongOptionExplanations
-        ? JSON.parse(q.wrongOptionExplanations)
+        ? safeJsonParse(q.wrongOptionExplanations, null)
         : null,
     }));
 

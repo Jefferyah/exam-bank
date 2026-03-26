@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,10 +37,10 @@ export async function GET(req: NextRequest) {
       ...f,
       question: {
         ...f.question,
-        options: JSON.parse(f.question.options),
-        tags: JSON.parse(f.question.tags),
+        options: safeJsonParse(f.question.options, []),
+        tags: safeJsonParse(f.question.tags, []),
         wrongOptionExplanations: f.question.wrongOptionExplanations
-          ? JSON.parse(f.question.wrongOptionExplanations)
+          ? safeJsonParse(f.question.wrongOptionExplanations, null)
           : null,
       },
     }));
@@ -79,15 +80,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify question exists
+    // Verify question exists and user has access
     const question = await prisma.question.findUnique({
       where: { id: questionId },
+      include: { questionBank: { select: { isPublic: true, createdById: true } } },
     });
     if (!question) {
       return NextResponse.json(
         { error: "Question not found" },
         { status: 404 }
       );
+    }
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Toggle: check if favorite already exists

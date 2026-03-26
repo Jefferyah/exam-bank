@@ -1,7 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AiSolveResult, QuestionOption } from "@/types";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+if (!apiKey) {
+  console.warn("GOOGLE_GENERATIVE_AI_API_KEY is not set — Gemini AI will fail at runtime");
+}
+const genAI = new GoogleGenerativeAI(apiKey || "placeholder");
 
 export async function solveWithGemini(
   stem: string,

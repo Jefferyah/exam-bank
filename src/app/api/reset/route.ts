@@ -20,6 +20,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate questionBankId access if provided
+    if (questionBankId) {
+      const bank = await prisma.questionBank.findUnique({
+        where: { id: questionBankId },
+        select: { id: true, isPublic: true, createdById: true },
+      });
+      if (!bank) {
+        return NextResponse.json({ error: "Question bank not found" }, { status: 404 });
+      }
+      const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+      if (!isAdmin && !bank.isPublic && bank.createdById !== userId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     let deleted: Record<string, number> = {};
 
     if (scope === "all") {

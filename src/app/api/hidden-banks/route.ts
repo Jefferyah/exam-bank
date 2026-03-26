@@ -44,6 +44,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Verify question bank exists
+    const bank = await prisma.questionBank.findUnique({
+      where: { id: questionBankId },
+      select: { id: true },
+    });
+    if (!bank) {
+      return NextResponse.json(
+        { error: "Question bank not found" },
+        { status: 404 }
+      );
+    }
+
     // Check if already hidden
     const existing = await prisma.hiddenBank.findUnique({
       where: {

@@ -112,14 +112,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.role = (user as { role?: string }).role || "STUDENT";
         token.id = user.id;
+        token.passwordChangedAt = null;
       }
 
       if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { role: true },
+          select: { role: true, passwordChangedAt: true },
         });
-        token.role = dbUser?.role || "STUDENT";
+        if (!dbUser) {
+          // User was deleted
+          return { ...token, id: null };
+        }
+        token.role = dbUser.role || "STUDENT";
+        // Invalidate session if password was changed after token was issued
+        if (dbUser.passwordChangedAt && token.iat) {
+          const changedAt = Math.floor(dbUser.passwordChangedAt.getTime() / 1000);
+          if (changedAt > (token.iat as number)) {
+            return { ...token, id: null };
+          }
+        }
       }
       return token;
     },

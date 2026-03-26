@@ -35,6 +35,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
+    // Verify question exists and user has access
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+      include: { questionBank: { select: { isPublic: true, createdById: true } } },
+    });
+    if (!question) {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const rating = await prisma.userDifficulty.upsert({
       where: {
         userId_questionId: {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 export async function GET(req: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
 
     const parsed = exams.map((e) => ({
       ...e,
-      config: JSON.parse(e.config),
+      config: safeJsonParse(e.config, {}),
     }));
 
     return NextResponse.json({
@@ -219,6 +220,7 @@ export async function POST(req: NextRequest) {
     const config = {
       questionBankIds: questionBankIds || [],
       difficulty: difficulty || null,
+      requestedCount: count,
       count: actualCount,
       mode,
       timeLimit: timeLimit || null,
@@ -253,15 +255,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ...exam,
-        config: JSON.parse(exam.config),
+        config: safeJsonParse(exam.config, {}),
         answers: exam.answers.map((a) => ({
           ...a,
           question: {
             ...a.question,
-            options: JSON.parse(a.question.options),
-            tags: JSON.parse(a.question.tags),
+            options: safeJsonParse(a.question.options, []),
+            tags: safeJsonParse(a.question.tags, []),
             wrongOptionExplanations: a.question.wrongOptionExplanations
-              ? JSON.parse(a.question.wrongOptionExplanations)
+              ? safeJsonParse(a.question.wrongOptionExplanations, null)
               : null,
           },
         })),
