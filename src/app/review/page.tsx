@@ -329,7 +329,7 @@ export default function ReviewPage() {
       <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">複習中心</h1>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none" }}>
         {([
           ["dashboard", "總覽"],
           ["srs", `間隔複習${srsStats?.dueToday ? ` (${srsStats.dueToday})` : ""}`],
