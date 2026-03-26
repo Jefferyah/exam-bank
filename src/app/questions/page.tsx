@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { DifficultyStars } from "@/components/icons";
@@ -34,6 +35,7 @@ interface Pagination {
 }
 
 export default function QuestionsPage() {
+  const { data: session } = useSession();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,11 @@ export default function QuestionsPage() {
   const [editingBankId, setEditingBankId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [savingBankId, setSavingBankId] = useState<string | null>(null);
+  const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
+  const [showHidden, setShowHidden] = useState(false);
+
+  const currentUserId = session?.user?.id;
+  const currentUserRole = (session?.user as { role?: string } | undefined)?.role;
 
   const fetchBanks = useCallback(async () => {
     try {
@@ -60,9 +67,22 @@ export default function QuestionsPage() {
     }
   }, []);
 
+  const fetchHiddenBanks = useCallback(async () => {
+    try {
+      const res = await fetch("/api/hidden-banks");
+      if (res.ok) {
+        const data = await res.json();
+        setHiddenBankIds(new Set(data.hiddenBankIds || []));
+      }
+    } catch (err) {
+      console.error("Failed to fetch hidden banks:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBanks();
-  }, [fetchBanks]);
+    fetchHiddenBanks();
+  }, [fetchBanks, fetchHiddenBanks]);
 
   const fetchQuestions = useCallback(async (page = 1) => {
     setLoading(true);
@@ -96,16 +116,52 @@ export default function QuestionsPage() {
   }
 
   async function handleDeleteBank(bankId: string, bankName: string, questionCount: number) {
-    const confirmed = window.confirm(
-      `確定要刪除題庫「${bankName}」嗎？\n\n⚠️ 這會同時刪除該題庫下的 ${questionCount} 題，此操作無法復原。`
-    );
-    if (!confirmed) return;
+    // Fetch impact data before confirming
+    try {
+      const impactRes = await fetch(`/api/question-banks/${bankId}/impact`);
+      if (impactRes.ok) {
+        const impact = await impactRes.json();
+        const lines = [
+          `確定要刪除題庫「${bankName}」嗎？`,
+          "",
+          "⚠️ 此操作無法復原，將刪除以下資料：",
+          `  - ${impact.questionCount} 道題目`,
+        ];
+        if (impact.affectedUsers > 0) {
+          lines.push(`  - 影響 ${impact.affectedUsers} 位使用者`);
+        }
+        if (impact.examCount > 0) {
+          lines.push(`  - ${impact.examCount} 場考試的 ${impact.examAnswerCount} 筆作答記錄`);
+        }
+        if (impact.noteCount > 0) {
+          lines.push(`  - ${impact.noteCount} 則筆記`);
+        }
+        if (impact.favoriteCount > 0) {
+          lines.push(`  - ${impact.favoriteCount} 個收藏`);
+        }
+        if (impact.wrongRecordCount > 0) {
+          lines.push(`  - ${impact.wrongRecordCount} 筆錯題記錄`);
+        }
+        const confirmed = window.confirm(lines.join("\n"));
+        if (!confirmed) return;
+      } else {
+        // Fallback to simple confirm
+        const confirmed = window.confirm(
+          `確定要刪除題庫「${bankName}」嗎？\n\n⚠️ 這會同時刪除該題庫下的 ${questionCount} 題，此操作無法復原。`
+        );
+        if (!confirmed) return;
+      }
+    } catch {
+      const confirmed = window.confirm(
+        `確定要刪除題庫「${bankName}」嗎？\n\n⚠️ 這會同時刪除該題庫下的 ${questionCount} 題，此操作無法復原。`
+      );
+      if (!confirmed) return;
+    }
 
     setDeletingBankId(bankId);
     try {
       const res = await fetch(`/api/question-banks/${bankId}`, { method: "DELETE" });
       if (res.ok) {
-        // Refresh banks and questions
         await fetchBanks();
         if (questionBankId === bankId) {
           setQuestionBankId("");
@@ -119,6 +175,21 @@ export default function QuestionsPage() {
       alert("刪除失敗，請重試");
     } finally {
       setDeletingBankId(null);
+    }
+  }
+
+  async function handleToggleHidden(bankId: string) {
+    try {
+      const res = await fetch("/api/hidden-banks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionBankId: bankId }),
+      });
+      if (res.ok) {
+        await fetchHiddenBanks();
+      }
+    } catch {
+      alert("操作失敗，請重試");
     }
   }
 
@@ -198,7 +269,20 @@ export default function QuestionsPage() {
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">題庫列表</h2>
-            <span className="text-sm text-gray-600">共 {questionBanks.length} 個題庫</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowHidden(!showHidden)}
+                className={cn(
+                  "px-3 py-1.5 text-xs rounded-full transition-colors border",
+                  showHidden
+                    ? "text-amber-600 bg-amber-50 border-amber-200"
+                    : "text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100"
+                )}
+              >
+                {showHidden ? "隱藏已隱藏題庫" : `顯示已隱藏題庫 (${hiddenBankIds.size})`}
+              </button>
+              <span className="text-sm text-gray-600">共 {questionBanks.length} 個題庫</span>
+            </div>
           </div>
 
           {questionBanks.length === 0 ? (
@@ -208,10 +292,20 @@ export default function QuestionsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {questionBanks.map((bank) => (
+              {questionBanks
+                .filter((bank) => showHidden || !hiddenBankIds.has(bank.id))
+                .map((bank) => {
+                  const isOwner = bank.createdById === currentUserId;
+                  const canManage = isOwner || currentUserRole === "ADMIN";
+                  const isHidden = hiddenBankIds.has(bank.id);
+
+                  return (
                 <div
                   key={bank.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-xl transition-colors group",
+                    isHidden ? "bg-gray-100 opacity-60" : "bg-gray-50 hover:bg-gray-100"
+                  )}
                 >
                   <div className="flex-1 min-w-0">
                     {editingBankId === bank.id ? (
@@ -255,6 +349,16 @@ export default function QuestionsPage() {
                             私人
                           </span>
                         )}
+                        {isHidden && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-full flex-shrink-0">
+                            已隱藏
+                          </span>
+                        )}
+                        {!isOwner && bank.createdBy && (
+                          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0">
+                            by {bank.createdBy.name || bank.createdBy.email}
+                          </span>
+                        )}
                       </div>
                     )}
                     {bank.description && editingBankId !== bank.id && (
@@ -264,22 +368,33 @@ export default function QuestionsPage() {
                   <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                     {editingBankId !== bank.id && (
                       <>
-                        {/* Toggle public/private */}
+                        {/* Toggle public/private — owner/admin only */}
                         <button
-                          onClick={() => handleTogglePublic(bank.id, !!bank.isPublic)}
+                          onClick={() => canManage && handleTogglePublic(bank.id, !!bank.isPublic)}
+                          disabled={!canManage}
                           className={cn(
                             "px-3 py-1.5 text-xs rounded-full transition-colors",
-                            bank.isPublic
-                              ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                              : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                            !canManage
+                              ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
+                              : bank.isPublic
+                                ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                                : "text-gray-600 bg-gray-100 hover:bg-gray-200"
                           )}
+                          title={!canManage ? "只有擁有者可以操作" : ""}
                         >
                           {bank.isPublic ? "設為私人" : "設為公開"}
                         </button>
-                        {/* Rename bank */}
+                        {/* Rename bank — owner/admin only */}
                         <button
-                          onClick={() => { setEditingBankId(bank.id); setEditingName(bank.name); }}
-                          className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                          onClick={() => canManage && (() => { setEditingBankId(bank.id); setEditingName(bank.name); })()}
+                          disabled={!canManage}
+                          className={cn(
+                            "px-3 py-1.5 text-xs rounded-full transition-colors",
+                            !canManage
+                              ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
+                              : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                          )}
+                          title={!canManage ? "只有擁有者可以操作" : ""}
                         >
                           改名
                         </button>
@@ -293,11 +408,31 @@ export default function QuestionsPage() {
                         >
                           篩選
                         </button>
-                        {/* Delete bank */}
+                        {/* Hide/unhide — for non-owned banks */}
+                        {!canManage && (
+                          <button
+                            onClick={() => handleToggleHidden(bank.id)}
+                            className={cn(
+                              "px-3 py-1.5 text-xs rounded-full transition-colors",
+                              isHidden
+                                ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                            )}
+                          >
+                            {isHidden ? "取消隱藏" : "隱藏"}
+                          </button>
+                        )}
+                        {/* Delete bank — owner/admin only */}
                         <button
-                          onClick={() => handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
-                          disabled={deletingBankId === bank.id}
-                          className="px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-full transition-colors disabled:opacity-50"
+                          onClick={() => canManage && handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
+                          disabled={!canManage || deletingBankId === bank.id}
+                          className={cn(
+                            "px-3 py-1.5 text-xs rounded-full transition-colors",
+                            !canManage
+                              ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed opacity-50"
+                              : "text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 disabled:opacity-50"
+                          )}
+                          title={!canManage ? "只有擁有者可以刪除" : ""}
                         >
                           {deletingBankId === bank.id ? "刪除中..." : "刪除"}
                         </button>
@@ -305,7 +440,8 @@ export default function QuestionsPage() {
                     )}
                   </div>
                 </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </div>
@@ -338,7 +474,9 @@ export default function QuestionsPage() {
             className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部題庫</option>
-            {questionBanks.map((bank) => (
+            {questionBanks
+              .filter((bank) => !hiddenBankIds.has(bank.id))
+              .map((bank) => (
               <option key={bank.id} value={bank.id}>{bank.name}</option>
             ))}
           </select>

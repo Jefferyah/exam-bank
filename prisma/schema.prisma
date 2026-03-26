@@ -29,6 +29,7 @@ model User {
   userDifficulties    UserDifficulty[]
   inviteCodesCreated  InviteCode[] @relation("InviteCodesCreated")
   usedInviteCode      InviteCode?  @relation("InviteCodeUsed")
+  hiddenBanks         HiddenBank[]
 }
 
 model Account {
@@ -76,8 +77,9 @@ model QuestionBank {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  questions Question[]
+  createdBy  User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  questions  Question[]
+  hiddenBy   HiddenBank[]
 }
 
 model Question {
@@ -204,4 +206,16 @@ model InviteCode {
 
   createdBy User  @relation("InviteCodesCreated", fields: [createdById], references: [id])
   usedBy    User? @relation("InviteCodeUsed", fields: [usedById], references: [id])
+}
+
+model HiddenBank {
+  id             String   @id @default(cuid())
+  userId         String
+  questionBankId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionBank QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionBankId])
 }
