@@ -113,7 +113,23 @@ export async function PUT(
         : null;
     }
     if (extendedKnowledge !== undefined) data.extendedKnowledge = extendedKnowledge;
-    if (questionBankId !== undefined) data.questionBankId = questionBankId;
+    if (questionBankId !== undefined && questionBankId !== existing.questionBankId) {
+      // Verify user has write access to the TARGET bank
+      const targetBank = await prisma.questionBank.findUnique({
+        where: { id: questionBankId },
+        select: { createdById: true },
+      });
+      if (!targetBank) {
+        return NextResponse.json({ error: "目標題庫不存在" }, { status: 404 });
+      }
+      if (!isAdmin && targetBank.createdById !== session.user.id) {
+        return NextResponse.json(
+          { error: "你沒有權限將題目移到該題庫" },
+          { status: 403 }
+        );
+      }
+      data.questionBankId = questionBankId;
+    }
     if (category !== undefined) data.category = category;
     if (chapter !== undefined) data.chapter = chapter;
     if (difficulty !== undefined) data.difficulty = difficulty;
