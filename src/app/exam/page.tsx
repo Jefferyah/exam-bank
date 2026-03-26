@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -249,26 +249,11 @@ export default function ExamSetupPage() {
 
       {/* Tags filter */}
       {allTags.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">標籤篩選</h2>
-          <p className="text-sm text-gray-600">不選則不限標籤，選多個則取交集</p>
-          <div className="flex flex-wrap gap-2">
-            {allTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => toggleTag(tag)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
-                  selectedTags.includes(tag)
-                    ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
+        <ExamTagFilter
+          allTags={allTags}
+          selectedTags={selectedTags}
+          onToggle={toggleTag}
+        />
       )}
 
       {/* Count and Time */}
@@ -357,6 +342,89 @@ export default function ExamSetupPage() {
       >
         {creating ? "建立中..." : "開始測驗"}
       </button>
+    </div>
+  );
+}
+
+/* ── Collapsible + searchable tag filter for exam setup ── */
+const TAGS_COLLAPSED_LIMIT = 12;
+
+function ExamTagFilter({ allTags, selectedTags, onToggle }: {
+  allTags: string[];
+  selectedTags: string[];
+  onToggle: (tag: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return allTags;
+    const lower = search.toLowerCase();
+    return allTags.filter((t) => t.toLowerCase().includes(lower));
+  }, [allTags, search]);
+
+  // Always show selected tags first, then the rest
+  const sorted = useMemo(() => {
+    const selected = filtered.filter((t) => selectedTags.includes(t));
+    const rest = filtered.filter((t) => !selectedTags.includes(t));
+    return [...selected, ...rest];
+  }, [filtered, selectedTags]);
+
+  const isSearching = search.trim().length > 0;
+  const visibleTags = (expanded || isSearching) ? sorted : sorted.slice(0, TAGS_COLLAPSED_LIMIT);
+  const hiddenCount = sorted.length - TAGS_COLLAPSED_LIMIT;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">標籤篩選</h2>
+          <p className="text-sm text-gray-600">不選則不限標籤，選多個則取交集</p>
+        </div>
+        {selectedTags.length > 0 && (
+          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+            已選 {selectedTags.length}
+          </span>
+        )}
+      </div>
+      {/* Search */}
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="搜尋標籤..."
+        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2">
+        {visibleTags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => onToggle(tag)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+              selectedTags.includes(tag)
+                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+        {visibleTags.length === 0 && (
+          <p className="text-sm text-gray-400">找不到相符的標籤</p>
+        )}
+      </div>
+      {/* Expand / Collapse */}
+      {!isSearching && hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+        >
+          {expanded ? "收合" : `顯示全部 (${allTags.length})`}
+        </button>
+      )}
     </div>
   );
 }
