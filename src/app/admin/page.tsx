@@ -127,7 +127,7 @@ export default function AdminPage() {
   }
 
   function copyCode(code: string) {
-    const shareText = `📚 邀請你一起使用 Exam Bank 題庫系統！\n\n🔗 網址：https://examb.zeabur.app/login\n🎟️ 邀請碼：${code}\n\n註冊時輸入邀請碼即可加入，一起來刷題吧！`;
+    const shareText = `📚 邀請你一起使用 Exam Bank 題庫系統！\n\n🔗 網址：https://examb.zeabur.app\n🎟️ 邀請碼：${code}\n\n註冊時輸入邀請碼即可加入，一起來刷題吧！`;
     navigator.clipboard.writeText(shareText);
     setCopied(code);
     setTimeout(() => setCopied(null), 2000);
