@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       wrongOnly = false,
       favoriteOnly = false,
       notedOnly = false,
+      untriedOnly = false,
     } = body;
 
     if (!title) {
@@ -206,6 +207,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Filter for untried-only questions (never answered by this user)
+    if (untriedOnly) {
+      const triedAnswers = await prisma.examAnswer.findMany({
+        where: {
+          exam: { userId: session.user.id },
+          userAnswer: { not: null },
+        },
+        select: { questionId: true },
+        distinct: ["questionId"],
+      });
+      const triedIds = new Set(triedAnswers.map((a) => a.questionId));
+
+      if (triedIds.size > 0) {
+        if (questionWhere.id) {
+          // Intersect with existing id filter
+          const existingIds = (questionWhere.id as { in: string[] }).in;
+          questionWhere.id = { in: existingIds.filter((id: string) => !triedIds.has(id)) };
+        } else {
+          questionWhere.id = { notIn: [...triedIds] };
+        }
+      }
+    }
+
     // Get total matching questions count
     const totalAvailable = await prisma.question.count({ where: questionWhere });
     const actualCount = Math.min(count, totalAvailable);
@@ -241,6 +265,7 @@ export async function POST(req: NextRequest) {
       wrongOnly,
       favoriteOnly,
       notedOnly,
+      untriedOnly,
     };
 
     // Create exam with answers in a transaction

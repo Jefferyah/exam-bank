@@ -24,6 +24,7 @@ export default function ExamSetupPage() {
   const [wrongOnly, setWrongOnly] = useState(false);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [notedOnly, setNotedOnly] = useState(false);
+  const [untriedOnly, setUntriedOnly] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loadingBanks, setLoadingBanks] = useState(true);
@@ -91,6 +92,7 @@ export default function ExamSetupPage() {
         wrongOnly,
         favoriteOnly,
         notedOnly,
+        untriedOnly,
       };
 
       const res = await fetch("/api/exams", {
@@ -290,6 +292,15 @@ export default function ExamSetupPage() {
             className="accent-blue-500"
           />
           <span className="text-gray-700">只出筆記題</span>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={untriedOnly}
+            onChange={(e) => setUntriedOnly(e.target.checked)}
+            className="accent-blue-500"
+          />
+          <span className="text-gray-700">只出未做過的題目</span>
         </label>
       </div>
 
