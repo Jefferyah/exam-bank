@@ -584,19 +584,20 @@ function DashboardTab({
                 <div key={v} className="absolute w-full border-t border-dashed border-gray-100 dark:border-gray-700" style={{ top: `${(1 - v / 100) * 100}%` }} />
               ))}
             </div>
-            {/* Bars + trend line */}
+            {/* Bars */}
             <div className="absolute left-10 right-2 top-0 bottom-6 flex items-end gap-1">
               {a.recentTrend.slice().reverse().map((e) => {
                 const score = e.score ?? 0;
                 const barColor = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-red-500";
+                const barHeight = Math.max(4, score);
                 return (
-                  <Link key={e.id} href={`/exam/${e.id}/result`} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="absolute bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <Link key={e.id} href={`/exam/${e.id}/result`} className="flex-1 h-full relative group flex items-end">
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                       {score.toFixed(0)}分 — {e.title}
                     </div>
                     <div
-                      className={cn("w-full rounded-t-lg transition-all", barColor, "group-hover:opacity-80 min-h-[4px]")}
-                      style={{ height: `${Math.max(3, score)}%` }}
+                      className={cn("w-full rounded-t-lg transition-all", barColor, "group-hover:opacity-80")}
+                      style={{ height: `${barHeight}%` }}
                     />
                   </Link>
                 );
@@ -692,10 +693,10 @@ function DashboardTab({
           <div className="space-y-3">
             {a.difficultyDistribution.map((d) => (
               <div key={d.difficulty} className="flex items-center gap-3">
-                <div className="flex-shrink-0 w-16">
+                <div className="flex-shrink-0 w-20 sm:w-24">
                   <DifficultyStars value={d.difficulty} />
                 </div>
-                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
+                <div className="flex-1 min-w-0 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
                   <div
                     className={cn(
                       "h-4 rounded-full transition-all",
@@ -704,7 +705,7 @@ function DashboardTab({
                     style={{ width: `${Math.max(d.accuracy, 3)}%` }}
                   />
                 </div>
-                <span className="flex-shrink-0 w-28 text-right text-xs text-gray-600">
+                <span className="flex-shrink-0 text-right text-xs text-gray-600 whitespace-nowrap">
                   {Math.round(d.accuracy)}% ({d.correct}/{d.total})
                 </span>
               </div>

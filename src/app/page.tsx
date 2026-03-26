@@ -1,10 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Sparkle } from "@/components/icons";
+import { ConfettiExplosion } from "@/components/confetti";
 
 interface AnalyticsData {
   totalExams: number;
@@ -408,112 +409,3 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
   );
 }
 
-/* ── Confetti Explosion (pure CSS + JS, no dependencies) ── */
-function ConfettiExplosion() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rect = canvas.parentElement?.getBoundingClientRect();
-    if (!rect) return;
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    const colors = [
-      "#10b981", "#34d399", "#6ee7b7", // emerald
-      "#3b82f6", "#60a5fa", "#93c5fd", // blue
-      "#f59e0b", "#fbbf24", "#fcd34d", // amber
-      "#ef4444", "#f87171",             // red
-      "#8b5cf6", "#a78bfa",             // purple
-    ];
-
-    interface Particle {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      w: number;
-      h: number;
-      color: string;
-      rotation: number;
-      rotationSpeed: number;
-      gravity: number;
-      opacity: number;
-      decay: number;
-    }
-
-    const particles: Particle[] = [];
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-
-    // Create particles bursting from center
-    for (let i = 0; i < 80; i++) {
-      const angle = (Math.PI * 2 * i) / 80 + (Math.random() - 0.5) * 0.5;
-      const speed = 3 + Math.random() * 8;
-      particles.push({
-        x: centerX,
-        y: centerY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
-        w: 4 + Math.random() * 6,
-        h: 3 + Math.random() * 4,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.3,
-        gravity: 0.12 + Math.random() * 0.08,
-        opacity: 1,
-        decay: 0.008 + Math.random() * 0.008,
-      });
-    }
-
-    let frame = 0;
-    function draw() {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      let alive = false;
-      for (const p of particles) {
-        if (p.opacity <= 0) continue;
-        alive = true;
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += p.gravity;
-        p.vx *= 0.99;
-        p.rotation += p.rotationSpeed;
-        p.opacity -= p.decay;
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.globalAlpha = Math.max(0, p.opacity);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-        ctx.restore();
-      }
-
-      frame++;
-      if (alive && frame < 200) {
-        requestAnimationFrame(draw);
-      }
-    }
-
-    requestAnimationFrame(draw);
-  }, []);
-
-  useEffect(() => {
-    animate();
-  }, [animate]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 pointer-events-none z-10"
-      style={{ width: "100%", height: "100%" }}
-    />
-  );
-}
