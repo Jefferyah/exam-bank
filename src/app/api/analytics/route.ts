@@ -79,11 +79,16 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Fetch question banks for mapping
-    const questionBanks = await prisma.questionBank.findMany({
-      select: { id: true, name: true },
-    });
+    // Fetch question banks for mapping + get hidden banks
+    const [questionBanks, hiddenBanks] = await Promise.all([
+      prisma.questionBank.findMany({ select: { id: true, name: true } }),
+      prisma.hiddenBank.findMany({
+        where: { userId },
+        select: { questionBankId: true },
+      }),
+    ]);
     const bankMap = new Map(questionBanks.map((b) => [b.id, b.name]));
+    const hiddenBankIds = new Set(hiddenBanks.map((h) => h.questionBankId));
 
     // Average score
     const avgScore =
@@ -110,8 +115,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const bankAccuracy = Object.entries(bankStats).map(
-      ([bankId, stats]) => ({
+    const bankAccuracy = Object.entries(bankStats)
+      .filter(([bankId]) => !hiddenBankIds.has(bankId))
+      .map(([bankId, stats]) => ({
         questionBankId: bankId,
         questionBankName: bankMap.get(bankId) || bankId,
         total: stats.total,
@@ -120,8 +126,7 @@ export async function GET(req: NextRequest) {
           stats.total > 0
             ? Math.round((stats.correct / stats.total) * 100 * 100) / 100
             : 0,
-      })
-    );
+      }));
 
     // Difficulty distribution
     const difficultyStats: Record<
@@ -184,15 +189,17 @@ export async function GET(req: NextRequest) {
     });
 
     // Most wrong questions
-    const allWrongQuestions = wrongRecords.map((r) => ({
-      questionId: r.questionId,
-      stem: r.question.stem,
-      questionBankId: r.question.questionBankId,
-      questionBankName: bankMap.get(r.question.questionBankId) || r.question.questionBankId,
-      difficulty: r.question.difficulty,
-      wrongCount: r.count,
-      lastWrongAt: r.lastWrongAt,
-    }));
+    const allWrongQuestions = wrongRecords
+      .filter((r) => !hiddenBankIds.has(r.question.questionBankId))
+      .map((r) => ({
+        questionId: r.questionId,
+        stem: r.question.stem,
+        questionBankId: r.question.questionBankId,
+        questionBankName: bankMap.get(r.question.questionBankId) || r.question.questionBankId,
+        difficulty: r.question.difficulty,
+        wrongCount: r.count,
+        lastWrongAt: r.lastWrongAt,
+      }));
 
     // ── Time analysis ──
     // Time analysis: only count MOCK (exam) mode for meaningful speed data
@@ -238,7 +245,7 @@ export async function GET(req: NextRequest) {
         timeByBank[bId].wrongCount++;
       }
     }
-    const timePerBank = Object.entries(timeByBank).map(([bId, s]) => ({
+    const timePerBank = Object.entries(timeByBank).filter(([bId]) => !hiddenBankIds.has(bId)).map(([bId, s]) => ({
       questionBankId: bId,
       questionBankName: bankMap.get(bId) || bId,
       avgTime: Math.round(s.totalTime / s.count),

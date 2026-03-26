@@ -2,18 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const includeHidden = req.nextUrl.searchParams.get("includeHidden") === "true";
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
 
-    // Users see: their own banks + all public banks
-    // Admin sees all
-    const where = isAdmin
+    // Get user's hidden banks
+    const hiddenBanks = await prisma.hiddenBank.findMany({
+      where: { userId: session.user.id },
+      select: { questionBankId: true },
+    });
+    const hiddenBankIds = hiddenBanks.map((h) => h.questionBankId);
+
+    // Users see: their own banks + all public banks, excluding hidden (unless includeHidden)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = isAdmin
       ? {}
       : {
           OR: [
@@ -21,6 +29,10 @@ export async function GET() {
             { isPublic: true },
           ],
         };
+
+    if (!includeHidden && hiddenBankIds.length > 0) {
+      where.id = { notIn: hiddenBankIds };
+    }
 
     const questionBanks = await prisma.questionBank.findMany({
       where,

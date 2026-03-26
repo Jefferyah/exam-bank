@@ -57,7 +57,7 @@ export default function QuestionsPage() {
 
   const fetchBanks = useCallback(async () => {
     try {
-      const res = await fetch("/api/question-banks");
+      const res = await fetch("/api/question-banks?includeHidden=true");
       if (res.ok) {
         const data = await res.json();
         setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
