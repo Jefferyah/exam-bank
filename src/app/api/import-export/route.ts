@@ -24,7 +24,7 @@ function normalizeType(raw?: string): string {
   if (["mc", "single", "single_choice", "singlechoice"].includes(lower))
     return "SINGLE";
   if (["multi", "multiple", "multi_choice", "multiplechoice"].includes(lower))
-    return "MULTIPLE";
+    return "MULTI";
   return "SINGLE";
 }
 
