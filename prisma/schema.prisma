@@ -17,6 +17,7 @@ model User {
   passwordChangedAt DateTime?
   role              String    @default("STUDENT") // ADMIN, TEACHER, STUDENT
   aiPromptTemplate  String?
+  dailyGoal         Int?      // daily question goal, null = not set
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

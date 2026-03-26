@@ -334,6 +334,22 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // ── Today's progress (for daily goal) ──
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayAnswered = allExamAnswers.filter((a) => {
+      if (a.userAnswer == null) return false;
+      const finished = examFinishMap.get(a.examId);
+      if (!finished) return false;
+      return new Date(finished) >= todayStart;
+    }).length;
+
+    // Fetch user's daily goal
+    const userSettings = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { dailyGoal: true },
+    });
+
     return NextResponse.json({
       totalExams,
       completedExams: completedExams.length,
@@ -342,6 +358,7 @@ export async function GET(req: NextRequest) {
       difficultyDistribution,
       recentTrend,
       mostWrongQuestions: allWrongQuestions.slice(0, 10),
+      allWrongQuestions,
       // New analytics
       timeAnalysis: {
         avgTimePerQuestion,
@@ -351,6 +368,8 @@ export async function GET(req: NextRequest) {
       modeComparison,
       dailyActivity: dailyActivityArray,
       currentStreak,
+      todayQuestions: todayAnswered,
+      dailyGoal: userSettings?.dailyGoal || null,
     });
   } catch (error) {
     console.error("GET /api/analytics error:", error);

@@ -12,11 +12,12 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { aiPromptTemplate: true },
+      select: { aiPromptTemplate: true, dailyGoal: true },
     });
 
     return NextResponse.json({
       aiPromptTemplate: user?.aiPromptTemplate || null,
+      dailyGoal: user?.dailyGoal || null,
     });
   } catch (error) {
     console.error("GET /api/user-settings error:", error);
@@ -33,24 +34,40 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { aiPromptTemplate } = body;
+    const { aiPromptTemplate, dailyGoal } = body;
 
-    // Allow null/empty to reset to default
-    const template = typeof aiPromptTemplate === "string" && aiPromptTemplate.trim()
-      ? aiPromptTemplate.trim()
-      : null;
+    const data: Record<string, unknown> = {};
 
-    // Limit length to prevent abuse
-    if (template && template.length > 2000) {
-      return NextResponse.json({ error: "Prompt 長度不得超過 2000 字元" }, { status: 400 });
+    // AI prompt template
+    if (aiPromptTemplate !== undefined) {
+      const template = typeof aiPromptTemplate === "string" && aiPromptTemplate.trim()
+        ? aiPromptTemplate.trim()
+        : null;
+      if (template && template.length > 2000) {
+        return NextResponse.json({ error: "Prompt 長度不得超過 2000 字元" }, { status: 400 });
+      }
+      data.aiPromptTemplate = template;
     }
 
-    await prisma.user.update({
+    // Daily goal
+    if (dailyGoal !== undefined) {
+      const goal = dailyGoal === null ? null : Math.min(500, Math.max(1, parseInt(dailyGoal, 10) || 0));
+      if (goal !== null && (goal < 1 || goal > 500)) {
+        return NextResponse.json({ error: "每日目標需在 1-500 之間" }, { status: 400 });
+      }
+      data.dailyGoal = goal;
+    }
+
+    const updated = await prisma.user.update({
       where: { id: session.user.id },
-      data: { aiPromptTemplate: template },
+      data,
+      select: { aiPromptTemplate: true, dailyGoal: true },
     });
 
-    return NextResponse.json({ aiPromptTemplate: template });
+    return NextResponse.json({
+      aiPromptTemplate: updated.aiPromptTemplate,
+      dailyGoal: updated.dailyGoal,
+    });
   } catch (error) {
     console.error("PUT /api/user-settings error:", error);
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });
