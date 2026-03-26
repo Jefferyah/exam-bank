@@ -51,6 +51,8 @@ export default function QuestionsPage() {
   const [savingBankId, setSavingBankId] = useState<string | null>(null);
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
   const [showHidden, setShowHidden] = useState(false);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState("");
 
   const currentUserId = session?.user?.id;
   const currentUserRole = (session?.user as { role?: string } | undefined)?.role;
@@ -79,10 +81,23 @@ export default function QuestionsPage() {
     }
   }, []);
 
+  const fetchTags = useCallback(async () => {
+    try {
+      const res = await fetch("/api/tags");
+      if (res.ok) {
+        const data = await res.json();
+        setAllTags(data.tags || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tags:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBanks();
     fetchHiddenBanks();
-  }, [fetchBanks, fetchHiddenBanks]);
+    fetchTags();
+  }, [fetchBanks, fetchHiddenBanks, fetchTags]);
 
   const fetchQuestions = useCallback(async (page = 1) => {
     setLoading(true);
@@ -92,6 +107,7 @@ export default function QuestionsPage() {
       if (questionBankId) params.set("questionBankId", questionBankId);
       if (difficulty) params.set("difficulty", difficulty);
       if (type) params.set("type", type);
+      if (selectedTag) params.set("tags", selectedTag);
 
       const res = await fetch(`/api/questions?${params}`);
       if (res.ok) {
@@ -104,7 +120,7 @@ export default function QuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, questionBankId, difficulty, type]);
+  }, [search, questionBankId, difficulty, type, selectedTag]);
 
   useEffect(() => {
     fetchQuestions(1);
@@ -467,7 +483,7 @@ export default function QuestionsPage() {
           </button>
         </form>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <select
             value={questionBankId}
             onChange={(e) => setQuestionBankId(e.target.value)}
@@ -501,6 +517,17 @@ export default function QuestionsPage() {
             <option value="SINGLE">單選題</option>
             <option value="MULTI">多選題</option>
             <option value="SCENARIO">情境題</option>
+          </select>
+
+          <select
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">全部標籤</option>
+            {allTags.map((tag) => (
+              <option key={tag} value={tag}>{tag}</option>
+            ))}
           </select>
         </div>
       </div>

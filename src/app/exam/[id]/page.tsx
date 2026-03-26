@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { DifficultyStarsClickable, FlagFilled, FlagEmpty, NoteIcon, ArrowLeft, ArrowRight } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
+import { TagEditor } from "@/components/tag-editor";
 import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface ExamAnswer {
@@ -26,6 +27,7 @@ interface ExamAnswer {
     questionBankId: string;
     questionBank?: { id: string; name: string };
     difficulty: number;
+    tags?: string[];
     wrongOptionExplanations: Record<string, string> | null;
   };
 }
@@ -564,6 +566,8 @@ export default function ExamTakingPage() {
                   <NoteIcon className="w-3 h-3" /> 筆記
                 </button>
               </div>
+              {/* Inline tag editor */}
+              <TagEditor questionId={currentQuestion.id} initialTags={currentQuestion.tags || []} compact />
             </div>
 
             <p className="text-lg leading-relaxed whitespace-pre-wrap break-words overflow-hidden text-gray-900">{currentQuestion.stem}</p>

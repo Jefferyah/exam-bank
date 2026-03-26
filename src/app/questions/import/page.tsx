@@ -86,6 +86,7 @@ export default function ImportPage() {
   const [isPublic, setIsPublic] = useState(false);
   const [selectedBankId, setSelectedBankId] = useState("");
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+  const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
   const [preview, setPreview] = useState<PreviewQuestion[]>([]);
   const [detectedFormat, setDetectedFormat] = useState<"external" | "internal" | "">("");
   const [parseError, setParseError] = useState("");
@@ -123,10 +124,18 @@ export default function ImportPage() {
   useEffect(() => {
     async function fetchBanks() {
       try {
-        const res = await fetch("/api/question-banks");
-        if (!res.ok) return;
-        const data = await res.json();
-        setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        const [banksRes, hiddenRes] = await Promise.all([
+          fetch("/api/question-banks"),
+          fetch("/api/hidden-banks"),
+        ]);
+        if (banksRes.ok) {
+          const data = await banksRes.json();
+          setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        }
+        if (hiddenRes.ok) {
+          const hiddenData = await hiddenRes.json();
+          setHiddenBankIds(new Set(hiddenData.hiddenBankIds || []));
+        }
       } catch (err) {
         console.error("Failed to fetch question banks:", err);
       }
@@ -402,7 +411,7 @@ export default function ImportPage() {
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">選擇題庫</option>
-              {questionBanks.map((bank) => (
+              {questionBanks.filter((bank) => !hiddenBankIds.has(bank.id)).map((bank) => (
                 <option key={bank.id} value={bank.id}>
                   {bank.name}
                 </option>

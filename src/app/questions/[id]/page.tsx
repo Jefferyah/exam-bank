@@ -7,6 +7,7 @@ import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
+import { TagEditor } from "@/components/tag-editor";
 import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 
 interface Question {
@@ -255,12 +256,10 @@ export default function QuestionDetailPage() {
             {question.chapter}
           </span>
         )}
-        {question.tags?.map((tag, i) => (
-          <span key={i} className="px-2.5 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
-            {tag}
-          </span>
-        ))}
       </div>
+
+      {/* Tags (editable) */}
+      <TagEditor questionId={question.id} initialTags={question.tags || []} />
 
       {/* Question stem */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">

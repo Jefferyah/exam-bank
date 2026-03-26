@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
       favoriteOnly = false,
       notedOnly = false,
       untriedOnly = false,
+      tags: filterTags,
     } = body;
 
     if (!title) {
@@ -147,6 +148,13 @@ export async function POST(req: NextRequest) {
       } else {
         questionWhere.difficulty = difficulty;
       }
+    }
+
+    // Filter by tags (AND logic — questions must contain ALL specified tags)
+    if (filterTags && Array.isArray(filterTags) && filterTags.length > 0) {
+      questionWhere.AND = filterTags.map((tag: string) => ({
+        tags: { contains: tag },
+      }));
     }
 
     // Filter for wrong-only questions
@@ -266,6 +274,7 @@ export async function POST(req: NextRequest) {
       favoriteOnly,
       notedOnly,
       untriedOnly,
+      tags: filterTags || [],
     };
 
     // Create exam with answers in a transaction

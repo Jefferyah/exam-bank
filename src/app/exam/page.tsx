@@ -30,14 +30,17 @@ export default function ExamSetupPage() {
   const [loadingBanks, setLoadingBanks] = useState(true);
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
   const [srsDueCount, setSrsDueCount] = useState(0);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [banksRes, hiddenRes, srsRes] = await Promise.all([
+        const [banksRes, hiddenRes, srsRes, tagsRes] = await Promise.all([
           fetch("/api/question-banks"),
           fetch("/api/hidden-banks"),
           fetch("/api/review-cards?stats=true"),
+          fetch("/api/tags"),
         ]);
         if (banksRes.ok) {
           const data = await banksRes.json();
@@ -45,11 +48,15 @@ export default function ExamSetupPage() {
         }
         if (hiddenRes.ok) {
           const hiddenData = await hiddenRes.json();
-          setHiddenBankIds(new Set(hiddenData.map((h: { questionBankId: string }) => h.questionBankId)));
+          setHiddenBankIds(new Set(hiddenData.hiddenBankIds || []));
         }
         if (srsRes.ok) {
           const srsData = await srsRes.json();
           setSrsDueCount(srsData.stats?.dueToday || 0);
+        }
+        if (tagsRes.ok) {
+          const tagsData = await tagsRes.json();
+          setAllTags(tagsData.tags || []);
         }
       } catch (err) {
         console.error(err);
@@ -69,6 +76,12 @@ export default function ExamSetupPage() {
   function toggleDifficulty(d: number) {
     setDifficultyRange((prev) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort()
+    );
+  }
+
+  function toggleTag(tag: string) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   }
 
@@ -93,6 +106,7 @@ export default function ExamSetupPage() {
         favoriteOnly,
         notedOnly,
         untriedOnly,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       };
 
       const res = await fetch("/api/exams", {
@@ -232,6 +246,30 @@ export default function ExamSetupPage() {
           ))}
         </div>
       </div>
+
+      {/* Tags filter */}
+      {allTags.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">標籤篩選</h2>
+          <p className="text-sm text-gray-600">不選則不限標籤，選多個則取交集</p>
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => toggleTag(tag)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                  selectedTags.includes(tag)
+                    ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Count and Time */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">

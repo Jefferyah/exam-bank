@@ -70,7 +70,7 @@ function CreateQuestionContent() {
         }
         if (hiddenRes.ok) {
           const hiddenData = await hiddenRes.json();
-          setHiddenBankIds(new Set(hiddenData.map((h: { questionBankId: string }) => h.questionBankId)));
+          setHiddenBankIds(new Set(hiddenData.hiddenBankIds || []));
         }
       } catch (err) {
         console.error("Failed to fetch question banks:", err);

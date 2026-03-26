@@ -92,6 +92,13 @@ interface ModeComparison {
   avgDuration: number;
 }
 
+interface TagAccuracy {
+  tag: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+
 interface DailyActivity {
   date: string;
   exams: number;
@@ -113,6 +120,7 @@ interface AnalyticsData {
     timePerBank: TimePerBank[];
   };
   modeComparison: ModeComparison[];
+  tagAccuracy: TagAccuracy[];
   dailyActivity: DailyActivity[];
   currentStreak: number;
   todayQuestions: number;
@@ -857,6 +865,34 @@ function DashboardTab({
                     加強練習
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tag Accuracy ── */}
+      {a.tagAccuracy && a.tagAccuracy.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">各標籤正確率</h2>
+          <div className="space-y-2">
+            {a.tagAccuracy.slice(0, 15).map((t) => (
+              <div key={t.tag} className="flex items-center gap-3 p-2">
+                <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
+                  {t.tag}
+                </span>
+                <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 min-w-0">
+                  <div
+                    className={cn(
+                      "h-2.5 rounded-full transition-all",
+                      t.accuracy >= 80 ? "bg-emerald-500" : t.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
+                    )}
+                    style={{ width: `${t.accuracy}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-600 flex-shrink-0 w-24 text-right">
+                  {Math.round(t.accuracy)}% ({t.correct}/{t.total})
+                </span>
               </div>
             ))}
           </div>

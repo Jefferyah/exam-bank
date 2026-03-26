@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { safeJsonParse } from "@/lib/safe-json";
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
               id: true,
               questionBankId: true,
               difficulty: true,
+              tags: true,
             },
           },
         },
@@ -279,6 +281,28 @@ export async function GET(req: NextRequest) {
       avgDuration: s.count > 0 ? Math.round(s.totalDuration / s.count) : 0,
     }));
 
+    // ── Tag-wise accuracy ──
+    const tagStats: Record<string, { total: number; correct: number }> = {};
+    for (const answer of allExamAnswers) {
+      if (answer.userAnswer == null) continue;
+      const tags: string[] = safeJsonParse(answer.question.tags, []);
+      for (const tag of tags) {
+        if (!tag.trim()) continue;
+        const t = tag.trim();
+        if (!tagStats[t]) tagStats[t] = { total: 0, correct: 0 };
+        tagStats[t].total++;
+        if (answer.isCorrect) tagStats[t].correct++;
+      }
+    }
+    const tagAccuracy = Object.entries(tagStats)
+      .map(([tag, stats]) => ({
+        tag,
+        total: stats.total,
+        correct: stats.correct,
+        accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100 * 100) / 100 : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+
     // ── Timezone-aware date helper (Asia/Taipei) ──
     const TZ = "Asia/Taipei";
     function toLocalDateKey(date: Date): string {
@@ -403,6 +427,7 @@ export async function GET(req: NextRequest) {
         timePerBank,
       },
       modeComparison,
+      tagAccuracy,
       dailyActivity: dailyActivityArray,
       currentStreak,
       todayQuestions: todayAnswered,
