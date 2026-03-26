@@ -127,7 +127,8 @@ export default function AdminPage() {
   }
 
   function copyCode(code: string) {
-    navigator.clipboard.writeText(code);
+    const shareText = `📚 邀請你一起使用 Exam Bank 題庫系統！\n\n🔗 網址：https://examb.zeabur.app/login\n🎟️ 邀請碼：${code}\n\n註冊時輸入邀請碼即可加入，一起來刷題吧！`;
+    navigator.clipboard.writeText(shareText);
     setCopied(code);
     setTimeout(() => setCopied(null), 2000);
   }
@@ -514,7 +515,7 @@ export default function AdminPage() {
                         onClick={() => copyCode(ic.code)}
                         className="px-3 py-1 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-full text-xs text-gray-600 transition-colors"
                       >
-                        {copied === ic.code ? "已複製!" : "複製"}
+                        {copied === ic.code ? "已複製!" : "分享"}
                       </button>
                     </div>
                   </div>
