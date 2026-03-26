@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Bind Tailwind dark: variant to our data-theme attribute instead of system preference */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
 /* ══════════════════════════════════════════
    Light Theme — Magic UI style
    ══════════════════════════════════════════ */
