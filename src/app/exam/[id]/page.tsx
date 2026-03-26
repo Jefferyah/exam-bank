@@ -63,6 +63,9 @@ export default function ExamTakingPage() {
   const [difficulties, setDifficulties] = useState<Record<string, number>>({});
   // Custom AI prompt
   const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+  // Per-question time tracking
+  const [timeSpents, setTimeSpents] = useState<Record<string, number>>({});
+  const questionStartRef = useRef<number>(Date.now());
   // Scroll ref
   const questionTopRef = useRef<HTMLDivElement>(null);
 
@@ -83,14 +86,18 @@ export default function ExamTakingPage() {
           const existing: Record<string, string> = {};
           const existingFlags = new Set<string>();
           const existingDiff: Record<string, number> = {};
+          const existingTime: Record<string, number> = {};
           for (const a of data.answers) {
             if (a.userAnswer) existing[a.questionId] = a.userAnswer;
             if (a.flagged) existingFlags.add(a.questionId);
             existingDiff[a.questionId] = a.question.difficulty;
+            if (a.timeSpent != null) existingTime[a.questionId] = a.timeSpent;
           }
           setUserAnswers(existing);
           setFlagged(existingFlags);
           setDifficulties(existingDiff);
+          setTimeSpents(existingTime);
+          questionStartRef.current = Date.now();
 
           // Load user's personal difficulty ratings
           try {
@@ -218,6 +225,15 @@ export default function ExamTakingPage() {
   }
 
   function goToQuestion(index: number) {
+    // Accumulate time spent on current question before switching
+    if (exam) {
+      const currentQId = exam.answers[currentIndex]?.questionId;
+      if (currentQId) {
+        const spent = Math.round((Date.now() - questionStartRef.current) / 1000);
+        setTimeSpents((prev) => ({ ...prev, [currentQId]: (prev[currentQId] || 0) + spent }));
+      }
+    }
+    questionStartRef.current = Date.now();
     setCurrentIndex(index);
     setShowExplanation(false);
     setShowNote(false);
@@ -227,12 +243,23 @@ export default function ExamTakingPage() {
     }, 50);
   }
 
+  // Get timeSpents with current question's live time included
+  const getLatestTimeSpents = useCallback(() => {
+    if (!exam) return timeSpents;
+    const currentQId = exam.answers[currentIndex]?.questionId;
+    if (!currentQId) return timeSpents;
+    const spent = Math.round((Date.now() - questionStartRef.current) / 1000);
+    return { ...timeSpents, [currentQId]: (timeSpents[currentQId] || 0) + spent };
+  }, [exam, currentIndex, timeSpents]);
+
   const saveAnswers = useCallback(async () => {
     if (!exam) return;
+    const latestTime = getLatestTimeSpents();
     const answers = Object.entries(userAnswers).map(([questionId, userAnswer]) => ({
       questionId,
       userAnswer,
       flagged: flagged.has(questionId),
+      timeSpent: latestTime[questionId] || 0,
     }));
     try {
       await fetch(`/api/exams/${exam.id}`, {
@@ -243,12 +270,24 @@ export default function ExamTakingPage() {
     } catch (err) {
       console.error(err);
     }
-  }, [exam, userAnswers, flagged]);
+  }, [exam, userAnswers, flagged, getLatestTimeSpents]);
 
   useEffect(() => {
     if (!exam) return;
     const interval = setInterval(saveAnswers, 30000);
     return () => clearInterval(interval);
+  }, [exam, saveAnswers]);
+
+  // Save on page leave (visibilitychange is more reliable than beforeunload)
+  useEffect(() => {
+    if (!exam) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        saveAnswers();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [exam, saveAnswers]);
 
   const handleFinish = useCallback(async (force = false) => {
@@ -258,11 +297,27 @@ export default function ExamTakingPage() {
 
     setSubmitting(true);
     try {
+      const latestTime = getLatestTimeSpents();
       const answers = Object.entries(userAnswers).map(([questionId, userAnswer]) => ({
         questionId,
         userAnswer,
         flagged: flagged.has(questionId),
+        timeSpent: latestTime[questionId] || 0,
       }));
+
+      // Also include unanswered questions' timeSpent (without overwriting userAnswer)
+      if (exam.answers) {
+        for (const a of exam.answers) {
+          if (!userAnswers[a.questionId] && latestTime[a.questionId]) {
+            answers.push({
+              questionId: a.questionId,
+              userAnswer: null as unknown as string,
+              flagged: flagged.has(a.questionId),
+              timeSpent: latestTime[a.questionId],
+            });
+          }
+        }
+      }
 
       const res = await fetch(`/api/exams/${exam.id}`, {
         method: "PUT",
