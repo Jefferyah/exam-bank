@@ -29,6 +29,13 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "200"), 500);
     const statsOnly = url.searchParams.get("stats") === "true";
 
+    // Exclude hidden banks
+    const hiddenBanks = await prisma.hiddenBank.findMany({
+      where: { userId },
+      select: { questionBankId: true },
+    });
+    const hiddenBankIds = hiddenBanks.map((h) => h.questionBankId);
+
     // Build where clause
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { userId };
@@ -49,21 +56,35 @@ export async function GET(req: NextRequest) {
       where.questionId = questionId;
     }
 
+    // Filter by question bank, always excluding hidden banks
+    const questionFilter: any = {};
     if (questionBankId) {
-      where.question = { questionBankId };
+      questionFilter.questionBankId = questionBankId;
+    }
+    if (hiddenBankIds.length > 0) {
+      questionFilter.questionBank = { id: { notIn: hiddenBankIds } };
+    }
+    if (Object.keys(questionFilter).length > 0) {
+      where.question = questionFilter;
+    }
+
+    // Stats where clause — also excludes hidden banks
+    const statsWhere: any = { userId };
+    if (hiddenBankIds.length > 0) {
+      statsWhere.question = { questionBank: { id: { notIn: hiddenBankIds } } };
     }
 
     // Always fetch stats
     const [totalCards, statusCounts, dueToday] = await Promise.all([
-      prisma.reviewCard.count({ where: { userId } }),
+      prisma.reviewCard.count({ where: statsWhere }),
       prisma.reviewCard.groupBy({
         by: ["status"],
-        where: { userId },
+        where: statsWhere,
         _count: true,
       }),
       prisma.reviewCard.count({
         where: {
-          userId,
+          ...statsWhere,
           nextDueAt: {
             lte: new Date(
               new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" }) +

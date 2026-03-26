@@ -13,10 +13,23 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const questionId = searchParams.get("questionId");
-    const where: { userId: string; questionId?: string } = { userId: session.user.id };
+
+    // Exclude hidden banks
+    const hiddenBanks = await prisma.hiddenBank.findMany({
+      where: { userId: session.user.id },
+      select: { questionBankId: true },
+    });
+    const hiddenBankIds = hiddenBanks.map((h) => h.questionBankId);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { userId: session.user.id };
 
     if (questionId) {
       where.questionId = questionId;
+    }
+
+    if (hiddenBankIds.length > 0) {
+      where.question = { questionBank: { id: { notIn: hiddenBankIds } } };
     }
 
     const [notes, total] = await Promise.all([

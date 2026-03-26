@@ -23,6 +23,13 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {};
 
+    // Exclude user's hidden banks
+    const hiddenBanks = await prisma.hiddenBank.findMany({
+      where: { userId: session.user.id },
+      select: { questionBankId: true },
+    });
+    const hiddenBankIds = hiddenBanks.map((h) => h.questionBankId);
+
     // Non-admin users see questions from their own banks + public banks
     if (!isAdmin) {
       where.questionBank = {
@@ -30,7 +37,10 @@ export async function GET(req: NextRequest) {
           { createdById: session.user.id },
           { isPublic: true },
         ],
+        ...(hiddenBankIds.length > 0 ? { id: { notIn: hiddenBankIds } } : {}),
       };
+    } else if (hiddenBankIds.length > 0) {
+      where.questionBank = { id: { notIn: hiddenBankIds } };
     }
 
     if (search) {
