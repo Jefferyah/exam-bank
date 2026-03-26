@@ -22,9 +22,14 @@ export async function GET(req: NextRequest) {
 
     const where: Record<string, unknown> = {};
 
-    // Non-admin users only see questions from their own banks
+    // Non-admin users see questions from their own banks + public banks
     if (!isAdmin) {
-      where.questionBank = { createdById: session.user.id };
+      where.questionBank = {
+        OR: [
+          { createdById: session.user.id },
+          { isPublic: true },
+        ],
+      };
     }
 
     if (search) {

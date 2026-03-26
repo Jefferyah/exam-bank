@@ -91,13 +91,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
     const searchParams = req.nextUrl.searchParams;
     const questionBankId = searchParams.get("questionBankId");
 
-    const where: Record<string, unknown> = {};
-    if (questionBankId) {
-      where.questionBankId = questionBankId;
+    if (!questionBankId) {
+      return NextResponse.json(
+        { error: "Missing required parameter: questionBankId" },
+        { status: 400 }
+      );
     }
+
+    // Verify user has access to this question bank
+    if (!isAdmin) {
+      const bank = await prisma.questionBank.findUnique({
+        where: { id: questionBankId },
+        select: { createdById: true, isPublic: true },
+      });
+      if (!bank) {
+        return NextResponse.json({ error: "Question bank not found" }, { status: 404 });
+      }
+      if (!bank.isPublic && bank.createdById !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
+    const where: Record<string, unknown> = { questionBankId };
 
     const questions = await prisma.question.findMany({
       where,

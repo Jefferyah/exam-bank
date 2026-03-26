@@ -84,9 +84,39 @@ export async function POST(req: NextRequest) {
 
     // Build question filter
     const questionWhere: Record<string, unknown> = {};
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
 
     if (questionBankIds && questionBankIds.length > 0) {
+      // Verify user has access to all specified question banks
+      if (!isAdmin) {
+        const accessibleBanks = await prisma.questionBank.findMany({
+          where: {
+            id: { in: questionBankIds },
+            OR: [
+              { createdById: session.user.id },
+              { isPublic: true },
+            ],
+          },
+          select: { id: true },
+        });
+        const accessibleIds = new Set(accessibleBanks.map((b) => b.id));
+        const forbidden = questionBankIds.filter((id: string) => !accessibleIds.has(id));
+        if (forbidden.length > 0) {
+          return NextResponse.json(
+            { error: "You do not have access to some of the specified question banks" },
+            { status: 403 }
+          );
+        }
+      }
       questionWhere.questionBankId = { in: questionBankIds };
+    } else if (!isAdmin) {
+      // No specific banks requested — limit to accessible banks
+      questionWhere.questionBank = {
+        OR: [
+          { createdById: session.user.id },
+          { isPublic: true },
+        ],
+      };
     }
     if (difficulty) {
       if (Array.isArray(difficulty)) {
@@ -187,6 +217,7 @@ export async function POST(req: NextRequest) {
       timeLimit: timeLimit || null,
       wrongOnly,
       favoriteOnly,
+      notedOnly,
     };
 
     // Create exam with answers in a transaction

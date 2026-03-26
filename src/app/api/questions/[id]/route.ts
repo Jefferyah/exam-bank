@@ -7,12 +7,17 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const question = await prisma.question.findUnique({
       where: { id },
       include: {
-        questionBank: { select: { id: true, name: true } },
+        questionBank: { select: { id: true, name: true, isPublic: true, createdById: true } },
       },
     });
 
@@ -21,6 +26,12 @@ export async function GET(
         { error: "Question not found" },
         { status: 404 }
       );
+    }
+
+    // Non-admin users can only see questions from their own banks or public banks
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json({
@@ -52,12 +63,21 @@ export async function PUT(
 
     const { id } = await params;
 
-    const existing = await prisma.question.findUnique({ where: { id } });
+    const existing = await prisma.question.findUnique({
+      where: { id },
+      include: { questionBank: { select: { createdById: true } } },
+    });
     if (!existing) {
       return NextResponse.json(
         { error: "Question not found" },
         { status: 404 }
       );
+    }
+
+    // Only the bank creator or admin can update questions
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && existing.createdById !== session.user.id && existing.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -135,12 +155,21 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const existing = await prisma.question.findUnique({ where: { id } });
+    const existing = await prisma.question.findUnique({
+      where: { id },
+      include: { questionBank: { select: { createdById: true } } },
+    });
     if (!existing) {
       return NextResponse.json(
         { error: "Question not found" },
         { status: 404 }
       );
+    }
+
+    // Only the bank creator or admin can delete questions
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && existing.createdById !== session.user.id && existing.questionBank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
     await prisma.question.delete({ where: { id } });

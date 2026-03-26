@@ -58,14 +58,32 @@ export async function POST(req: NextRequest) {
 
     const codes = [];
     for (let i = 0; i < count; i++) {
-      const code = await prisma.inviteCode.create({
-        data: {
-          code: generateCode(),
-          createdById: session.user.id,
-          maxUses,
-        },
-      });
-      codes.push(code);
+      let created = false;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          const code = await prisma.inviteCode.create({
+            data: {
+              code: generateCode(),
+              createdById: session.user.id,
+              maxUses,
+            },
+          });
+          codes.push(code);
+          created = true;
+          break;
+        } catch (err: unknown) {
+          // Retry on unique constraint violation (code collision)
+          const prismaError = err as { code?: string };
+          if (prismaError.code === "P2002" && attempt < 4) continue;
+          throw err;
+        }
+      }
+      if (!created) {
+        return NextResponse.json(
+          { error: "Failed to generate unique invite code after retries" },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json(

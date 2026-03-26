@@ -8,6 +8,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
     const bank = await prisma.questionBank.findUnique({
       where: { id },
@@ -19,6 +24,12 @@ export async function GET(
 
     if (!bank) {
       return NextResponse.json({ error: "Question bank not found" }, { status: 404 });
+    }
+
+    // Non-admin users can only see their own banks or public banks
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !bank.isPublic && bank.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(bank);

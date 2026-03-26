@@ -5,6 +5,7 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,6 +16,10 @@ export default function LoginPage() {
       setError("請輸入 Email");
       return;
     }
+    if (!password) {
+      setError("請輸入密碼");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -22,13 +27,18 @@ export default function LoginPage() {
     try {
       const result = await signIn("credentials", {
         email: email.trim(),
+        password,
         inviteCode: inviteCode.trim(),
         callbackUrl: "/",
         redirect: false,
       });
 
       if (result?.error) {
-        if (result.error.includes("INVITE_CODE_REQUIRED")) {
+        if (result.error.includes("PASSWORD_REQUIRED")) {
+          setError("請輸入密碼");
+        } else if (result.error.includes("INVALID_CREDENTIALS")) {
+          setError("Email 或密碼錯誤");
+        } else if (result.error.includes("INVITE_CODE_REQUIRED")) {
           setError("新用戶需要邀請碼才能註冊");
         } else if (result.error.includes("INVITE_CODE_INVALID")) {
           setError("邀請碼無效");
@@ -76,6 +86,21 @@ export default function LoginPage() {
             </div>
 
             <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                密碼
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="輸入密碼"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={loading}
+              />
+            </div>
+
+            <div>
               <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-1">
                 邀請碼 <span className="text-gray-400 font-normal">（新用戶必填）</span>
               </label>
@@ -88,7 +113,7 @@ export default function LoginPage() {
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
-              <p className="mt-1 text-xs text-gray-400">已有帳號直接輸入 Email 即可登入</p>
+              <p className="mt-1 text-xs text-gray-400">已有帳號輸入 Email 和密碼即可登入</p>
             </div>
 
             {error && (

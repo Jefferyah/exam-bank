@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -17,7 +18,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email) return null;
 
         const email = credentials.email as string;
+        const password = (credentials.password as string) || "";
         const inviteCode = (credentials.inviteCode as string)?.trim() || "";
+
+        if (!password) {
+          throw new Error("PASSWORD_REQUIRED");
+        }
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
@@ -25,6 +31,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (existingUser) {
+          // Verify password
+          if (!existingUser.password) {
+            // Legacy user without password — force them to set one via migration
+            // For now, allow login and set the password
+            const hashed = await bcrypt.hash(password, 10);
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { password: hashed },
+            });
+          } else {
+            const valid = await bcrypt.compare(password, existingUser.password);
+            if (!valid) {
+              throw new Error("INVALID_CREDENTIALS");
+            }
+          }
+
           if (existingUser.email === "Jeffer@gmail.com" && existingUser.role !== "ADMIN") {
             return prisma.user.update({
               where: { id: existingUser.id },
@@ -32,7 +54,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             });
           }
 
-          // Existing user: direct login, no invite code needed
           return existingUser;
         }
 
@@ -41,37 +62,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("INVITE_CODE_REQUIRED");
         }
 
-        // Validate invite code
-        const code = await prisma.inviteCode.findUnique({
-          where: { code: inviteCode },
-        });
+        // Validate invite code — use transaction to prevent race condition (Bug #7)
+        const newUser = await prisma.$transaction(async (tx) => {
+          const code = await tx.inviteCode.findUnique({
+            where: { code: inviteCode },
+          });
 
-        if (!code) {
-          throw new Error("INVITE_CODE_INVALID");
-        }
+          if (!code) {
+            throw new Error("INVITE_CODE_INVALID");
+          }
 
-        // Check if code has remaining uses (maxUses=0 means unlimited)
-        if (code.maxUses > 0 && code.usedCount >= code.maxUses) {
-          throw new Error("INVITE_CODE_USED");
-        }
+          // Check if code has remaining uses (maxUses=0 means unlimited)
+          if (code.maxUses > 0 && code.usedCount >= code.maxUses) {
+            throw new Error("INVITE_CODE_USED");
+          }
 
-        // Create new user and increment invite code usage
-        const newUser = await prisma.user.create({
-          data: {
-            email,
-            name: email.split("@")[0],
-            role: "STUDENT",
-          },
-        });
+          const hashedPassword = await bcrypt.hash(password, 10);
 
-        await prisma.inviteCode.update({
-          where: { id: code.id },
-          data: {
-            usedCount: { increment: 1 },
-            // Keep first user reference for backward compat
-            ...(!code.usedById ? { usedById: newUser.id } : {}),
-            usedAt: new Date(),
-          },
+          // Create new user with hashed password
+          const user = await tx.user.create({
+            data: {
+              email,
+              name: email.split("@")[0],
+              password: hashedPassword,
+              role: "STUDENT",
+            },
+          });
+
+          await tx.inviteCode.update({
+            where: { id: code.id },
+            data: {
+              usedCount: { increment: 1 },
+              ...(!code.usedById ? { usedById: user.id } : {}),
+              usedAt: new Date(),
+            },
+          });
+
+          return user;
         });
 
         return newUser;

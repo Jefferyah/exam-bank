@@ -68,21 +68,28 @@ export async function POST(req: NextRequest) {
       }
     } else if (scope === "exams") {
       if (questionBankId) {
-        // Find exams whose config references the specific questionBankId
-        const userExams = await prisma.exam.findMany({
+        // Find exams that actually contain questions from this bank
+        // by checking the exam answers' question relationships
+        const examsWithBank = await prisma.exam.findMany({
           where: { userId },
-          select: { id: true, config: true },
+          select: {
+            id: true,
+            answers: {
+              select: {
+                question: { select: { questionBankId: true } },
+              },
+            },
+          },
         });
 
-        const matchingExamIds = userExams
+        // Only delete exams where ALL questions belong to this bank
+        // (avoids accidentally deleting cross-bank exams)
+        const matchingExamIds = examsWithBank
           .filter((exam) => {
-            try {
-              const config = JSON.parse(exam.config);
-              const bankIds: string[] = config.questionBankIds || [];
-              return bankIds.includes(questionBankId);
-            } catch {
-              return false;
-            }
+            if (exam.answers.length === 0) return false;
+            return exam.answers.every(
+              (a) => a.question.questionBankId === questionBankId
+            );
           })
           .map((exam) => exam.id);
 
