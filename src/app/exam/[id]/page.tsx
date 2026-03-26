@@ -605,15 +605,15 @@ export default function ExamTakingPage() {
           )}
 
           {/* Navigation — sticky bottom */}
-          <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-gray-100 -mx-4 px-4 py-3 flex items-center justify-between">
+          <div className="sticky bottom-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-gray-100 dark:border-gray-700 -mx-4 px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => goToQuestion(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
-              className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
+              className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-medium transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> 上一題
             </button>
-            <span className="text-sm text-gray-400">{currentIndex + 1} / {totalCount}</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">{currentIndex + 1} / {totalCount}</span>
             {currentIndex === totalCount - 1 ? (
               <button
                 onClick={() => handleFinish()}
@@ -630,7 +630,7 @@ export default function ExamTakingPage() {
             ) : (
               <button
                 onClick={() => goToQuestion(Math.min(totalCount - 1, currentIndex + 1))}
-                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium transition-all"
+                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900 rounded-full font-medium transition-all"
               >
                 下一題 <ArrowRight className="w-3.5 h-3.5" />
               </button>
