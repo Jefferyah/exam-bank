@@ -229,6 +229,22 @@ export default function ReviewPage() {
     } catch (err) { console.error(err); }
   }
 
+  async function handlePracticeBank(bankId: string, bankName: string) {
+    try {
+      const res = await fetch("/api/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `加強練習 - ${bankName}`,
+          questionBankIds: [bankId],
+          count: 20,
+          mode: "PRACTICE",
+        }),
+      });
+      if (res.ok) { const data = await res.json(); router.push(`/exam/${data.id}`); }
+    } catch (err) { console.error(err); }
+  }
+
   function toggleMastered(questionId: string) {
     setMastered((prev) => {
       const next = new Set(prev);
@@ -309,10 +325,10 @@ export default function ReviewPage() {
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {([
-          ["dashboard", "總覽"],
-          ["wrong", `錯題本 (${wrongQuestions.length})`],
-          ["favorites", `收藏 (${favorites.length})`],
-          ["notes", `筆記 (${notedQuestions.length})`],
+          ["dashboard", "📊 總覽"],
+          ["wrong", `❌ 錯題本 (${wrongQuestions.length})`],
+          ["favorites", `⭐ 收藏 (${favorites.length})`],
+          ["notes", `📝 筆記 (${notedQuestions.length})`],
         ] as const).map(([key, label]) => (
           <button
             key={key}
@@ -355,6 +371,7 @@ export default function ReviewPage() {
           savingGoal={savingGoal}
           handleSaveGoal={handleSaveGoal}
           mastered={mastered}
+          handlePracticeBank={handlePracticeBank}
         />
       ) : tab === "wrong" ? (
         <WrongTab
@@ -390,7 +407,7 @@ export default function ReviewPage() {
 }
 
 /* ════════════════════════════════════════
-   A. Dashboard Tab
+   A. Dashboard Tab — Enriched Analytics
    ════════════════════════════════════════ */
 function DashboardTab({
   analytics,
@@ -402,6 +419,7 @@ function DashboardTab({
   savingGoal,
   handleSaveGoal,
   mastered,
+  handlePracticeBank,
 }: {
   analytics: AnalyticsData | null;
   dailyGoal: number | null;
@@ -412,6 +430,7 @@ function DashboardTab({
   savingGoal: boolean;
   handleSaveGoal: () => void;
   mastered: Set<string>;
+  handlePracticeBank: (bankId: string, bankName: string) => void;
 }) {
   if (!analytics) {
     return <div className="text-center py-12 text-gray-400">尚無分析資料，完成一次考試後即可查看</div>;
@@ -419,14 +438,38 @@ function DashboardTab({
 
   const a = analytics;
   const todayProgress = dailyGoal ? Math.min(100, Math.round((a.todayQuestions / dailyGoal) * 100)) : 0;
+  const totalAnswered = a.bankAccuracy.reduce((s, b) => s + b.total, 0);
+  const totalCorrect = a.bankAccuracy.reduce((s, b) => s + b.correct, 0);
+  const overallAccuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+  const sortedBanks = [...a.bankAccuracy].sort((x, y) => x.accuracy - y.accuracy);
+
+  // Calculate score improvement (first half vs second half of recent exams)
+  const scoreImprovement = (() => {
+    if (a.recentTrend.length < 4) return null;
+    const reversed = [...a.recentTrend].reverse(); // oldest first
+    const half = Math.floor(reversed.length / 2);
+    const firstHalf = reversed.slice(0, half);
+    const secondHalf = reversed.slice(half);
+    const firstAvg = firstHalf.reduce((s, e) => s + (e.score ?? 0), 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((s, e) => s + (e.score ?? 0), 0) / secondHalf.length;
+    return Math.round(secondAvg - firstAvg);
+  })();
+
+  // Find best & worst difficulty
+  const bestDiff = a.difficultyDistribution.length > 0
+    ? [...a.difficultyDistribution].sort((x, y) => y.accuracy - x.accuracy)[0]
+    : null;
+  const worstDiff = a.difficultyDistribution.length > 0
+    ? [...a.difficultyDistribution].sort((x, y) => x.accuracy - y.accuracy)[0]
+    : null;
 
   return (
     <div className="space-y-6">
 
-      {/* ── E. Daily Goal ── */}
+      {/* ── Daily Goal ── */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-gray-900">每日目標</h2>
+          <h2 className="text-base font-semibold text-gray-900">🎯 每日目標</h2>
           {!editingGoal && (
             <button
               onClick={() => { setEditingGoal(true); setGoalDraft(dailyGoal?.toString() || ""); }}
@@ -463,7 +506,7 @@ function DashboardTab({
             <div className="flex items-end justify-between mb-2">
               <span className="text-3xl font-bold text-gray-900">{a.todayQuestions}<span className="text-base font-normal text-gray-400">/{dailyGoal}</span></span>
               <span className={cn("text-sm font-medium", todayProgress >= 100 ? "text-emerald-600" : "text-gray-500")}>
-                {todayProgress >= 100 ? "已達成!" : `${todayProgress}%`}
+                {todayProgress >= 100 ? "🎉 已達成!" : `${todayProgress}%`}
               </span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
@@ -483,32 +526,90 @@ function DashboardTab({
         <SummaryCard label="連續學習" value={`${a.currentStreak}`} unit="天" accent={a.currentStreak >= 3 ? "text-orange-500" : undefined} />
         <SummaryCard label="完成考試" value={`${a.completedExams}`} unit="次" />
         <SummaryCard label="平均分數" value={`${a.avgScore.toFixed(1)}`} unit="分" accent={a.avgScore >= 80 ? "text-emerald-600" : a.avgScore >= 60 ? "text-amber-600" : "text-red-600"} />
-        <SummaryCard label="平均作答" value={a.timeAnalysis.avgTimePerQuestion > 0 ? `${a.timeAnalysis.avgTimePerQuestion}` : "-"} unit="秒/題" />
+        <SummaryCard label="總正確率" value={`${overallAccuracy}`} unit="%" accent={overallAccuracy >= 80 ? "text-emerald-600" : overallAccuracy >= 60 ? "text-amber-600" : "text-red-600"} />
       </div>
 
-      {/* ── Score Trend (last 10 exams) ── */}
+      {/* ── Quick Insight Banner ── */}
+      {(scoreImprovement !== null || worstDiff) && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-800 rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">💡 學習洞察</h3>
+          <div className="flex flex-col gap-1.5 text-sm text-blue-800 dark:text-blue-300">
+            {scoreImprovement !== null && (
+              <p>
+                {scoreImprovement > 0
+                  ? `📈 近期分數提升了 ${scoreImprovement} 分，繼續保持！`
+                  : scoreImprovement < 0
+                    ? `📉 近期分數下降了 ${Math.abs(scoreImprovement)} 分，可以加強弱點題庫的練習`
+                    : `📊 近期分數持平，嘗試挑戰更高難度的題目吧`}
+              </p>
+            )}
+            {worstDiff && bestDiff && worstDiff.difficulty !== bestDiff.difficulty && (
+              <p>
+                ⚡ 難度 {bestDiff.difficulty} 最擅長（{bestDiff.accuracy}%），難度 {worstDiff.difficulty} 需加強（{worstDiff.accuracy}%）
+              </p>
+            )}
+            {sortedBanks.length > 0 && sortedBanks[0].accuracy < 60 && (
+              <p>
+                🎯 「{sortedBanks[0].questionBankName}」正確率最低（{sortedBanks[0].accuracy}%），建議重點練習
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Score Trend Chart ── */}
       {a.recentTrend.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">分數走勢（最近 {a.recentTrend.length} 次）</h2>
-          <div className="flex items-end gap-1 h-40">
-            {a.recentTrend.slice().reverse().map((e, i) => {
-              const score = e.score ?? 0;
-              const barColor = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-red-500";
-              return (
-                <Link key={e.id} href={`/exam/${e.id}/result`} className="flex-1 flex flex-col items-center gap-1 group">
-                  <span className="text-xs font-medium text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {score.toFixed(0)}
-                  </span>
-                  <div
-                    className={cn("w-full rounded-t-lg transition-all", barColor, "group-hover:opacity-80 min-h-[4px]")}
-                    style={{ height: `${Math.max(3, score * 1.2)}%` }}
-                  />
-                  <span className="text-[10px] text-gray-400 truncate w-full text-center">
-                    {new Date(e.finishedAt).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" })}
-                  </span>
-                </Link>
-              );
-            })}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-gray-900">📈 分數走勢（最近 {a.recentTrend.length} 次）</h2>
+            {a.recentTrend.length >= 2 && (
+              <span className="text-xs text-gray-400">
+                最高 {Math.max(...a.recentTrend.map(e => e.score ?? 0)).toFixed(0)} / 最低 {Math.min(...a.recentTrend.map(e => e.score ?? 0)).toFixed(0)}
+              </span>
+            )}
+          </div>
+          {/* Line chart area */}
+          <div className="relative h-44">
+            {/* Y-axis labels */}
+            <div className="absolute left-0 top-0 bottom-6 w-8 flex flex-col justify-between text-[10px] text-gray-400">
+              <span>100</span>
+              <span>75</span>
+              <span>50</span>
+              <span>25</span>
+              <span>0</span>
+            </div>
+            {/* Grid lines */}
+            <div className="absolute left-8 right-0 top-0 bottom-6">
+              {[0, 25, 50, 75].map((v) => (
+                <div key={v} className="absolute w-full border-t border-dashed border-gray-100 dark:border-gray-700" style={{ top: `${(1 - v / 100) * 100}%` }} />
+              ))}
+            </div>
+            {/* Bars + trend line */}
+            <div className="absolute left-10 right-2 top-0 bottom-6 flex items-end gap-1">
+              {a.recentTrend.slice().reverse().map((e) => {
+                const score = e.score ?? 0;
+                const barColor = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-red-500";
+                return (
+                  <Link key={e.id} href={`/exam/${e.id}/result`} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <div className="absolute bottom-full mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      {score.toFixed(0)}分 — {e.title}
+                    </div>
+                    <div
+                      className={cn("w-full rounded-t-lg transition-all", barColor, "group-hover:opacity-80 min-h-[4px]")}
+                      style={{ height: `${Math.max(3, score)}%` }}
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+            {/* X-axis labels */}
+            <div className="absolute left-10 right-2 bottom-0 flex">
+              {a.recentTrend.slice().reverse().map((e) => (
+                <span key={e.id} className="flex-1 text-center text-[10px] text-gray-400 truncate">
+                  {new Date(e.finishedAt).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" })}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -516,7 +617,12 @@ function DashboardTab({
       {/* ── 30-day Activity Heatmap ── */}
       {a.dailyActivity.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">近 30 天活動</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-gray-900">🗓️ 近 30 天活動</h2>
+            <span className="text-xs text-gray-400">
+              共 {a.dailyActivity.reduce((s, d) => s + d.questions, 0)} 題 / {a.dailyActivity.reduce((s, d) => s + d.exams, 0)} 次考試
+            </span>
+          </div>
           <div className="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
             {a.dailyActivity.map((d) => {
               const intensity = d.questions === 0 ? 0 : d.questions <= 5 ? 1 : d.questions <= 15 ? 2 : d.questions <= 30 ? 3 : 4;
@@ -529,7 +635,7 @@ function DashboardTab({
                   title={`${dayLabel}: ${d.questions} 題, ${d.exams} 次考試`}
                 >
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                    {dayLabel}: {d.questions} 題
+                    {dayLabel}: {d.questions} 題 / {d.exams} 次
                   </div>
                 </div>
               );
@@ -545,46 +651,65 @@ function DashboardTab({
         </div>
       )}
 
-      {/* ── Practice vs Mock ── */}
+      {/* ── Practice vs Mock Comparison ── */}
       {a.modeComparison.length > 1 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">🏋️ 練習 vs 模擬考</h2>
           <div className="grid grid-cols-2 gap-4">
-            {a.modeComparison.map((m) => (
-              <div key={m.mode} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                <div className="text-sm font-medium text-gray-900 mb-2">{m.mode === "PRACTICE" ? "練習模式" : "模擬考"}</div>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="flex justify-between"><span>次數</span><span className="font-medium text-gray-900">{m.count}</span></div>
-                  <div className="flex justify-between"><span>平均分數</span><span className="font-medium text-gray-900">{m.avgScore.toFixed(1)}</span></div>
-                  <div className="flex justify-between"><span>平均用時</span><span className="font-medium text-gray-900">{formatDuration(m.avgDuration)}</span></div>
+            {a.modeComparison.map((m) => {
+              const label = m.mode === "PRACTICE" ? "練習模式" : "模擬考";
+              const icon = m.mode === "PRACTICE" ? "📝" : "🎯";
+              return (
+                <div key={m.mode} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                  <div className="text-sm font-medium text-gray-900 mb-3">{icon} {label}</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">次數</span>
+                      <span className="font-bold text-gray-900">{m.count}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">平均分數</span>
+                      <span className={cn("font-bold", m.avgScore >= 80 ? "text-emerald-600" : m.avgScore >= 60 ? "text-amber-600" : "text-red-600")}>
+                        {m.avgScore.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">平均用時</span>
+                      <span className="font-medium text-gray-900">{formatDuration(m.avgDuration)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* ── B. Difficulty Analysis ── */}
+      {/* ── Difficulty Accuracy ── */}
       {a.difficultyDistribution.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">各難度正確率</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">⭐ 各難度正確率</h2>
           <div className="space-y-3">
             {a.difficultyDistribution.map((d) => (
               <div key={d.difficulty} className="flex items-center gap-3">
                 <div className="flex-shrink-0 w-16">
                   <DifficultyStars value={d.difficulty} />
                 </div>
-                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
+                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-5 relative overflow-hidden">
                   <div
                     className={cn(
-                      "h-4 rounded-full transition-all",
+                      "h-5 rounded-full transition-all flex items-center justify-end pr-2",
                       d.accuracy >= 80 ? "bg-emerald-500" : d.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
                     )}
-                    style={{ width: `${d.accuracy}%` }}
-                  />
+                    style={{ width: `${Math.max(d.accuracy, 8)}%` }}
+                  >
+                    {d.accuracy >= 20 && (
+                      <span className="text-[10px] text-white font-medium">{d.accuracy}%</span>
+                    )}
+                  </div>
                 </div>
-                <span className="flex-shrink-0 w-28 text-right text-sm text-gray-600">
-                  {d.accuracy}% <span className="text-gray-400">({d.correct}/{d.total})</span>
+                <span className="flex-shrink-0 w-20 text-right text-xs text-gray-500">
+                  {d.correct}/{d.total} 題
                 </span>
               </div>
             ))}
@@ -592,24 +717,34 @@ function DashboardTab({
         </div>
       )}
 
-      {/* ── C. Time Analysis ── */}
-      {a.timeAnalysis.timePerBank.length > 0 && (
+      {/* ── Time Analysis: Speed vs Accuracy ── */}
+      {(a.timeAnalysis.timePerDifficulty.length > 0 || a.timeAnalysis.timePerBank.length > 0) && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">作答時間分析</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-1">⏱️ 作答時間分析</h2>
+          <p className="text-xs text-gray-400 mb-4">資料來自模擬考模式</p>
 
-          {/* Time per difficulty */}
+          {/* Average time badge */}
+          {a.timeAnalysis.avgTimePerQuestion > 0 && (
+            <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
+              <span className="text-2xl font-bold text-blue-600">{a.timeAnalysis.avgTimePerQuestion}s</span>
+              <span className="text-sm text-blue-700 dark:text-blue-300">平均每題作答時間</span>
+            </div>
+          )}
+
+          {/* Time per difficulty — bar chart */}
           {a.timeAnalysis.timePerDifficulty.length > 0 && (
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
-              <div className="flex items-end gap-2 h-28">
+              <div className="flex items-end gap-3 h-32">
                 {a.timeAnalysis.timePerDifficulty.map((d) => {
                   const maxTime = Math.max(...a.timeAnalysis.timePerDifficulty.map((x) => x.avgTime));
                   const pct = maxTime > 0 ? (d.avgTime / maxTime) * 100 : 0;
                   return (
                     <div key={d.difficulty} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-xs font-medium text-gray-600">{d.avgTime}s</span>
-                      <div className="w-full bg-blue-400 rounded-t-lg" style={{ height: `${Math.max(8, pct)}%` }} />
-                      <span className="text-[10px] text-gray-400">難度{d.difficulty}</span>
+                      <span className="text-xs font-bold text-gray-700">{d.avgTime}s</span>
+                      <div className="w-full rounded-t-lg bg-gradient-to-t from-blue-600 to-blue-400 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
+                      <span className="text-[10px] text-gray-500">⭐{d.difficulty}</span>
+                      <span className="text-[10px] text-gray-400">{d.count}題</span>
                     </div>
                   );
                 })}
@@ -617,21 +752,104 @@ function DashboardTab({
             </div>
           )}
 
-          {/* Time per bank — correct vs wrong */}
-          <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度（答對 vs 答錯）</h3>
+          {/* Time per bank — correct vs wrong side-by-side */}
+          {a.timeAnalysis.timePerBank.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
+              <div className="space-y-3">
+                {a.timeAnalysis.timePerBank.map((b) => {
+                  const maxVal = Math.max(b.avgCorrectTime, b.avgWrongTime, 1);
+                  return (
+                    <div key={b.questionBankId} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900 truncate">{b.questionBankName}</span>
+                        <span className="text-xs text-gray-400">{b.count} 題 / 平均 {b.avgTime}s</span>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        {b.avgCorrectTime > 0 && (
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1 mb-1">
+                              <span className="text-[10px] text-emerald-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
+                            </div>
+                            <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
+                            </div>
+                          </div>
+                        )}
+                        {b.avgWrongTime > 0 && (
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1 mb-1">
+                              <span className="text-[10px] text-red-600 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
+                            </div>
+                            <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                              <div className="bg-red-500 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Bank Accuracy + Practice Buttons (merged from /review/weak) ── */}
+      {sortedBanks.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">🏆 各題庫正確率排名</h2>
           <div className="space-y-3">
-            {a.timeAnalysis.timePerBank.map((b) => (
-              <div key={b.questionBankId} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
-                <div className="text-sm font-medium text-gray-900 mb-2 truncate">{b.questionBankName}</div>
-                <div className="flex gap-4 text-xs text-gray-600">
-                  <span>平均 <strong className="text-gray-900">{b.avgTime}s</strong></span>
-                  {b.avgCorrectTime > 0 && (
-                    <span>答對 <strong className="text-emerald-600">{b.avgCorrectTime}s</strong></span>
-                  )}
-                  {b.avgWrongTime > 0 && (
-                    <span>答錯 <strong className="text-red-600">{b.avgWrongTime}s</strong></span>
-                  )}
-                  <span className="text-gray-400">{b.count} 題</span>
+            {sortedBanks.map((d, i) => (
+              <div
+                key={d.questionBankId}
+                className={cn(
+                  "p-3 rounded-xl",
+                  i === 0 && d.accuracy < 60 ? "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800" : "bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600"
+                )}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      {i === 0 && d.accuracy < 60 && (
+                        <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 text-[10px] rounded-full font-medium flex-shrink-0">
+                          最弱
+                        </span>
+                      )}
+                      {i === sortedBanks.length - 1 && sortedBanks.length > 1 && (
+                        <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 text-[10px] rounded-full font-medium flex-shrink-0">
+                          最強
+                        </span>
+                      )}
+                      <span className="font-medium text-sm text-gray-900 truncate">{d.questionBankName}</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
+                        <div
+                          className={cn(
+                            "h-2.5 rounded-full transition-all",
+                            d.accuracy >= 80 ? "bg-emerald-500" : d.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${d.accuracy}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-600 flex-shrink-0 w-24 text-right">
+                        {d.accuracy}% ({d.correct}/{d.total})
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handlePracticeBank(d.questionBankId, d.questionBankName)}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-xs font-medium transition-all flex-shrink-0",
+                      d.accuracy < 60
+                        ? "bg-red-600 hover:bg-red-700 text-white"
+                        : "bg-gray-900 hover:bg-gray-800 text-white"
+                    )}
+                  >
+                    加強練習
+                  </button>
                 </div>
               </div>
             ))}
@@ -639,30 +857,38 @@ function DashboardTab({
         </div>
       )}
 
-      {/* ── Bank Accuracy (from weak page) ── */}
-      {a.bankAccuracy.length > 0 && (
+      {/* ── Most Wrong Questions Top 5 ── */}
+      {a.mostWrongQuestions.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">各題庫正確率</h2>
-          <div className="space-y-3">
-            {[...a.bankAccuracy].sort((x, y) => x.accuracy - y.accuracy).map((d, i) => (
-              <div key={d.questionBankId} className="flex items-center gap-3">
-                {i === 0 && (
-                  <span className="flex-shrink-0 px-2 py-0.5 bg-red-100 text-red-600 text-[10px] rounded-full font-medium">弱</span>
-                )}
-                {i !== 0 && <span className="flex-shrink-0 w-6" />}
-                <span className="flex-shrink-0 w-24 text-sm text-gray-900 truncate">{d.questionBankName}</span>
-                <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-3 rounded-full",
-                      d.accuracy >= 70 ? "bg-emerald-500" : d.accuracy >= 50 ? "bg-amber-500" : "bg-red-500"
-                    )}
-                    style={{ width: `${d.accuracy}%` }}
-                  />
-                </div>
-                <span className="flex-shrink-0 w-28 text-right text-xs text-gray-600">
-                  {d.accuracy}% ({d.correct}/{d.total})
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-gray-900">🔥 最常錯的題目</h2>
+            {a.allWrongQuestions.length > 5 && (
+              <span className="text-xs text-gray-400">顯示前 5 題 · 完整列表請看錯題本</span>
+            )}
+          </div>
+          <div className="space-y-2">
+            {a.mostWrongQuestions.slice(0, 5).map((q, i) => (
+              <div
+                key={q.questionId}
+                className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-650 transition-colors"
+              >
+                <span className={cn(
+                  "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                  i === 0 ? "bg-red-100 text-red-600" : "bg-gray-200 dark:bg-gray-600 text-gray-500"
+                )}>
+                  {i + 1}
                 </span>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/questions/${q.questionId}`}>
+                    <p className="text-sm text-gray-900 line-clamp-1 hover:text-blue-600 transition-colors">{q.stem}</p>
+                  </Link>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
+                    <span className="text-red-500 font-medium">錯 {q.wrongCount} 次</span>
+                    <span>{q.questionBankName}</span>
+                    <DifficultyStars value={q.difficulty} />
+                  </div>
+                </div>
+                <CopyQuestionButton stem={q.stem} options={[]} />
               </div>
             ))}
           </div>

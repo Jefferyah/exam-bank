@@ -11,8 +11,7 @@ const navLinks = [
   { href: "/", label: "首頁" },
   { href: "/questions", label: "題庫" },
   { href: "/exam", label: "測驗" },
-  { href: "/review", label: "複習" },
-  { href: "/analytics", label: "分析" },
+  { href: "/review", label: "複習分析" },
   { href: "/admin", label: "管理" },
 ];
 
