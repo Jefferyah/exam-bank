@@ -66,8 +66,9 @@ export default function ExamTakingPage() {
   // Per-question time tracking
   const [timeSpents, setTimeSpents] = useState<Record<string, number>>({});
   const questionStartRef = useRef<number>(Date.now());
-  // Scroll ref
+  // Scroll refs
   const questionTopRef = useRef<HTMLDivElement>(null);
+  const checkAnswerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     async function fetchExam() {
@@ -183,6 +184,12 @@ export default function ExamTakingPage() {
       return { ...prev, [questionId]: value };
     });
     setShowExplanation(false);
+    // Auto-scroll to "查看答案" button after selecting (single choice)
+    if (!isMulti) {
+      setTimeout(() => {
+        checkAnswerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
   }
 
   function toggleFlag(questionId: string) {
@@ -599,6 +606,7 @@ export default function ExamTakingPage() {
           {/* Practice mode: show answer button */}
           {isPractice && userAnswers[currentQuestion.id] && (
             <button
+              ref={checkAnswerRef}
               onClick={() => {
                 const next = !showExplanation;
                 setShowExplanation(next);
