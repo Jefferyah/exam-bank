@@ -42,6 +42,22 @@ export default function ExamResultPage() {
   const [exam, setExam] = useState<ExamResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPrompt() {
+      try {
+        const res = await fetch("/api/user-settings");
+        if (res.ok) {
+          const data = await res.json();
+          setCustomPrompt(data.aiPromptTemplate || null);
+        }
+      } catch (err) {
+        console.error("Failed to fetch prompt:", err);
+      }
+    }
+    fetchPrompt();
+  }, []);
 
   useEffect(() => {
     async function fetchResult() {
@@ -238,7 +254,7 @@ export default function ExamResultPage() {
 
                   {/* AI solve — open in external AI web */}
                   {(() => {
-                    const urls = getAiWebUrls(buildAiPrompt(a.question));
+                    const urls = getAiWebUrls(buildAiPrompt(a.question, customPrompt));
                     return (
                       <div className="flex flex-wrap gap-2">
                         <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
