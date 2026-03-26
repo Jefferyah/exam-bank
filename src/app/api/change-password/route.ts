@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
+import { checkRateLimit, AUTH_RATE_LIMIT } from "@/lib/rate-limit";
+import { validatePassword } from "@/lib/password";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,14 +12,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const rl = checkRateLimit(`change-pwd:${session.user.id}`, AUTH_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `請求過於頻繁，請 ${rl.retryAfterSeconds} 秒後重試` },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { currentPassword, newPassword } = body;
 
-    if (!newPassword || newPassword.length < 6) {
-      return NextResponse.json(
-        { error: "新密碼至少需要 6 個字元" },
-        { status: 400 }
-      );
+    const pwCheck = validatePassword(newPassword);
+    if (!pwCheck.valid) {
+      return NextResponse.json({ error: pwCheck.error }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -56,7 +64,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/change-password error:", error);
     return NextResponse.json(
-      { error: "Failed to change password" },
+      { error: "密碼變更失敗，請稍後重試" },
       { status: 500 }
     );
   }

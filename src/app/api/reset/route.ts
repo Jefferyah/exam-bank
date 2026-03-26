@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { checkRateLimit, DESTRUCTIVE_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = checkRateLimit(`reset:${session.user.id}`, DESTRUCTIVE_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `請求過於頻繁，請 ${rl.retryAfterSeconds} 秒後重試` },
+        { status: 429 }
+      );
     }
 
     const userId = session.user.id;
@@ -38,9 +47,11 @@ export async function POST(req: NextRequest) {
     let deleted: Record<string, number> = {};
 
     if (scope === "all") {
-      // Delete all user learning data
-      const [examAnswers, exams, wrongRecords, userDifficulties, notes, favorites] =
+      // Delete all user learning data (reviewLogs before reviewCards due to FK)
+      const [reviewLogs, reviewCards, examAnswers, exams, wrongRecords, userDifficulties, notes, favorites] =
         await prisma.$transaction([
+          prisma.reviewLog.deleteMany({ where: { userId } }),
+          prisma.reviewCard.deleteMany({ where: { userId } }),
           prisma.examAnswer.deleteMany({
             where: { exam: { userId } },
           }),
@@ -52,6 +63,8 @@ export async function POST(req: NextRequest) {
         ]);
 
       deleted = {
+        reviewLogs: reviewLogs.count,
+        reviewCards: reviewCards.count,
         examAnswers: examAnswers.count,
         exams: exams.count,
         wrongRecords: wrongRecords.count,
@@ -136,7 +149,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/reset error:", error);
     return NextResponse.json(
-      { error: "Failed to reset learning records" },
+      { error: "重置失敗，請稍後重試" },
       { status: 500 }
     );
   }

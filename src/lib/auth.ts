@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import { validatePassword } from "./password";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -58,9 +59,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // New user: require invite code
-        // Use same error as login failure to prevent email enumeration
+        // Use unified error to prevent email enumeration
         if (!inviteCode) {
-          throw new Error("INVITE_CODE_REQUIRED_OR_INVALID");
+          throw new Error("INVALID_CREDENTIALS");
         }
 
         // Validate invite code — use transaction to prevent race condition (Bug #7)
@@ -75,7 +76,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           // Check if code has remaining uses (maxUses=0 means unlimited)
           if (code.maxUses > 0 && code.usedCount >= code.maxUses) {
-            throw new Error("INVITE_CODE_USED");
+            throw new Error("INVITE_CODE_EXHAUSTED");
+          }
+
+          // Enforce password policy on registration
+          const pwCheck = validatePassword(password);
+          if (!pwCheck.valid) {
+            throw new Error("WEAK_PASSWORD");
           }
 
           const hashedPassword = await bcrypt.hash(password, 10);
@@ -108,10 +115,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: { strategy: "jwt" },
   callbacks: {
+    authorized({ auth: session, request: { nextUrl } }) {
+      const isLoggedIn = !!session?.user;
+      const isOnLogin = nextUrl.pathname === "/login";
+      const isApiRoute = nextUrl.pathname.startsWith("/api/");
+
+      // API routes handle their own auth
+      if (isApiRoute) return true;
+
+      // Redirect logged-in users away from login page
+      if (isOnLogin) {
+        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
+        return true;
+      }
+
+      // Protect all other pages
+      return isLoggedIn;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as { role?: string }).role || "STUDENT";
         token.id = user.id;
+        token.jti = globalThis.crypto.randomUUID();
         token.passwordChangedAt = null;
       }
 

@@ -102,6 +102,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Only ADMIN and TEACHER can create questions
+    const role = (session.user as { role?: string }).role;
+    if (role !== "ADMIN" && role !== "TEACHER") {
+      return NextResponse.json(
+        { error: "只有管理員和教師可以建立題目" },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const {
       stem,

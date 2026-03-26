@@ -169,7 +169,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
-    if (!question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && !question.questionBank.isPublic && question.questionBank.createdById !== session.user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

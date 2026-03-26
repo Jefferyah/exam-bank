@@ -34,15 +34,15 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        if (result.error.includes("PASSWORD_REQUIRED")) {
-          setError("請輸入密碼");
-        } else if (result.error.includes("INVITE_CODE_INVALID")) {
+        if (result.error.includes("INVITE_CODE_INVALID")) {
           setError("邀請碼無效");
-        } else if (result.error.includes("INVITE_CODE_USED")) {
-          setError("此邀請碼已被使用");
+        } else if (result.error.includes("INVITE_CODE_EXHAUSTED")) {
+          setError("此邀請碼已達使用上限");
+        } else if (result.error.includes("WEAK_PASSWORD")) {
+          setError("密碼需至少 8 個字元，包含英文字母和數字");
         } else {
-          // Unified message for: wrong password, email not found, missing invite code
-          // to prevent email enumeration
+          // Unified message for: wrong password, email not found, missing invite code, etc.
+          // Prevents email enumeration
           setError("帳號或密碼錯誤，若為新用戶請填寫邀請碼");
         }
       } else {

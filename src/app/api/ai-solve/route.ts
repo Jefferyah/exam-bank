@@ -4,12 +4,21 @@ import { auth } from "@/lib/auth";
 import { solveWithClaude } from "@/lib/ai/claude";
 import { solveWithGPT } from "@/lib/ai/openai";
 import { solveWithGemini } from "@/lib/ai/gemini";
+import { checkRateLimit, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rl = checkRateLimit(`ai-solve:${session.user.id}`, AI_RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `請求過於頻繁，請 ${rl.retryAfterSeconds} 秒後重試` },
+        { status: 429 }
+      );
     }
 
     const body = await req.json();
@@ -75,7 +84,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/ai-solve error:", error);
     return NextResponse.json(
-      { error: "Failed to solve question with AI" },
+      { error: "AI 解題失敗，請稍後重試" },
       { status: 500 }
     );
   }

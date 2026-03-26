@@ -29,7 +29,7 @@ export async function GET() {
   } catch (error) {
     console.error("GET /api/admin/users error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch users" },
+      { error: "操作失敗，請稍後重試" },
       { status: 500 }
     );
   }
@@ -72,34 +72,51 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Prevent removing the last admin
-    if (newRole !== "ADMIN") {
-      const targetUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true },
-      });
-      if (targetUser?.role === "ADMIN") {
-        const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
-        if (adminCount <= 1) {
-          return NextResponse.json(
-            { error: "系統至少需要一位管理員，無法降級最後一位管理員" },
-            { status: 400 }
-          );
+    // Use transaction to atomically check last-admin invariant and update role
+    let user;
+    try {
+      user = await prisma.$transaction(async (tx) => {
+        const targetUser = await tx.user.findUnique({
+          where: { id: userId },
+          select: { id: true, role: true },
+        });
+        if (!targetUser) {
+          throw new Error("USER_NOT_FOUND");
         }
-      }
-    }
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { role: newRole },
-      select: { id: true, name: true, email: true, role: true },
-    });
+        // Prevent removing the last admin
+        if (newRole !== "ADMIN" && targetUser.role === "ADMIN") {
+          const adminCount = await tx.user.count({ where: { role: "ADMIN" } });
+          if (adminCount <= 1) {
+            throw new Error("LAST_ADMIN");
+          }
+        }
+
+        return tx.user.update({
+          where: { id: userId },
+          data: { role: newRole },
+          select: { id: true, name: true, email: true, role: true },
+        });
+      });
+    } catch (txErr: unknown) {
+      const msg = txErr instanceof Error ? txErr.message : "";
+      if (msg === "USER_NOT_FOUND") {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      if (msg === "LAST_ADMIN") {
+        return NextResponse.json(
+          { error: "系統至少需要一位管理員，無法降級最後一位管理員" },
+          { status: 400 }
+        );
+      }
+      throw txErr;
+    }
 
     return NextResponse.json({ user });
   } catch (error) {
     console.error("PUT /api/admin/users error:", error);
     return NextResponse.json(
-      { error: "Failed to update user role" },
+      { error: "操作失敗，請稍後重試" },
       { status: 500 }
     );
   }

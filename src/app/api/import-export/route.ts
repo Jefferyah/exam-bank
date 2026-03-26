@@ -199,6 +199,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Only ADMIN and TEACHER can import questions
+    const role = (session.user as { role?: string }).role;
+    if (role !== "ADMIN" && role !== "TEACHER") {
+      return NextResponse.json(
+        { error: "只有管理員和教師可以匯入題目" },
+        { status: 403 }
+      );
+    }
+
     let questionBank: { id: string; name: string } | null = null;
 
     if (questionBankId) {

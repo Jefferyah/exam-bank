@@ -11,30 +11,42 @@ export async function GET(req: NextRequest) {
 
     const userId = session.user.id;
 
-    // Fetch all data in parallel
+    // Fetch data in parallel — only completed exams for stats, reduced field selection
     const [
       totalExams,
-      completedExams,
+      allCompletedExams,
       allExamAnswers,
       recentExams,
       wrongRecords,
-      allCompletedExams,
     ] = await Promise.all([
       prisma.exam.count({ where: { userId } }),
+      // Single query for all completed exams (replaces two overlapping queries)
       prisma.exam.findMany({
         where: { userId, status: "COMPLETED" },
-        select: { id: true, score: true },
+        select: {
+          id: true,
+          title: true,
+          mode: true,
+          score: true,
+          config: true,
+          startedAt: true,
+          finishedAt: true,
+        },
+        orderBy: { finishedAt: "desc" },
       }),
+      // Only fetch answers from completed exams, minimal fields
       prisma.examAnswer.findMany({
-        where: { exam: { userId } },
-        include: {
-          exam: { select: { mode: true } },
+        where: { exam: { userId, status: "COMPLETED" } },
+        select: {
+          examId: true,
+          userAnswer: true,
+          isCorrect: true,
+          timeSpent: true,
           question: {
             select: {
               id: true,
               questionBankId: true,
               difficulty: true,
-              stem: true,
             },
           },
         },
@@ -66,18 +78,10 @@ export async function GET(req: NextRequest) {
           },
         },
       }),
-      // For mode comparison & daily activity
-      prisma.exam.findMany({
-        where: { userId, status: "COMPLETED" },
-        select: {
-          id: true,
-          mode: true,
-          score: true,
-          startedAt: true,
-          finishedAt: true,
-        },
-      }),
     ]);
+
+    // Derive completedExams list from allCompletedExams
+    const completedExams = allCompletedExams;
 
     // Fetch question banks for mapping + get hidden banks
     const [questionBanks, hiddenBanks] = await Promise.all([
@@ -89,6 +93,8 @@ export async function GET(req: NextRequest) {
     ]);
     const bankMap = new Map(questionBanks.map((b) => [b.id, b.name]));
     const hiddenBankIds = new Set(hiddenBanks.map((h) => h.questionBankId));
+    // Build exam mode lookup from allCompletedExams
+    const examModeMap = new Map(allCompletedExams.map((e) => [e.id, e.mode]));
 
     // Average score
     const avgScore =
@@ -204,7 +210,7 @@ export async function GET(req: NextRequest) {
     // ── Time analysis ──
     // Time analysis: only count MOCK (exam) mode for meaningful speed data
     const answeredWithTime = allExamAnswers.filter(
-      (a) => a.userAnswer != null && (a.timeSpent ?? 0) > 0 && a.exam.mode === "MOCK"
+      (a) => a.userAnswer != null && (a.timeSpent ?? 0) > 0 && examModeMap.get(a.examId) === "MOCK"
     );
     const avgTimePerQuestion =
       answeredWithTime.length > 0

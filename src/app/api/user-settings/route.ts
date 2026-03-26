@@ -51,11 +51,15 @@ export async function PUT(req: NextRequest) {
 
     // Daily goal
     if (dailyGoal !== undefined) {
-      const goal = dailyGoal === null ? null : Math.min(500, Math.max(1, parseInt(dailyGoal, 10) || 0));
-      if (goal !== null && (goal < 1 || goal > 500)) {
-        return NextResponse.json({ error: "每日目標需在 1-500 之間" }, { status: 400 });
+      if (dailyGoal === null) {
+        data.dailyGoal = null;
+      } else {
+        const parsed = parseInt(dailyGoal, 10);
+        if (isNaN(parsed) || parsed < 1 || parsed > 500) {
+          return NextResponse.json({ error: "每日目標需在 1-500 之間的整數" }, { status: 400 });
+        }
+        data.dailyGoal = parsed;
       }
-      data.dailyGoal = goal;
     }
 
     const updated = await prisma.user.update({

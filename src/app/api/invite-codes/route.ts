@@ -34,7 +34,7 @@ export async function GET() {
   } catch (error) {
     console.error("GET /api/invite-codes error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch invite codes" },
+      { error: "操作失敗，請稍後重試" },
       { status: 500 }
     );
   }
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/invite-codes error:", error);
     return NextResponse.json(
-      { error: "Failed to generate invite codes" },
+      { error: "邀請碼產生失敗，請稍後重試" },
       { status: 500 }
     );
   }
