@@ -25,6 +25,8 @@ function normalizeType(raw?: string): string {
     return "SINGLE";
   if (["multi", "multiple", "multi_choice", "multiplechoice"].includes(lower))
     return "MULTI";
+  if (["scenario", "情境題"].includes(lower))
+    return "SCENARIO";
   return "SINGLE";
 }
 
@@ -186,6 +188,13 @@ export async function POST(req: NextRequest) {
     if (questionList.length === 0) {
       return NextResponse.json(
         { error: "No questions to import" },
+        { status: 400 }
+      );
+    }
+
+    if (questionList.length > 5000) {
+      return NextResponse.json(
+        { error: "一次最多匯入 5000 題" },
         { status: 400 }
       );
     }
