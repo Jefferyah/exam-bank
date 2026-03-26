@@ -117,7 +117,7 @@ export function Navbar() {
                 )}>
                   {(session.user.name || session.user.email || "U")[0].toUpperCase()}
                 </div>
-                <span className={cn("text-sm hidden lg:block", isDark ? "text-[#7a8599]" : "text-gray-500")}>
+                <span className={cn("text-sm hidden lg:block max-w-[120px] truncate", isDark ? "text-[#7a8599]" : "text-gray-500")}>
                   {session.user.name || session.user.email}
                 </span>
                 <button

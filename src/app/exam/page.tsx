@@ -25,6 +25,7 @@ export default function ExamSetupPage() {
   const [notedOnly, setNotedOnly] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [loadingBanks, setLoadingBanks] = useState(true);
 
   useEffect(() => {
     async function fetchBanks() {
@@ -36,6 +37,8 @@ export default function ExamSetupPage() {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoadingBanks(false);
       }
     }
     fetchBanks();
@@ -134,29 +137,42 @@ export default function ExamSetupPage() {
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">選擇題庫</h2>
         <p className="text-sm text-gray-600">不選則包含所有題庫</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {questionBanks.map((bank) => (
-            <label
-              key={bank.id}
-              className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
-                selectedBankIds.includes(bank.id)
-                  ? "bg-blue-50 ring-1 ring-blue-400"
-                  : "bg-gray-50 hover:bg-gray-100"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedBankIds.includes(bank.id)}
-                onChange={() => toggleBank(bank.id)}
-                className="accent-blue-500 mt-0.5"
-              />
-              <span className="text-sm text-gray-900">
-                {bank.name}
-                <span className="text-gray-400 ml-2">({bank._count.questions} 題)</span>
-              </span>
-            </label>
-          ))}
-        </div>
+        {loadingBanks ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : questionBanks.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <p>尚無題庫</p>
+            <p className="text-sm mt-1">請先到題庫頁面匯入或新增題目</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {questionBanks.map((bank) => (
+              <label
+                key={bank.id}
+                className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                  selectedBankIds.includes(bank.id)
+                    ? "bg-blue-50 ring-1 ring-blue-400"
+                    : "bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedBankIds.includes(bank.id)}
+                  onChange={() => toggleBank(bank.id)}
+                  className="accent-blue-500 mt-0.5"
+                />
+                <span className="text-sm text-gray-900 min-w-0 truncate">
+                  {bank.name}
+                  <span className="text-gray-400 ml-2">({bank._count.questions} 題)</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Difficulty */}

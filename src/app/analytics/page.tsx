@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
           <p className="text-gray-400 text-center py-8">尚無紀錄</p>
         ) : (
           <div className="space-y-3">
-            <div className="flex gap-1 flex-wrap">
+            <div className="flex gap-1 flex-wrap sm:flex-nowrap overflow-x-auto pb-2">
               {data.dailyActivity.map((d) => {
                 const date = new Date(d.date + "T00:00:00");
                 const label = `${date.getMonth() + 1}/${date.getDate()}`;
@@ -288,7 +288,7 @@ export default function AnalyticsPage() {
           {data.timeAnalysis.timePerDifficulty.length > 0 && (
             <div className="mb-5">
               <h3 className="text-sm font-medium text-gray-700 mb-3">各難度平均耗時</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                 {data.timeAnalysis.timePerDifficulty.map((d) => {
                   const maxTime = Math.max(...data.timeAnalysis.timePerDifficulty.map((x) => x.avgTime), 1);
                   const ratio = d.avgTime / maxTime;
@@ -407,7 +407,7 @@ export default function AnalyticsPage() {
         {data.difficultyDistribution.length === 0 ? (
           <p className="text-gray-400 text-center py-8">尚無作答記錄</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
             {data.difficultyDistribution.map((d) => {
               const totalAll = data.difficultyDistribution.reduce((s, x) => s + x.total, 0);
               const percentage = totalAll > 0 ? (d.total / totalAll) * 100 : 0;

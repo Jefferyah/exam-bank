@@ -293,7 +293,7 @@ export default function ReviewPage() {
               {filteredFav.map((f) => (
                 <div
                   key={f.id}
-                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm flex items-center gap-4"
+                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm flex items-start sm:items-center gap-3 sm:gap-4 flex-wrap sm:flex-nowrap"
                 >
                   <Link
                     href={`/questions/${f.questionId}`}
@@ -349,7 +349,7 @@ export default function ReviewPage() {
                     <CopyQuestionButton stem={n.question.stem} options={[]} />
                   </div>
                   <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                    {n.content.length > 50 ? n.content.slice(0, 50) + "..." : n.content}
+                    {n.content}
                   </p>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                     <span>{n.question.questionBank?.name || n.question.questionBankId}</span>

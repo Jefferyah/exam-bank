@@ -127,7 +127,7 @@ export default function ExamResultPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Score display */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-8 shadow-sm text-center">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 mb-2">{exam.title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 mb-2 break-words">{exam.title}</h1>
         <div className={cn(
           "text-6xl md:text-8xl font-bold",
           score >= 70 ? "text-emerald-500" : score >= 50 ? "text-amber-500" : "text-red-500"
@@ -204,7 +204,7 @@ export default function ExamResultPage() {
                 <span className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold flex-shrink-0">
                   {a.isCorrect ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-red-500" />}
                 </span>
-                <span className="flex-1 text-sm text-gray-900 line-clamp-1">
+                <span className="flex-1 min-w-0 text-sm text-gray-900 line-clamp-1">
                   {i + 1}. {a.question.stem}
                 </span>
                 <CopyQuestionButton
@@ -220,7 +220,7 @@ export default function ExamResultPage() {
 
               {expandedIds.has(a.id) && (
                 <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
-                  <p className="text-gray-900 whitespace-pre-wrap">{a.question.stem}</p>
+                  <p className="text-gray-900 whitespace-pre-wrap break-words overflow-hidden">{a.question.stem}</p>
 
                   <div className="space-y-2">
                     {a.question.options.map((opt) => {
@@ -238,8 +238,8 @@ export default function ExamResultPage() {
                                 : "bg-gray-50 dark:bg-gray-700"
                           )}
                         >
-                          <span className="font-semibold mr-2 text-gray-900">{opt.label}.</span>
-                          <span className="text-gray-700">{opt.text}</span>
+                          <span className="font-semibold mr-2 text-gray-900 flex-shrink-0">{opt.label}.</span>
+                          <span className="text-gray-700 break-words">{opt.text}</span>
                           {isCorrectOpt && <span className="ml-2 text-emerald-600 text-xs">(正確)</span>}
                           {isUserAnswer && !isCorrectOpt && <span className="ml-2 text-red-600 text-xs">(你的答案)</span>}
                         </div>
@@ -249,7 +249,7 @@ export default function ExamResultPage() {
 
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
                     <p className="text-sm text-gray-600 mb-1">解析</p>
-                    <p className="text-sm text-gray-700">{a.question.explanation}</p>
+                    <p className="text-sm text-gray-700 break-words whitespace-pre-wrap">{a.question.explanation}</p>
                   </div>
 
                   {/* AI solve — open in external AI web */}

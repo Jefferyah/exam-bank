@@ -333,8 +333,8 @@ export default function QuestionsPage() {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-gray-900 truncate">{bank.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <p className="font-medium text-gray-900 truncate max-w-[200px] sm:max-w-xs">{bank.name}</p>
                         <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
                           {bank._count?.questions ?? 0} 題
                         </span>
@@ -355,14 +355,14 @@ export default function QuestionsPage() {
                           </span>
                         )}
                         {!isOwner && bank.createdBy && (
-                          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0">
+                          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
                             by {bank.createdBy.name || bank.createdBy.email}
                           </span>
                         )}
                       </div>
                     )}
                     {bank.description && editingBankId !== bank.id && (
-                      <p className="text-sm text-gray-600 mt-0.5 truncate">{bank.description}</p>
+                      <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bank.description}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 ml-4 flex-shrink-0">
