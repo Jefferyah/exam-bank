@@ -115,23 +115,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    authorized({ auth: session, request: { nextUrl } }) {
-      const isLoggedIn = !!session?.user;
-      const isOnLogin = nextUrl.pathname === "/login";
-      const isApiRoute = nextUrl.pathname.startsWith("/api/");
-
-      // API routes handle their own auth
-      if (isApiRoute) return true;
-
-      // Redirect logged-in users away from login page
-      if (isOnLogin) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
-        return true;
-      }
-
-      // Protect all other pages
-      return isLoggedIn;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as { role?: string }).role || "STUDENT";
