@@ -47,7 +47,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           }
 
-          if (existingUser.email === "Jeffer@gmail.com" && existingUser.role !== "ADMIN") {
+          if (existingUser.email.toLowerCase() === "jeffer@gmail.com" && existingUser.role !== "ADMIN") {
             return prisma.user.update({
               where: { id: existingUser.id },
               data: { role: "ADMIN" },
@@ -58,8 +58,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // New user: require invite code
+        // Use same error as login failure to prevent email enumeration
         if (!inviteCode) {
-          throw new Error("INVITE_CODE_REQUIRED");
+          throw new Error("INVITE_CODE_REQUIRED_OR_INVALID");
         }
 
         // Validate invite code — use transaction to prevent race condition (Bug #7)

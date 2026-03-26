@@ -36,16 +36,14 @@ export default function LoginPage() {
       if (result?.error) {
         if (result.error.includes("PASSWORD_REQUIRED")) {
           setError("請輸入密碼");
-        } else if (result.error.includes("INVALID_CREDENTIALS")) {
-          setError("Email 或密碼錯誤");
-        } else if (result.error.includes("INVITE_CODE_REQUIRED")) {
-          setError("新用戶需要邀請碼才能註冊");
         } else if (result.error.includes("INVITE_CODE_INVALID")) {
           setError("邀請碼無效");
         } else if (result.error.includes("INVITE_CODE_USED")) {
           setError("此邀請碼已被使用");
         } else {
-          setError("登入失敗，請重試");
+          // Unified message for: wrong password, email not found, missing invite code
+          // to prevent email enumeration
+          setError("帳號或密碼錯誤，若為新用戶請填寫邀請碼");
         }
       } else {
         window.location.assign("/");

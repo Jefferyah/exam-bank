@@ -135,20 +135,22 @@ export async function PUT(
         if (!examAnswer) continue;
 
         const question = examAnswer.question;
-        const isCorrect =
-          userAnswer != null
-            ? isAnswerCorrect(userAnswer.toString(), question.answer)
-            : null;
 
-        await prisma.examAnswer.update({
-          where: { id: examAnswer.id },
-          data: {
-            userAnswer: userAnswer ?? examAnswer.userAnswer,
-            isCorrect,
-            timeSpent: timeSpent ?? examAnswer.timeSpent,
-            flagged: flagged ?? examAnswer.flagged,
-          },
-        });
+        // Only recalculate isCorrect when userAnswer is explicitly provided
+        const data: Record<string, unknown> = {};
+        if (userAnswer != null) {
+          data.userAnswer = userAnswer.toString();
+          data.isCorrect = isAnswerCorrect(userAnswer.toString(), question.answer);
+        }
+        if (timeSpent != null) data.timeSpent = timeSpent;
+        if (flagged != null) data.flagged = flagged;
+
+        if (Object.keys(data).length > 0) {
+          await prisma.examAnswer.update({
+            where: { id: examAnswer.id },
+            data,
+          });
+        }
       }
     }
 

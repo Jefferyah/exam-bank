@@ -124,12 +124,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify question bank exists
-    const bank = await prisma.questionBank.findUnique({ where: { id: questionBankId } });
+    // Verify question bank exists and user has write access
+    const bank = await prisma.questionBank.findUnique({
+      where: { id: questionBankId },
+      select: { id: true, createdById: true, isPublic: true },
+    });
     if (!bank) {
       return NextResponse.json(
         { error: "Question bank not found" },
         { status: 404 }
+      );
+    }
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+    if (!isAdmin && bank.createdById !== session.user.id) {
+      return NextResponse.json(
+        { error: "You do not have write access to this question bank" },
+        { status: 403 }
       );
     }
 

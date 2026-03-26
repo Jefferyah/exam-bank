@@ -191,17 +191,28 @@ export async function POST(req: NextRequest) {
     let questionBank: { id: string; name: string } | null = null;
 
     if (questionBankId) {
-      questionBank = await prisma.questionBank.findUnique({
+      const bank = await prisma.questionBank.findUnique({
         where: { id: questionBankId },
-        select: { id: true, name: true },
+        select: { id: true, name: true, createdById: true },
       });
 
-      if (!questionBank) {
+      if (!bank) {
         return NextResponse.json(
           { error: "Question bank not found" },
           { status: 404 }
         );
       }
+
+      // Only bank owner or admin can import into an existing bank
+      const isAdmin = (session.user as { role?: string }).role === "ADMIN";
+      if (!isAdmin && bank.createdById !== session.user.id) {
+        return NextResponse.json(
+          { error: "You do not have write access to this question bank" },
+          { status: 403 }
+        );
+      }
+
+      questionBank = bank;
     } else {
       if (!bankName) {
         return NextResponse.json(

@@ -15,7 +15,14 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
 
     const where: Record<string, unknown> = { userId: session.user.id };
+    const validStatuses = ["IN_PROGRESS", "COMPLETED", "ABANDONED"];
     if (status) {
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json(
+          { error: "Invalid status. Must be IN_PROGRESS, COMPLETED, or ABANDONED" },
+          { status: 400 }
+        );
+      }
       where.status = status;
     }
 

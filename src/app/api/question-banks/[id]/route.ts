@@ -107,8 +107,10 @@ export async function DELETE(
     }
 
     // Delete all questions first (explicit for DBs without cascade), then the bank
-    await prisma.question.deleteMany({ where: { questionBankId: id } });
-    await prisma.questionBank.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.question.deleteMany({ where: { questionBankId: id } }),
+      prisma.questionBank.delete({ where: { id } }),
+    ]);
 
     return NextResponse.json({
       message: "Question bank deleted successfully",
