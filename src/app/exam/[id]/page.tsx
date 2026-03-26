@@ -370,7 +370,7 @@ export default function ExamTakingPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [exam, flagged, isPractice, router, submitting, userAnswers]);
+  }, [exam, flagged, getLatestTimeSpents, isPractice, router, submitting, userAnswers]);
 
   useEffect(() => {
     if (exam?.mode === "MOCK" && exam.timeLimit && elapsed >= exam.timeLimit && !submitting) {

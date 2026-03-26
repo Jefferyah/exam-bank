@@ -29,7 +29,6 @@ export async function POST() {
     const wrongRecords = await prisma.wrongRecord.findMany();
 
     let migratedFromWrong = 0;
-    let skipped = 0;
 
     // Process in batches of 100
     for (let i = 0; i < wrongRecords.length; i += 100) {
@@ -119,7 +118,6 @@ export async function POST() {
       success: true,
       migratedFromWrong,
       migratedFromExams,
-      skipped,
       total: migratedFromWrong + migratedFromExams,
     });
   } catch (error) {

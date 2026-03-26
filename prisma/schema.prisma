@@ -107,7 +107,7 @@ model Question {
   updatedAt              DateTime @updatedAt
 
   questionBank  QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
-  createdBy     User?        @relation(fields: [createdById], references: [id])
+  createdBy     User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
   examAnswers      ExamAnswer[]
   notes            Note[]
   favorites        Favorite[]
@@ -139,7 +139,7 @@ model Exam {
   score     Float?
   startedAt DateTime @default(now())
   finishedAt DateTime?
-  timeLimit Int?     // minutes
+  timeLimit Int?     // seconds
 
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers ExamAnswer[]

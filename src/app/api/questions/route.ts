@@ -178,10 +178,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ...question,
-        options: JSON.parse(question.options),
-        tags: JSON.parse(question.tags),
+        options: safeJsonParse(question.options, []),
+        tags: safeJsonParse(question.tags, []),
         wrongOptionExplanations: question.wrongOptionExplanations
-          ? JSON.parse(question.wrongOptionExplanations)
+          ? safeJsonParse(question.wrongOptionExplanations, null)
           : null,
       },
       { status: 201 }
