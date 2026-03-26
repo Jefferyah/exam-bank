@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ExamBank - 萬用題庫系統",
+  title: "ExamBank - 題庫系統",
   description: "全方位考試準備平台，支援多題庫管理、模擬考、AI 解題、學習分析",
 };
 
