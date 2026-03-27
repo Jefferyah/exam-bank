@@ -81,9 +81,10 @@ export default function QuestionsPage() {
     }
   }, []);
 
-  const fetchTags = useCallback(async () => {
+  const fetchTags = useCallback(async (bankId?: string) => {
     try {
-      const res = await fetch("/api/tags");
+      const params = bankId ? `?bankIds=${bankId}` : "";
+      const res = await fetch(`/api/tags${params}`);
       if (res.ok) {
         const data = await res.json();
         setAllTags(data.tags || []);
@@ -98,6 +99,13 @@ export default function QuestionsPage() {
     fetchHiddenBanks();
     fetchTags();
   }, [fetchBanks, fetchHiddenBanks, fetchTags]);
+
+  // Re-fetch tags when selected bank changes
+  useEffect(() => {
+    fetchTags(questionBankId || undefined);
+    // Clear selected tag if it may no longer exist
+    setSelectedTag("");
+  }, [questionBankId, fetchTags]);
 
   const fetchQuestions = useCallback(async (page = 1) => {
     setLoading(true);
