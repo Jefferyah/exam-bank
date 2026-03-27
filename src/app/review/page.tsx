@@ -541,10 +541,34 @@ function DashboardTab({
 
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <SummaryCard label="連續學習" value={`${a.currentStreak}`} unit="天" accent={a.currentStreak >= 3 ? "text-orange-500" : undefined} />
-        <SummaryCard label="完成考試" value={`${a.completedExams}`} unit="次" />
-        <SummaryCard label="平均分數" value={`${a.avgScore.toFixed(1)}`} unit="分" accent={a.avgScore >= 80 ? "text-emerald-600" : a.avgScore >= 60 ? "text-amber-600" : "text-red-600"} />
-        <SummaryCard label="總正確率" value={`${overallAccuracy}`} unit="%" accent={overallAccuracy >= 80 ? "text-emerald-600" : overallAccuracy >= 60 ? "text-amber-600" : "text-red-600"} />
+        <SummaryCard
+          label="連續學習"
+          value={`${a.currentStreak}`}
+          unit="天"
+          color="orange"
+          detail={a.currentStreak >= 7 ? "🔥 持續保持！" : a.currentStreak >= 3 ? "穩定進步中" : "再接再厲"}
+        />
+        <SummaryCard
+          label="完成考試"
+          value={`${a.completedExams}`}
+          unit="次"
+          color="blue"
+          detail={`共 ${a.totalExams} 次考試`}
+        />
+        <SummaryCard
+          label="平均分數"
+          value={`${a.avgScore.toFixed(1)}`}
+          unit="分"
+          color={a.avgScore >= 80 ? "emerald" : a.avgScore >= 60 ? "amber" : "red"}
+          detail={a.avgScore >= 80 ? "表現優秀" : a.avgScore >= 60 ? "持續加強" : "需要加油"}
+        />
+        <SummaryCard
+          label="總正確率"
+          value={`${overallAccuracy}`}
+          unit="%"
+          color={overallAccuracy >= 80 ? "emerald" : overallAccuracy >= 60 ? "amber" : "red"}
+          detail={`${a.completedExams > 0 ? "最近趨勢" : "尚無資料"}`}
+        />
       </div>
 
       {/* ── Quick Insight Banner ── */}
@@ -1219,14 +1243,34 @@ function NotesTab({
 }
 
 /* ── Helpers ── */
-function SummaryCard({ label, value, unit, accent }: { label: string; value: string; unit: string; accent?: string }) {
+const CARD_COLORS = {
+  blue:    { bar: "from-blue-400 to-blue-600",    bg: "bg-blue-50/60 dark:bg-blue-950/20",    text: "text-blue-600 dark:text-blue-400",    sub: "text-blue-500/70 dark:text-blue-400/60" },
+  emerald: { bar: "from-emerald-400 to-emerald-600", bg: "bg-emerald-50/60 dark:bg-emerald-950/20", text: "text-emerald-600 dark:text-emerald-400", sub: "text-emerald-500/70 dark:text-emerald-400/60" },
+  amber:   { bar: "from-amber-400 to-amber-600",   bg: "bg-amber-50/60 dark:bg-amber-950/20",   text: "text-amber-600 dark:text-amber-400",   sub: "text-amber-500/70 dark:text-amber-400/60" },
+  orange:  { bar: "from-orange-400 to-orange-600",  bg: "bg-orange-50/60 dark:bg-orange-950/20",  text: "text-orange-600 dark:text-orange-400",  sub: "text-orange-500/70 dark:text-orange-400/60" },
+  red:     { bar: "from-red-400 to-red-600",     bg: "bg-red-50/60 dark:bg-red-950/20",     text: "text-red-600 dark:text-red-400",     sub: "text-red-500/70 dark:text-red-400/60" },
+} as const;
+
+function SummaryCard({ label, value, unit, color, detail }: {
+  label: string; value: string; unit: string;
+  color: keyof typeof CARD_COLORS;
+  detail?: string;
+}) {
+  const c = CARD_COLORS[color];
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm text-center">
-      <div className={cn("text-2xl font-bold", accent || "text-gray-900")}>
-        {value}
-        <span className="text-xs font-normal text-gray-400 ml-1">{unit}</span>
+    <div className={cn("relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm", c.bg)}>
+      {/* Left accent bar */}
+      <div className={cn("absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b", c.bar)} />
+      <div className="pl-4 pr-4 py-4">
+        <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</p>
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className={cn("text-2xl font-bold tabular-nums", c.text)}>{value}</span>
+          <span className="text-xs font-medium text-gray-400 dark:text-gray-500">{unit}</span>
+        </div>
+        {detail && (
+          <p className={cn("text-[11px] mt-1.5", c.sub)}>{detail}</p>
+        )}
       </div>
-      <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
   );
 }
