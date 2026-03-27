@@ -102,6 +102,7 @@ export async function POST(req: NextRequest) {
       notedOnly = false,
       untriedOnly = false,
       tags: filterTags,
+      chapters: filterChapters,
       shuffleOptions = false,
     } = body;
 
@@ -175,6 +176,11 @@ export async function POST(req: NextRequest) {
       questionWhere.AND = filterTags.map((tag: string) => ({
         tags: { contains: tag },
       }));
+    }
+
+    // Filter by chapters
+    if (filterChapters && Array.isArray(filterChapters) && filterChapters.length > 0) {
+      questionWhere.chapter = { in: filterChapters };
     }
 
     // Filter for wrong-only questions

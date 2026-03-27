@@ -33,6 +33,8 @@ export default function ExamSetupPage() {
   const [srsDueCount, setSrsDueCount] = useState(0);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [allChapters, setAllChapters] = useState<string[]>([]);
+  const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -68,27 +70,36 @@ export default function ExamSetupPage() {
     fetchData();
   }, []);
 
-  // Re-fetch tags when selected banks change
+  // Re-fetch tags and chapters when selected banks change
   useEffect(() => {
-    async function fetchTags() {
+    const params = selectedBankIds.length > 0
+      ? `?bankIds=${selectedBankIds.join(",")}`
+      : "";
+    async function fetchFilters() {
       try {
-        const params = selectedBankIds.length > 0
-          ? `?bankIds=${selectedBankIds.join(",")}`
-          : "";
-        const res = await fetch(`/api/tags${params}`);
-        if (res.ok) {
-          const data = await res.json();
+        const [tagsRes, chaptersRes] = await Promise.all([
+          fetch(`/api/tags${params}`),
+          fetch(`/api/chapters${params}`),
+        ]);
+        if (tagsRes.ok) {
+          const data = await tagsRes.json();
           setAllTags(data.tags || []);
-          // Remove selected tags that no longer exist in filtered list
           setSelectedTags((prev) =>
             prev.filter((t) => (data.tags || []).includes(t))
+          );
+        }
+        if (chaptersRes.ok) {
+          const data = await chaptersRes.json();
+          setAllChapters(data.chapters || []);
+          setSelectedChapters((prev) =>
+            prev.filter((c) => (data.chapters || []).includes(c))
           );
         }
       } catch {
         // silently fail
       }
     }
-    fetchTags();
+    fetchFilters();
   }, [selectedBankIds]);
 
   function toggleBank(id: string) {
@@ -106,6 +117,12 @@ export default function ExamSetupPage() {
   function toggleTag(tag: string) {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }
+
+  function toggleChapter(chapter: string) {
+    setSelectedChapters((prev) =>
+      prev.includes(chapter) ? prev.filter((c) => c !== chapter) : [...prev, chapter]
     );
   }
 
@@ -131,6 +148,7 @@ export default function ExamSetupPage() {
         notedOnly,
         untriedOnly,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
+        chapters: selectedChapters.length > 0 ? selectedChapters : undefined,
         shuffleOptions,
       };
 
@@ -272,6 +290,15 @@ export default function ExamSetupPage() {
         </div>
       </div>
 
+      {/* Chapter filter */}
+      {allChapters.length > 0 && (
+        <ExamChapterFilter
+          allChapters={allChapters}
+          selectedChapters={selectedChapters}
+          onToggle={toggleChapter}
+        />
+      )}
+
       {/* Tags filter */}
       {allTags.length > 0 && (
         <ExamTagFilter
@@ -386,6 +413,59 @@ export default function ExamSetupPage() {
       >
         {creating ? "建立中..." : "開始測驗"}
       </button>
+    </div>
+  );
+}
+
+/* ── Chapter filter for exam setup ── */
+function ExamChapterFilter({ allChapters, selectedChapters, onToggle }: {
+  allChapters: string[];
+  selectedChapters: string[];
+  onToggle: (chapter: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const COLLAPSED_LIMIT = 6;
+  const visibleChapters = expanded ? allChapters : allChapters.slice(0, COLLAPSED_LIMIT);
+  const hiddenCount = allChapters.length - COLLAPSED_LIMIT;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">章節篩選</h2>
+          <p className="text-sm text-gray-600">不選則不限章節</p>
+        </div>
+        {selectedChapters.length > 0 && (
+          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+            已選 {selectedChapters.length}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        {visibleChapters.map((chapter) => (
+          <button
+            key={chapter}
+            type="button"
+            onClick={() => onToggle(chapter)}
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium text-left transition-all border ${
+              selectedChapters.includes(chapter)
+                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            {chapter}
+          </button>
+        ))}
+      </div>
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+        >
+          {expanded ? "收合" : `顯示全部 (${allChapters.length})`}
+        </button>
+      )}
     </div>
   );
 }
