@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { DifficultyStars } from "@/components/icons";
@@ -36,6 +37,8 @@ interface Pagination {
 
 export default function QuestionsPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const initialTag = searchParams.get("tags") || "";
   const [questions, setQuestions] = useState<Question[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
@@ -52,7 +55,7 @@ export default function QuestionsPage() {
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
   const [showHidden, setShowHidden] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedTag, setSelectedTag] = useState(initialTag);
 
   const currentUserId = session?.user?.id;
   const currentUserRole = (session?.user as { role?: string } | undefined)?.role;
