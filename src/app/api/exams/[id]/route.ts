@@ -4,6 +4,25 @@ import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
 import { autoRateFromExamAnswer, computeNextState, type CardStatus } from "@/lib/srs";
 
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  let s = seed;
+  for (let i = result.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = ((s >>> 0) % (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function hashSeed(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash >>> 0;
+}
+
 function normalizeAnswerSet(answer: string | null | undefined) {
   return (answer || "")
     .split(",")
@@ -24,29 +43,40 @@ function isAnswerCorrect(userAnswer: string | null | undefined, correctAnswer: s
 }
 
 function serializeExam(exam: {
+  id: string;
   config: string;
   answers: Array<{
     question: {
+      id: string;
       options: string;
       tags: string;
       wrongOptionExplanations: string | null;
     };
   }>;
 } & Record<string, unknown>) {
+  const config = safeJsonParse(exam.config, {}) as Record<string, unknown>;
+  const shouldShuffle = config.shuffleOptions === true;
   return {
     ...exam,
-    config: safeJsonParse(exam.config, {}),
-    answers: exam.answers.map((a) => ({
-      ...a,
-      question: {
-        ...a.question,
-        options: safeJsonParse(a.question.options, []),
-        tags: safeJsonParse(a.question.tags, []),
-        wrongOptionExplanations: a.question.wrongOptionExplanations
-          ? safeJsonParse(a.question.wrongOptionExplanations, null)
-          : null,
-      },
-    })),
+    config,
+    answers: exam.answers.map((a) => {
+      let options = safeJsonParse(a.question.options, []);
+      if (shouldShuffle && Array.isArray(options) && options.length > 1) {
+        const seed = hashSeed(exam.id + a.question.id);
+        options = seededShuffle(options, seed);
+      }
+      return {
+        ...a,
+        question: {
+          ...a.question,
+          options,
+          tags: safeJsonParse(a.question.tags, []),
+          wrongOptionExplanations: a.question.wrongOptionExplanations
+            ? safeJsonParse(a.question.wrongOptionExplanations, null)
+            : null,
+        },
+      };
+    }),
   };
 }
 

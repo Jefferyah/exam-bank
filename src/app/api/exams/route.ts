@@ -3,6 +3,25 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
 
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  let s = seed;
+  for (let i = result.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = ((s >>> 0) % (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function hashSeed(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) & 0xffffffff;
+  }
+  return hash >>> 0;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -83,6 +102,7 @@ export async function POST(req: NextRequest) {
       notedOnly = false,
       untriedOnly = false,
       tags: filterTags,
+      shuffleOptions = false,
     } = body;
 
     if (!title) {
@@ -275,6 +295,7 @@ export async function POST(req: NextRequest) {
       notedOnly,
       untriedOnly,
       tags: filterTags || [],
+      shuffleOptions,
     };
 
     // Create exam with answers in a transaction
@@ -304,17 +325,24 @@ export async function POST(req: NextRequest) {
       {
         ...exam,
         config: safeJsonParse(exam.config, {}),
-        answers: exam.answers.map((a) => ({
+        answers: exam.answers.map((a) => {
+          let options = safeJsonParse(a.question.options, []);
+          if (shuffleOptions && Array.isArray(options) && options.length > 1) {
+            const seed = hashSeed(exam.id + a.question.id);
+            options = seededShuffle(options, seed);
+          }
+          return {
           ...a,
           question: {
             ...a.question,
-            options: safeJsonParse(a.question.options, []),
+            options,
             tags: safeJsonParse(a.question.tags, []),
             wrongOptionExplanations: a.question.wrongOptionExplanations
               ? safeJsonParse(a.question.wrongOptionExplanations, null)
               : null,
           },
-        })),
+        };
+        }),
       },
       { status: 201 }
     );

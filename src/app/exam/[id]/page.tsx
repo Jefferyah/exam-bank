@@ -456,7 +456,7 @@ export default function ExamTakingPage() {
                     className={cn(
                       "w-full aspect-square rounded-lg text-xs font-medium transition-colors relative",
                       isCurrent
-                        ? "bg-gray-900 text-white ring-2 ring-gray-400"
+                        ? "bg-blue-600 text-white ring-2 ring-blue-300"
                         : answered
                           ? "bg-emerald-100 text-emerald-600"
                           : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
@@ -522,7 +522,7 @@ export default function ExamTakingPage() {
           {/* Progress */}
           <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
             <div
-              className="h-1.5 bg-gray-900 rounded-full transition-all"
+              className="h-1.5 bg-blue-500 rounded-full transition-all"
               style={{ width: `${((currentIndex + 1) / totalCount) * 100}%` }}
             />
           </div>

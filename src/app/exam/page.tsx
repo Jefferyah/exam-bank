@@ -25,6 +25,7 @@ export default function ExamSetupPage() {
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [notedOnly, setNotedOnly] = useState(false);
   const [untriedOnly, setUntriedOnly] = useState(false);
+  const [shuffleOptions, setShuffleOptions] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loadingBanks, setLoadingBanks] = useState(true);
@@ -107,6 +108,7 @@ export default function ExamSetupPage() {
         notedOnly,
         untriedOnly,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
+        shuffleOptions,
       };
 
       const res = await fetch("/api/exams", {
@@ -287,44 +289,63 @@ export default function ExamSetupPage() {
       </div>
 
       {/* Special options */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">特殊選項</h2>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={wrongOnly}
-            onChange={(e) => setWrongOnly(e.target.checked)}
-            className="accent-blue-500"
-          />
-          <span className="text-gray-700">只出錯題</span>
-        </label>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={favoriteOnly}
-            onChange={(e) => setFavoriteOnly(e.target.checked)}
-            className="accent-blue-500"
-          />
-          <span className="text-gray-700">只出收藏題</span>
-        </label>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={notedOnly}
-            onChange={(e) => setNotedOnly(e.target.checked)}
-            className="accent-blue-500"
-          />
-          <span className="text-gray-700">只出筆記題</span>
-        </label>
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={untriedOnly}
-            onChange={(e) => setUntriedOnly(e.target.checked)}
-            className="accent-blue-500"
-          />
-          <span className="text-gray-700">只出未做過的題目</span>
-        </label>
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-5">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">特殊選項</h2>
+
+        {/* 題目篩選 */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">題目篩選</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { checked: wrongOnly, onChange: setWrongOnly, label: "只出錯題", icon: "✕" },
+              { checked: favoriteOnly, onChange: setFavoriteOnly, label: "只出收藏題", icon: "★" },
+              { checked: notedOnly, onChange: setNotedOnly, label: "只出筆記題", icon: "✎" },
+              { checked: untriedOnly, onChange: setUntriedOnly, label: "只出未做過", icon: "○" },
+            ].map(({ checked, onChange, label, icon }) => (
+              <label
+                key={label}
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
+                  checked
+                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                    : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => onChange(e.target.checked)}
+                  className="sr-only"
+                />
+                <span className={`text-base ${checked ? "opacity-100" : "opacity-40"}`}>{icon}</span>
+                <span className={`text-sm font-medium ${checked ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* 作答設定 */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">作答設定</p>
+          <label
+            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
+              shuffleOptions
+                ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={shuffleOptions}
+              onChange={(e) => setShuffleOptions(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`text-base ${shuffleOptions ? "opacity-100" : "opacity-40"}`}>⇄</span>
+            <div>
+              <span className={`text-sm font-medium ${shuffleOptions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>選項亂序</span>
+              <p className={`text-xs ${shuffleOptions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂選項順序</p>
+            </div>
+          </label>
+        </div>
       </div>
 
       {/* Error */}
