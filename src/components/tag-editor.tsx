@@ -14,6 +14,11 @@ interface TagEditorProps {
 export function TagEditor({ questionId, initialTags, onTagsChange, compact }: TagEditorProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [editing, setEditing] = useState(false);
+
+  // Sync tags when switching to a different question
+  useEffect(() => {
+    setTags(initialTags);
+  }, [questionId, initialTags]);
   const [input, setInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
