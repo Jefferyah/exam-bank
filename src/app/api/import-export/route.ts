@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
       questionBankId,
       questionBankName,
       questionBankDescription,
+      questionBankCategory,
       isPublic,
       questions,
     } = body;
@@ -284,6 +285,7 @@ export async function POST(req: NextRequest) {
               data: {
                 name: bankName!,
                 description: questionBankDescription || null,
+                category: questionBankCategory || null,
                 isPublic: isPublic === true,
                 createdById: userId,
               },

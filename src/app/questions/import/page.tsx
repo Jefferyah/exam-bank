@@ -84,6 +84,7 @@ export default function ImportPage() {
   const [fileContent, setFileContent] = useState("");
   const [importMode, setImportMode] = useState<"new" | "existing">("new");
   const [bankName, setBankName] = useState("");
+  const [bankCategory, setBankCategory] = useState("");
   const [bankDescription, setBankDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [selectedBankId, setSelectedBankId] = useState("");
@@ -227,6 +228,8 @@ export default function ImportPage() {
         questionBankName: importMode === "new" ? bankName.trim() : undefined,
         questionBankDescription:
           importMode === "new" ? bankDescription.trim() || null : undefined,
+        questionBankCategory:
+          importMode === "new" ? bankCategory.trim() || null : undefined,
         isPublic: importMode === "new" ? isPublic : undefined,
         questions,
       };
@@ -349,6 +352,19 @@ export default function ImportPage() {
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 placeholder="為這個題庫命名，例如：CISSP 2024、AWS SAA、日文 N1 文法"
+                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                題庫分類（選填）
+              </label>
+              <input
+                type="text"
+                value={bankCategory}
+                onChange={(e) => setBankCategory(e.target.value)}
+                placeholder="例如：資安證照、語言檢定、雲端技術"
                 className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

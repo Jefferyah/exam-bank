@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
       tags: filterTags,
       chapters: filterChapters,
       shuffleOptions = false,
+      shuffleQuestions = true,
     } = body;
 
     if (!title) {
@@ -275,19 +276,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Randomly select questions using a shuffle approach
+    // Select questions — shuffle or keep original order
     const allMatchingQuestions = await prisma.question.findMany({
       where: questionWhere,
       select: { id: true },
+      orderBy: { createdAt: "asc" },
     });
 
-    // Fisher-Yates shuffle and take first N
-    const shuffled = [...allMatchingQuestions];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    let selectedQuestions: { id: string }[];
+    if (shuffleQuestions) {
+      // Fisher-Yates shuffle and take first N
+      const shuffled = [...allMatchingQuestions];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      selectedQuestions = shuffled.slice(0, actualCount);
+    } else {
+      // Keep original order, take first N
+      selectedQuestions = allMatchingQuestions.slice(0, actualCount);
     }
-    const selectedQuestions = shuffled.slice(0, actualCount);
 
     const config = {
       questionBankIds: questionBankIds || [],
@@ -302,6 +310,7 @@ export async function POST(req: NextRequest) {
       untriedOnly,
       tags: filterTags || [],
       shuffleOptions,
+      shuffleQuestions,
     };
 
     // Create exam with answers in a transaction

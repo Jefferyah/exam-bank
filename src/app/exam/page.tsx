@@ -27,6 +27,7 @@ export default function ExamSetupPage() {
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [notedOnly, setNotedOnly] = useState(false);
   const [untriedOnly, setUntriedOnly] = useState(false);
+  const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleOptions, setShuffleOptions] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -152,6 +153,7 @@ export default function ExamSetupPage() {
         tags: selectedTags.length > 0 ? selectedTags : undefined,
         chapters: selectedChapters.length > 0 ? selectedChapters : undefined,
         shuffleOptions,
+        shuffleQuestions,
       };
 
       const res = await fetch("/api/exams", {
@@ -387,25 +389,46 @@ export default function ExamSetupPage() {
         {/* 作答設定 */}
         <div className="space-y-2">
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">作答設定</p>
-          <label
-            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
-              shuffleOptions
-                ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
-                : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={shuffleOptions}
-              onChange={(e) => setShuffleOptions(e.target.checked)}
-              className="sr-only"
-            />
-            <span className={`text-base ${shuffleOptions ? "opacity-100" : "opacity-40"}`}>⇄</span>
-            <div>
-              <span className={`text-sm font-medium ${shuffleOptions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>選項亂序</span>
-              <p className={`text-xs ${shuffleOptions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂選項順序</p>
-            </div>
-          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label
+              className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
+                shuffleQuestions
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                  : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={shuffleQuestions}
+                onChange={(e) => setShuffleQuestions(e.target.checked)}
+                className="sr-only"
+              />
+              <span className={`text-base ${shuffleQuestions ? "opacity-100" : "opacity-40"}`}>🔀</span>
+              <div>
+                <span className={`text-sm font-medium ${shuffleQuestions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>題目亂序</span>
+                <p className={`text-xs ${shuffleQuestions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂出題順序</p>
+              </div>
+            </label>
+            <label
+              className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
+                shuffleOptions
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                  : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={shuffleOptions}
+                onChange={(e) => setShuffleOptions(e.target.checked)}
+                className="sr-only"
+              />
+              <span className={`text-base ${shuffleOptions ? "opacity-100" : "opacity-40"}`}>⇄</span>
+              <div>
+                <span className={`text-sm font-medium ${shuffleOptions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>選項亂序</span>
+                <p className={`text-xs ${shuffleOptions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂選項順序</p>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
