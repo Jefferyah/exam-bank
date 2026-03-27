@@ -46,8 +46,8 @@ export default function KnowledgePage() {
 
   const getMasteryLevel = (accuracy: number | null): string => {
     if (accuracy === null) return "none";
-    if (accuracy < 40) return "low";
-    if (accuracy < 75) return "mid";
+    if (accuracy < 60) return "low";
+    if (accuracy < 85) return "mid";
     return "high";
   };
 

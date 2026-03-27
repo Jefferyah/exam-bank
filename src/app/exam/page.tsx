@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DifficultyStars } from "@/components/icons";
+import { groupBanksByCategory } from "@/lib/group-banks";
 
 interface QuestionBank {
   id: string;
   name: string;
+  category?: string | null;
   _count: { questions: number };
 }
 
@@ -243,27 +245,36 @@ export default function ExamSetupPage() {
             <p className="text-sm mt-1">請先到題庫頁面匯入或新增題目</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {questionBanks.filter((b) => !hiddenBankIds.has(b.id)).map((bank) => (
-              <label
-                key={bank.id}
-                className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
-                  selectedBankIds.includes(bank.id)
-                    ? "bg-blue-50 ring-1 ring-blue-400"
-                    : "bg-gray-50 hover:bg-gray-100"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedBankIds.includes(bank.id)}
-                  onChange={() => toggleBank(bank.id)}
-                  className="accent-blue-500 mt-0.5"
-                />
-                <span className="text-sm text-gray-900 min-w-0 truncate">
-                  {bank.name}
-                  <span className="text-gray-400 ml-2">({bank._count.questions} 題)</span>
-                </span>
-              </label>
+          <div className="space-y-4">
+            {groupBanksByCategory(
+              questionBanks.filter((b) => !hiddenBankIds.has(b.id))
+            ).map((group) => (
+              <div key={group.category}>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{group.category}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {group.banks.map((bank) => (
+                    <label
+                      key={bank.id}
+                      className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                        selectedBankIds.includes(bank.id)
+                          ? "bg-blue-50 ring-1 ring-blue-400"
+                          : "bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedBankIds.includes(bank.id)}
+                        onChange={() => toggleBank(bank.id)}
+                        className="accent-blue-500 mt-0.5"
+                      />
+                      <span className="text-sm text-gray-900 min-w-0 truncate">
+                        {bank.name}
+                        <span className="text-gray-400 ml-2">({bank._count.questions} 題)</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}

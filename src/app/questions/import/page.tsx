@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "@/components/icons";
+import { groupBanksByCategory } from "@/lib/group-banks";
 
 const SAMPLE_FORMAT_A = `[
   {
@@ -58,6 +59,7 @@ interface PreviewQuestion {
 interface QuestionBank {
   id: string;
   name: string;
+  category?: string | null;
 }
 
 /** Extract display stem from either format */
@@ -411,10 +413,14 @@ export default function ImportPage() {
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">選擇題庫</option>
-              {questionBanks.filter((bank) => !hiddenBankIds.has(bank.id)).map((bank) => (
-                <option key={bank.id} value={bank.id}>
-                  {bank.name}
-                </option>
+              {groupBanksByCategory(
+                questionBanks.filter((bank) => !hiddenBankIds.has(bank.id))
+              ).map((group) => (
+                <optgroup key={group.category} label={group.category}>
+                  {group.banks.map((bank) => (
+                    <option key={bank.id} value={bank.id}>{bank.name}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>

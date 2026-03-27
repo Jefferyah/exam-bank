@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const questionBanks = await prisma.questionBank.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ category: "asc" }, { createdAt: "desc" }],
       include: {
         _count: { select: { questions: true } },
         createdBy: { select: { name: true } },
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, description, isPublic } = body;
+    const { name, description, isPublic, category } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         description: description || null,
+        category: category || null,
         isPublic: isPublic === true,
         createdById: session.user.id,
       },

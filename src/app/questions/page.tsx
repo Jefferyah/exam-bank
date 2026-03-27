@@ -5,12 +5,14 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
+import { groupBanksByCategory } from "@/lib/group-banks";
 import { DifficultyStars } from "@/components/icons";
 
 interface QuestionBank {
   id: string;
   name: string;
   description?: string;
+  category?: string | null;
   isPublic?: boolean;
   createdById?: string;
   _count?: { questions: number };
@@ -59,6 +61,8 @@ function QuestionsPageInner() {
   const [deletingBankId, setDeletingBankId] = useState<string | null>(null);
   const [editingBankId, setEditingBankId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingCategory, setEditingCategory] = useState("");
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [savingBankId, setSavingBankId] = useState<string | null>(null);
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
   const [showHidden, setShowHidden] = useState(false);
@@ -250,12 +254,13 @@ function QuestionsPageInner() {
       const res = await fetch(`/api/question-banks/${bankId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editingName.trim() }),
+        body: JSON.stringify({ name: editingName.trim(), category: editingCategory.trim() || null }),
       });
       if (res.ok) {
         await fetchBanks();
         setEditingBankId(null);
         setEditingName("");
+        setEditingCategory("");
       } else {
         const data = await res.json();
         alert(data.error || "修改失敗");
@@ -265,6 +270,15 @@ function QuestionsPageInner() {
     } finally {
       setSavingBankId(null);
     }
+  }
+
+  function toggleCategory(cat: string) {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
   }
 
   return (
@@ -326,157 +340,185 @@ function QuestionsPageInner() {
               <p className="text-sm mt-1">匯入題目時會自動建立題庫</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {questionBanks
-                .filter((bank) => showHidden || !hiddenBankIds.has(bank.id))
-                .map((bank) => {
-                  const isOwner = bank.createdById === currentUserId;
-                  const canManage = isOwner || currentUserRole === "ADMIN";
-                  const isHidden = hiddenBankIds.has(bank.id);
-
-                  return (
-                <div
-                  key={bank.id}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-xl transition-colors group",
-                    isHidden ? "bg-gray-100 opacity-60" : "bg-gray-50 hover:bg-gray-100"
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    {editingBankId === bank.id ? (
+            <div className="space-y-3">
+              {groupBanksByCategory(
+                questionBanks.filter((bank) => showHidden || !hiddenBankIds.has(bank.id))
+              ).map((group) => {
+                const isCollapsed = collapsedCategories.has(group.category);
+                const totalQuestions = group.banks.reduce((sum, b) => sum + (b._count?.questions ?? 0), 0);
+                return (
+                  <div key={group.category} className="border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+                    {/* Category header */}
+                    <button
+                      onClick={() => toggleCategory(group.category)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-150 dark:hover:bg-gray-650 transition-colors"
+                    >
                       <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleRenameBank(bank.id); if (e.key === "Escape") { setEditingBankId(null); setEditingName(""); } }}
-                          className="flex-1 px-3 py-1 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleRenameBank(bank.id)}
-                          disabled={savingBankId === bank.id}
-                          className="px-3 py-1 text-xs text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-all disabled:opacity-50"
-                        >
-                          {savingBankId === bank.id ? "..." : "儲存"}
-                        </button>
-                        <button
-                          onClick={() => { setEditingBankId(null); setEditingName(""); }}
-                          className="px-3 py-1 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-                        >
-                          取消
-                        </button>
+                        <svg className={cn("w-4 h-4 text-gray-500 transition-transform", !isCollapsed && "rotate-90")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                        </svg>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">{group.category}</span>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <p className="font-medium text-gray-900 truncate max-w-[200px] sm:max-w-xs">{bank.name}</p>
-                        <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
-                          {bank._count?.questions ?? 0} 題
-                        </span>
-                        {bank.isPublic ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-full flex-shrink-0">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-                            公開
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-medium rounded-full flex-shrink-0">
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-                            私人
-                          </span>
-                        )}
-                        {isHidden && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-full flex-shrink-0">
-                            已隱藏
-                          </span>
-                        )}
-                        {!isOwner && bank.createdBy && (
-                          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
-                            by {bank.createdBy.name || "匿名"}
-                          </span>
-                        )}
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span>{group.banks.length} 個題庫</span>
+                        <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">{totalQuestions} 題</span>
                       </div>
-                    )}
-                    {bank.description && editingBankId !== bank.id && (
-                      <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{bank.description}</p>
+                    </button>
+                    {/* Bank list */}
+                    {!isCollapsed && (
+                      <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                        {group.banks.map((bank) => {
+                          const isOwner = bank.createdById === currentUserId;
+                          const canManage = isOwner || currentUserRole === "ADMIN";
+                          const isHidden = hiddenBankIds.has(bank.id);
+                          return (
+                            <div
+                              key={bank.id}
+                              className={cn(
+                                "flex items-center justify-between p-4 transition-colors group",
+                                isHidden ? "bg-gray-50 dark:bg-gray-800 opacity-60" : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750"
+                              )}
+                            >
+                              <div className="flex-1 min-w-0">
+                                {editingBankId === bank.id ? (
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-gray-500 w-10 flex-shrink-0">名稱</label>
+                                      <input
+                                        type="text"
+                                        value={editingName}
+                                        onChange={(e) => setEditingName(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameBank(bank.id); if (e.key === "Escape") { setEditingBankId(null); setEditingName(""); setEditingCategory(""); } }}
+                                        className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        autoFocus
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-gray-500 w-10 flex-shrink-0">分類</label>
+                                      <input
+                                        type="text"
+                                        value={editingCategory}
+                                        onChange={(e) => setEditingCategory(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameBank(bank.id); if (e.key === "Escape") { setEditingBankId(null); setEditingName(""); setEditingCategory(""); } }}
+                                        placeholder="例如：CCSP、CISSP"
+                                        className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-2 ml-12">
+                                      <button
+                                        onClick={() => handleRenameBank(bank.id)}
+                                        disabled={savingBankId === bank.id}
+                                        className="px-3 py-1 text-xs text-white bg-gray-900 hover:bg-gray-800 rounded-full transition-all disabled:opacity-50"
+                                      >
+                                        {savingBankId === bank.id ? "..." : "儲存"}
+                                      </button>
+                                      <button
+                                        onClick={() => { setEditingBankId(null); setEditingName(""); setEditingCategory(""); }}
+                                        className="px-3 py-1 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                                      >
+                                        取消
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px] sm:max-w-xs">{bank.name}</p>
+                                    <span className="inline-block px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full flex-shrink-0">
+                                      {bank._count?.questions ?? 0} 題
+                                    </span>
+                                    {bank.isPublic ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-full flex-shrink-0">公開</span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs font-medium rounded-full flex-shrink-0">私人</span>
+                                    )}
+                                    {isHidden && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-full flex-shrink-0">已隱藏</span>
+                                    )}
+                                    {!isOwner && bank.createdBy && (
+                                      <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
+                                        by {bank.createdBy.name || "匿名"}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {bank.description && editingBankId !== bank.id && (
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{bank.description}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                                {editingBankId !== bank.id && (
+                                  <>
+                                    <button
+                                      onClick={() => canManage && handleTogglePublic(bank.id, !!bank.isPublic)}
+                                      disabled={!canManage}
+                                      className={cn(
+                                        "px-3 py-1.5 text-xs rounded-full transition-colors",
+                                        !canManage
+                                          ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
+                                          : bank.isPublic
+                                            ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                                            : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                                      )}
+                                      title={!canManage ? "只有擁有者可以操作" : ""}
+                                    >
+                                      {bank.isPublic ? "設為私人" : "設為公開"}
+                                    </button>
+                                    <button
+                                      onClick={() => canManage && (() => { setEditingBankId(bank.id); setEditingName(bank.name); setEditingCategory(bank.category || ""); })()}
+                                      disabled={!canManage}
+                                      className={cn(
+                                        "px-3 py-1.5 text-xs rounded-full transition-colors",
+                                        !canManage
+                                          ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
+                                          : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                                      )}
+                                      title={!canManage ? "只有擁有者可以操作" : ""}
+                                    >
+                                      編輯
+                                    </button>
+                                    <button
+                                      onClick={() => { setQuestionBankId(bank.id); setShowBankManager(false); }}
+                                      className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
+                                    >
+                                      篩選
+                                    </button>
+                                    {!canManage && (
+                                      <button
+                                        onClick={() => handleToggleHidden(bank.id)}
+                                        className={cn(
+                                          "px-3 py-1.5 text-xs rounded-full transition-colors",
+                                          isHidden
+                                            ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                            : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                                        )}
+                                      >
+                                        {isHidden ? "取消隱藏" : "隱藏"}
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => canManage && handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
+                                      disabled={!canManage || deletingBankId === bank.id}
+                                      className={cn(
+                                        "px-3 py-1.5 text-xs rounded-full transition-colors",
+                                        !canManage
+                                          ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed opacity-50"
+                                          : "text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 disabled:opacity-50"
+                                      )}
+                                      title={!canManage ? "只有擁有者可以刪除" : ""}
+                                    >
+                                      {deletingBankId === bank.id ? "刪除中..." : "刪除"}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                    {editingBankId !== bank.id && (
-                      <>
-                        {/* Toggle public/private — owner/admin only */}
-                        <button
-                          onClick={() => canManage && handleTogglePublic(bank.id, !!bank.isPublic)}
-                          disabled={!canManage}
-                          className={cn(
-                            "px-3 py-1.5 text-xs rounded-full transition-colors",
-                            !canManage
-                              ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
-                              : bank.isPublic
-                                ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                                : "text-gray-600 bg-gray-100 hover:bg-gray-200"
-                          )}
-                          title={!canManage ? "只有擁有者可以操作" : ""}
-                        >
-                          {bank.isPublic ? "設為私人" : "設為公開"}
-                        </button>
-                        {/* Rename bank — owner/admin only */}
-                        <button
-                          onClick={() => canManage && (() => { setEditingBankId(bank.id); setEditingName(bank.name); })()}
-                          disabled={!canManage}
-                          className={cn(
-                            "px-3 py-1.5 text-xs rounded-full transition-colors",
-                            !canManage
-                              ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
-                              : "text-gray-600 bg-gray-100 hover:bg-gray-200"
-                          )}
-                          title={!canManage ? "只有擁有者可以操作" : ""}
-                        >
-                          改名
-                        </button>
-                        {/* Filter by this bank */}
-                        <button
-                          onClick={() => {
-                            setQuestionBankId(bank.id);
-                            setShowBankManager(false);
-                          }}
-                          className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
-                        >
-                          篩選
-                        </button>
-                        {/* Hide/unhide — for non-owned banks */}
-                        {!canManage && (
-                          <button
-                            onClick={() => handleToggleHidden(bank.id)}
-                            className={cn(
-                              "px-3 py-1.5 text-xs rounded-full transition-colors",
-                              isHidden
-                                ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
-                                : "text-gray-600 bg-gray-100 hover:bg-gray-200"
-                            )}
-                          >
-                            {isHidden ? "取消隱藏" : "隱藏"}
-                          </button>
-                        )}
-                        {/* Delete bank — owner/admin only */}
-                        <button
-                          onClick={() => canManage && handleDeleteBank(bank.id, bank.name, bank._count?.questions ?? 0)}
-                          disabled={!canManage || deletingBankId === bank.id}
-                          className={cn(
-                            "px-3 py-1.5 text-xs rounded-full transition-colors",
-                            !canManage
-                              ? "text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed opacity-50"
-                              : "text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 disabled:opacity-50"
-                          )}
-                          title={!canManage ? "只有擁有者可以刪除" : ""}
-                        >
-                          {deletingBankId === bank.id ? "刪除中..." : "刪除"}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-                  );
-                })}
+                );
+              })}
             </div>
           )}
         </div>
@@ -509,10 +551,14 @@ function QuestionsPageInner() {
             className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部題庫</option>
-            {questionBanks
-              .filter((bank) => !hiddenBankIds.has(bank.id))
-              .map((bank) => (
-              <option key={bank.id} value={bank.id}>{bank.name}</option>
+            {groupBanksByCategory(
+              questionBanks.filter((bank) => !hiddenBankIds.has(bank.id))
+            ).map((group) => (
+              <optgroup key={group.category} label={group.category}>
+                {group.banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>{bank.name}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
 

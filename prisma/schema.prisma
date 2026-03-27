@@ -79,6 +79,7 @@ model QuestionBank {
   id          String   @id @default(cuid())
   name        String
   description String?
+  category    String?
   isPublic    Boolean  @default(false)
   createdById String
   createdAt   DateTime @default(now())

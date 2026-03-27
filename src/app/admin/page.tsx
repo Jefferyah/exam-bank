@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DEFAULT_AI_PROMPT } from "@/lib/ai-prompt";
+import { groupBanksByCategory } from "@/lib/group-banks";
 
 interface AdminStats {
   totalUsers: number;
@@ -26,6 +27,7 @@ interface InviteCode {
 interface QuestionBankOption {
   id: string;
   name: string;
+  category?: string | null;
 }
 
 type ResetScope = "all" | "wrong" | "exams" | null;
@@ -93,9 +95,10 @@ export default function AdminPage() {
         if (banksRes.ok) {
           const banksData = await banksRes.json();
           setQuestionBanks(
-            (banksData.questionBanks || []).map((b: { id: string; name: string }) => ({
+            (banksData.questionBanks || []).map((b: { id: string; name: string; category?: string | null }) => ({
               id: b.id,
               name: b.name,
+              category: b.category,
             }))
           );
         }
@@ -348,8 +351,12 @@ export default function AdminPage() {
             className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
           >
             <option value="">全部題庫</option>
-            {questionBanks.map((bank) => (
-              <option key={bank.id} value={bank.id}>{bank.name}</option>
+            {groupBanksByCategory(questionBanks).map((group) => (
+              <optgroup key={group.category} label={group.category}>
+                {group.banks.map((bank) => (
+                  <option key={bank.id} value={bank.id}>{bank.name}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>

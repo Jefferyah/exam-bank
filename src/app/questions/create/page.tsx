@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DIFFICULTY_LABELS } from "@/lib/utils";
 import { ArrowLeft } from "@/components/icons";
+import { groupBanksByCategory } from "@/lib/group-banks";
 
 interface Option {
   label: string;
@@ -14,6 +15,7 @@ interface Option {
 interface QuestionBank {
   id: string;
   name: string;
+  category?: string | null;
 }
 
 export default function CreateQuestionPage() {
@@ -53,6 +55,7 @@ function CreateQuestionContent() {
   const [newBankName, setNewBankName] = useState("");
   const [newBankDescription, setNewBankDescription] = useState("");
   const [newBankIsPublic, setNewBankIsPublic] = useState(false);
+  const [newBankCategory, setNewBankCategory] = useState("");
   const [creatingBank, setCreatingBank] = useState(false);
   const [hiddenBankIds, setHiddenBankIds] = useState<Set<string>>(new Set());
 
@@ -161,6 +164,7 @@ function CreateQuestionContent() {
         body: JSON.stringify({
           name: newBankName.trim(),
           description: newBankDescription.trim() || null,
+          category: newBankCategory.trim() || null,
           isPublic: newBankIsPublic,
         }),
       });
@@ -292,8 +296,14 @@ function CreateQuestionContent() {
                 required
               >
                 <option value="">選擇題庫</option>
-                {questionBanks.filter((b) => !hiddenBankIds.has(b.id)).map((bank) => (
-                  <option key={bank.id} value={bank.id}>{bank.name}</option>
+                {groupBanksByCategory(
+                  questionBanks.filter((b) => !hiddenBankIds.has(b.id))
+                ).map((group) => (
+                  <optgroup key={group.category} label={group.category}>
+                    {group.banks.map((bank) => (
+                      <option key={bank.id} value={bank.id}>{bank.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               {showBankCreator && (
@@ -310,6 +320,13 @@ function CreateQuestionContent() {
                     value={newBankDescription}
                     onChange={(e) => setNewBankDescription(e.target.value)}
                     placeholder="題庫描述（選填）"
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={newBankCategory}
+                    onChange={(e) => setNewBankCategory(e.target.value)}
+                    placeholder="分類（選填，例如：CCSP、CISSP）"
                     className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <div>
