@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { ArrowLeft, BookmarkFilled, BookmarkEmpty, DifficultyStarsClickable } fr
 import { CopyQuestionButton } from "@/components/copy-question-button";
 import { TagEditor } from "@/components/tag-editor";
 import { buildAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
+import { getQuestionNav } from "@/lib/question-nav";
 
 interface Question {
   id: string;
@@ -40,6 +41,14 @@ export default function QuestionDetailPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [userDifficulty, setUserDifficulty] = useState<number | null>(null);
   const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+
+  // Question list navigation (prev/next)
+  const navContext = useMemo(() => getQuestionNav(), []);
+  const currentIndex = navContext ? navContext.ids.indexOf(params.id as string) : -1;
+  const prevId = navContext && currentIndex > 0 ? navContext.ids[currentIndex - 1] : null;
+  const nextId = navContext && currentIndex >= 0 && currentIndex < navContext.ids.length - 1 ? navContext.ids[currentIndex + 1] : null;
+  const navLabel = navContext?.label || "";
+  const navPosition = navContext && currentIndex >= 0 ? `${currentIndex + 1} / ${navContext.ids.length}` : "";
 
   useEffect(() => {
     async function fetchQuestion() {
@@ -190,6 +199,46 @@ export default function QuestionDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {/* List navigation bar */}
+      {navContext && currentIndex >= 0 && (
+        <div className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm">
+          <button
+            onClick={() => prevId && router.push(`/questions/${prevId}`)}
+            disabled={!prevId}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
+              prevId
+                ? "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            )}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            上一題
+          </button>
+          <div className="text-center">
+            <p className="text-xs text-gray-400 dark:text-gray-500">{navLabel}</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{navPosition}</p>
+          </div>
+          <button
+            onClick={() => nextId && router.push(`/questions/${nextId}`)}
+            disabled={!nextId}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all",
+              nextId
+                ? "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            )}
+          >
+            下一題
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">

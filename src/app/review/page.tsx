@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DifficultyStars } from "@/components/icons";
 import { CopyQuestionButton } from "@/components/copy-question-button";
+import { setQuestionNavList } from "@/lib/question-nav";
 
 /* ── Types ── */
 interface WrongQuestion {
@@ -921,7 +922,10 @@ function DashboardTab({
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <Link href={`/questions/${q.questionId}`}>
+                  <Link
+                    href={`/questions/${q.questionId}`}
+                    onClick={() => setQuestionNavList(a.mostWrongQuestions.slice(0, 5).map((wq: { questionId: string }) => wq.questionId), "常錯題目")}
+                  >
                     <p className="text-sm text-gray-900 line-clamp-1 hover:text-blue-600 transition-colors">{q.stem}</p>
                   </Link>
                   <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
@@ -970,6 +974,14 @@ function WrongTab({
   handleReviewWrong: () => void;
   search: string;
 }) {
+  // Set nav list for prev/next navigation
+  useEffect(() => {
+    const ids = wrongByBank
+      ? wrongByBank.flatMap(([, qs]) => qs.map((q) => q.questionId))
+      : wrongQuestions.map((q) => q.questionId);
+    setQuestionNavList(ids, "錯題本");
+  }, [wrongQuestions, wrongByBank]);
+
   return (
     <>
       {/* Stats bar */}
@@ -1100,6 +1112,10 @@ function FavoritesTab({
   search: string;
   handleRemoveFavorite: (id: string) => void;
 }) {
+  useEffect(() => {
+    setQuestionNavList(favorites.map((f) => f.questionId), "收藏");
+  }, [favorites]);
+
   return (
     <>
       {favorites.length === 0 ? (
@@ -1152,6 +1168,10 @@ function NotesTab({
   handleReviewNotes: () => void;
   hasNotes: boolean;
 }) {
+  useEffect(() => {
+    setQuestionNavList(notes.map((n) => n.questionId), "筆記");
+  }, [notes]);
+
   return (
     <>
       {hasNotes && (

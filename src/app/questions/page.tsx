@@ -7,6 +7,7 @@ import Link from "next/link";
 import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { groupBanksByCategory } from "@/lib/group-banks";
 import { DifficultyStars } from "@/components/icons";
+import { setQuestionNavList } from "@/lib/question-nav";
 
 interface QuestionBank {
   id: string;
@@ -71,6 +72,14 @@ function QuestionsPageInner() {
 
   const currentUserId = session?.user?.id;
   const currentUserRole = (session?.user as { role?: string } | undefined)?.role;
+
+  // Update question navigation list for prev/next in detail page
+  useEffect(() => {
+    if (questions.length > 0) {
+      const label = selectedTag ? `${selectedTag} 相關題目` : "題庫";
+      setQuestionNavList(questions.map((q) => q.id), label);
+    }
+  }, [questions, selectedTag]);
 
   const fetchBanks = useCallback(async () => {
     try {
