@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Suspense, useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -36,6 +36,14 @@ interface Pagination {
 }
 
 export default function QuestionsPage() {
+  return (
+    <Suspense>
+      <QuestionsPageInner />
+    </Suspense>
+  );
+}
+
+function QuestionsPageInner() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const initialTag = searchParams.get("tags") || "";
