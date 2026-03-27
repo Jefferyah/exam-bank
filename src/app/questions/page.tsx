@@ -116,10 +116,14 @@ function QuestionsPageInner() {
   }, [fetchBanks, fetchHiddenBanks, fetchTags]);
 
   // Re-fetch tags when selected bank changes
+  const prevBankIdRef = useRef(questionBankId);
   useEffect(() => {
     fetchTags(questionBankId || undefined);
-    // Clear selected tag if it may no longer exist
-    setSelectedTag("");
+    // Only clear selected tag when bank actually changes (not on initial mount)
+    if (prevBankIdRef.current !== questionBankId) {
+      setSelectedTag("");
+      prevBankIdRef.current = questionBankId;
+    }
   }, [questionBankId, fetchTags]);
 
   const fetchQuestions = useCallback(async (page = 1) => {
