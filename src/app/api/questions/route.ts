@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { getEffectiveTagsMap } from "@/lib/effective-tags";
 
 export async function GET(req: NextRequest) {
   try {
@@ -78,10 +79,16 @@ export async function GET(req: NextRequest) {
       prisma.question.count({ where }),
     ]);
 
+    // Batch-load user tag overrides
+    const overrideMap = await getEffectiveTagsMap(
+      questions.map((q) => q.id),
+      session.user.id
+    );
+
     const parsed = questions.map((q) => ({
       ...q,
       options: safeJsonParse(q.options, []),
-      tags: safeJsonParse(q.tags, []),
+      tags: overrideMap.get(q.id) ?? safeJsonParse(q.tags, []),
       wrongOptionExplanations: q.wrongOptionExplanations
         ? safeJsonParse(q.wrongOptionExplanations, null)
         : null,

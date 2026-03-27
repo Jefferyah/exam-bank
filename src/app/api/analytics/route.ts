@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { getEffectiveTagsMap } from "@/lib/effective-tags";
 
 export async function GET(req: NextRequest) {
   try {
@@ -281,11 +282,15 @@ export async function GET(req: NextRequest) {
       avgDuration: s.count > 0 ? Math.round(s.totalDuration / s.count) : 0,
     }));
 
-    // ── Tag-wise accuracy ──
+    // ── Tag-wise accuracy (using effective tags per user) ──
+    const tagOverrideMap = await getEffectiveTagsMap(
+      allExamAnswers.map((a) => a.question.id),
+      userId
+    );
     const tagStats: Record<string, { total: number; correct: number }> = {};
     for (const answer of allExamAnswers) {
       if (answer.userAnswer == null) continue;
-      const tags: string[] = safeJsonParse(answer.question.tags, []);
+      const tags: string[] = tagOverrideMap.get(answer.question.id) ?? safeJsonParse(answer.question.tags, []);
       for (const tag of tags) {
         if (!tag.trim()) continue;
         const t = tag.trim();

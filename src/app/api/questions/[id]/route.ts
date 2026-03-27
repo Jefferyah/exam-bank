@@ -35,10 +35,15 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Check for user's tag override
+    const tagOverride = await prisma.userTagOverride.findUnique({
+      where: { userId_questionId: { userId: session.user.id, questionId: id } },
+    });
+
     return NextResponse.json({
       ...question,
       options: safeJsonParse(question.options, []),
-      tags: safeJsonParse(question.tags, []),
+      tags: tagOverride ? safeJsonParse(tagOverride.tags, []) : safeJsonParse(question.tags, []),
       wrongOptionExplanations: question.wrongOptionExplanations
         ? safeJsonParse(question.wrongOptionExplanations, null)
         : null,
@@ -136,20 +141,36 @@ export async function PUT(
     if (category !== undefined) data.category = category;
     if (chapter !== undefined) data.chapter = chapter;
     if (difficulty !== undefined) data.difficulty = difficulty;
+    let userEffectiveTags: string[] | null = null;
     if (tags !== undefined) {
-      data.tags = typeof tags === "string" ? tags : JSON.stringify(tags);
+      const serializedTags = typeof tags === "string" ? tags : JSON.stringify(tags);
+      if (isAdmin || isOwner) {
+        // Owner/admin: update base tags (visible to everyone)
+        data.tags = serializedTags;
+      } else {
+        // Non-owner: save personal override (only visible to this user)
+        await prisma.userTagOverride.upsert({
+          where: { userId_questionId: { userId: session.user.id, questionId: id } },
+          update: { tags: serializedTags },
+          create: { userId: session.user.id, questionId: id, tags: serializedTags },
+        });
+        userEffectiveTags = safeJsonParse(serializedTags, []);
+      }
     }
-    data.version = existing.version + 1;
 
-    const question = await prisma.question.update({
-      where: { id },
-      data,
-    });
+    // Only update question if there are fields to update (owner may have no data changes for tags-only override)
+    if (Object.keys(data).length > 0) {
+      data.version = existing.version + 1;
+    }
+
+    const question = Object.keys(data).length > 0
+      ? await prisma.question.update({ where: { id }, data })
+      : existing;
 
     return NextResponse.json({
       ...question,
       options: safeJsonParse(question.options, []),
-      tags: safeJsonParse(question.tags, []),
+      tags: userEffectiveTags ?? safeJsonParse(question.tags, []),
       wrongOptionExplanations: question.wrongOptionExplanations
         ? safeJsonParse(question.wrongOptionExplanations, null)
         : null,

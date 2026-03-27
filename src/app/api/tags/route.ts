@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { getEffectiveTagsMap } from "@/lib/effective-tags";
 
 export async function GET(request: Request) {
   try {
@@ -58,13 +59,19 @@ export async function GET(request: Request) {
 
     const questions = await prisma.question.findMany({
       where,
-      select: { tags: true },
+      select: { id: true, tags: true },
     });
 
-    // Extract unique tags
+    // Batch-load user tag overrides
+    const overrideMap = await getEffectiveTagsMap(
+      questions.map((q) => q.id),
+      session.user.id
+    );
+
+    // Extract unique tags (using effective tags per user)
     const tagSet = new Set<string>();
     for (const q of questions) {
-      const tags: string[] = safeJsonParse(q.tags, []);
+      const tags: string[] = overrideMap.get(q.id) ?? safeJsonParse(q.tags, []);
       for (const tag of tags) {
         if (tag.trim()) tagSet.add(tag.trim());
       }

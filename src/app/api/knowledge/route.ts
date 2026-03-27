@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { getEffectiveTagsMap } from "@/lib/effective-tags";
 
 export async function GET() {
   try {
@@ -34,13 +35,19 @@ export async function GET() {
 
     const questions = await prisma.question.findMany({
       where,
-      select: { tags: true },
+      select: { id: true, tags: true },
     });
 
-    // Count questions per tag
+    // Batch-load user tag overrides
+    const overrideMap = await getEffectiveTagsMap(
+      questions.map((q) => q.id),
+      session.user.id
+    );
+
+    // Count questions per tag (using effective tags)
     const tagCounts = new Map<string, number>();
     for (const q of questions) {
-      const tags: string[] = safeJsonParse(q.tags, []);
+      const tags: string[] = overrideMap.get(q.id) ?? safeJsonParse(q.tags, []);
       for (const tag of tags) {
         const t = tag.trim();
         if (t) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
@@ -67,11 +74,18 @@ export async function GET() {
         },
         select: {
           isCorrect: true,
-          question: { select: { tags: true } },
+          question: { select: { id: true, tags: true } },
         },
       });
+
+      // Batch-load user tag overrides for accuracy answers
+      const accOverrideMap = await getEffectiveTagsMap(
+        answers.map((a) => a.question.id),
+        session.user.id
+      );
+
       for (const ans of answers) {
-        const ansTags: string[] = safeJsonParse(ans.question.tags, []);
+        const ansTags: string[] = accOverrideMap.get(ans.question.id) ?? safeJsonParse(ans.question.tags, []);
         for (const tag of ansTags) {
           const t = tag.trim();
           if (!t) continue;

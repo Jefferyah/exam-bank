@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
+import { getEffectiveTagsMap } from "@/lib/effective-tags";
 import { autoRateFromExamAnswer, computeNextState, type CardStatus } from "@/lib/srs";
 
 function seededShuffle<T>(arr: T[], seed: number): T[] {
@@ -53,7 +54,7 @@ function serializeExam(exam: {
       wrongOptionExplanations: string | null;
     };
   }>;
-} & Record<string, unknown>) {
+} & Record<string, unknown>, tagOverrideMap?: Map<string, string[]>) {
   const config = safeJsonParse(exam.config, {}) as Record<string, unknown>;
   const shouldShuffle = config.shuffleOptions === true;
   return {
@@ -70,7 +71,7 @@ function serializeExam(exam: {
         question: {
           ...a.question,
           options,
-          tags: safeJsonParse(a.question.tags, []),
+          tags: tagOverrideMap?.get(a.question.id) ?? safeJsonParse(a.question.tags, []),
           wrongOptionExplanations: a.question.wrongOptionExplanations
             ? safeJsonParse(a.question.wrongOptionExplanations, null)
             : null,
@@ -127,7 +128,13 @@ export async function GET(
       }
     }
 
-    return NextResponse.json(serializeExam(exam));
+    // Load user tag overrides for all questions in this exam
+    const tagOverrideMap = await getEffectiveTagsMap(
+      exam.answers.map((a) => a.question.id),
+      session.user.id
+    );
+
+    return NextResponse.json(serializeExam(exam, tagOverrideMap));
   } catch (error) {
     console.error("GET /api/exams/[id] error:", error);
     return NextResponse.json(
@@ -396,7 +403,11 @@ export async function PUT(
         },
       });
 
-      return NextResponse.json(serializeExam(completedExam!));
+      const completedTagMap = await getEffectiveTagsMap(
+        completedExam!.answers.map((a) => a.question.id),
+        session.user.id
+      );
+      return NextResponse.json(serializeExam(completedExam!, completedTagMap));
     }
 
     // Return updated exam without finishing
@@ -410,7 +421,11 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json(serializeExam(updatedExam!));
+    const updatedTagMap = await getEffectiveTagsMap(
+      updatedExam!.answers.map((a) => a.question.id),
+      session.user.id
+    );
+    return NextResponse.json(serializeExam(updatedExam!, updatedTagMap));
   } catch (error) {
     console.error("PUT /api/exams/[id] error:", error);
     return NextResponse.json(
