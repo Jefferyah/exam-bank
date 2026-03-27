@@ -344,8 +344,19 @@ body {
 /* Base editor text — default bold + color */
 .w-md-editor-text-pre,
 .w-md-editor-text > .w-md-editor-text-pre > code {
-  color: #1e293b !important;
+  color: #334155 !important;
   font-weight: 700 !important;
+}
+
+/* List item lines — color the entire line (text after - is not tokenized) */
+.w-md-editor-text-pre .code-line:has(> .token.list.punctuation) {
+  color: #1e40af !important;
+}
+
+/* Blockquote lines — color the entire line */
+.w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
+  color: #6b7280 !important;
+  font-style: italic !important;
 }
 
 /* Base punctuation — subtle grey */
@@ -435,8 +446,19 @@ body {
 [data-color-mode="dark"] .w-md-editor-text-pre,
 [data-color-mode="dark"] .w-md-editor-text-input,
 [data-color-mode="dark"] .w-md-editor-text > .w-md-editor-text-pre > code {
-  color: #e2e8f0 !important;
+  color: #cbd5e1 !important;
   font-weight: 700 !important;
+}
+
+/* Dark: List item lines */
+[data-color-mode="dark"] .w-md-editor-text-pre .code-line:has(> .token.list.punctuation) {
+  color: #93c5fd !important;
+}
+
+/* Dark: Blockquote lines */
+[data-color-mode="dark"] .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
+  color: #7a8599 !important;
+  font-style: italic !important;
 }
 
 [data-color-mode="dark"] .w-md-editor,
