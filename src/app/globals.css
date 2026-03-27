@@ -22,16 +22,16 @@
    Dark Theme — PromptKB style
    ══════════════════════════════════════════ */
 [data-theme="dark"] {
-  --background: #0a0b10;
+  --background: #1a1b20;
   --foreground: #f1f5f9;
   --primary: #38bdf8;
   --primary-hover: #0ea5e9;
   --primary-glow: rgba(56, 189, 248, 0.2);
   --muted: #7a8599;
-  --border: rgba(255, 255, 255, 0.06);
-  --card: #151821;
-  --card-hover: #1a1e2a;
-  --accent-bg: #111318;
+  --border: rgba(255, 255, 255, 0.08);
+  --card: #232429;
+  --card-hover: #2a2b31;
+  --accent-bg: #1e1f24;
   --glow-blue: 0 0 40px rgba(56, 189, 248, 0.08), 0 0 80px rgba(56, 189, 248, 0.04);
   color-scheme: dark;
 }
@@ -81,10 +81,10 @@ body {
 /* ── Dark hero: PromptKB style (cyan/blue/indigo glow) ── */
 [data-theme="dark"] .hero-gradient {
   background:
-    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(56, 189, 248, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 40% at 70% 60%, rgba(34, 211, 238, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 30% 30% at 30% 50%, rgba(129, 140, 248, 0.06) 0%, transparent 60%),
-    #0d0f16;
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(56, 189, 248, 0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 70% 60%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 30% 50%, rgba(129, 140, 248, 0.05) 0%, transparent 60%),
+    #1a1b20;
 }
 
 /* Gradient text for hero keyword */
@@ -126,13 +126,13 @@ body {
   background: #94a3b8;
 }
 [data-theme="dark"] ::-webkit-scrollbar-track {
-  background: #0a0b10;
+  background: #1a1b20;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: #2a2e3a;
+  background: #3a3b42;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: #3a3f4f;
+  background: #4a4b54;
 }
 
 /* ══════════════════════════════════════════
@@ -146,10 +146,10 @@ body {
   background-color: var(--card) !important;
 }
 [data-theme="dark"] .bg-gray-50 {
-  background-color: #111318 !important;
+  background-color: #1e1f24 !important;
 }
 [data-theme="dark"] .bg-gray-100 {
-  background-color: #1a1e2a !important;
+  background-color: #2a2b31 !important;
 }
 [data-theme="dark"] .bg-blue-50 {
   background-color: rgba(56, 189, 248, 0.08) !important;
@@ -235,21 +235,21 @@ body {
 /* Buttons */
 [data-theme="dark"] .bg-blue-500 {
   background-color: #38bdf8 !important;
-  color: #0a0b10 !important;
+  color: #1a1b20 !important;
 }
 [data-theme="dark"] .hover\:bg-blue-600:hover {
   background-color: #0ea5e9 !important;
 }
 [data-theme="dark"] .bg-emerald-500 {
   background-color: #22c55e !important;
-  color: #0a0b10 !important;
+  color: #1a1b20 !important;
 }
 [data-theme="dark"] .hover\:bg-emerald-600:hover {
   background-color: #16a34a !important;
 }
 [data-theme="dark"] .bg-amber-500 {
   background-color: #f59e0b !important;
-  color: #0a0b10 !important;
+  color: #1a1b20 !important;
 }
 [data-theme="dark"] .hover\:bg-amber-600:hover {
   background-color: #d97706 !important;
@@ -265,7 +265,7 @@ body {
 /* Hover backgrounds */
 [data-theme="dark"] .hover\:bg-gray-50:hover,
 [data-theme="dark"] .hover\:bg-gray-100:hover {
-  background-color: #1a1e2a !important;
+  background-color: #2a2b31 !important;
 }
 
 /* Shadows → PromptKB glow */
@@ -304,8 +304,8 @@ body {
 [data-theme="dark"] input,
 [data-theme="dark"] select,
 [data-theme="dark"] textarea:not(.w-md-editor-text-input) {
-  background-color: #111318 !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: #1e1f24 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
   color: #f1f5f9 !important;
 }
 [data-theme="dark"] .w-md-editor-text-input {
@@ -464,12 +464,12 @@ body {
 [data-color-mode="dark"] .w-md-editor,
 [data-color-mode="dark"] .w-md-editor .w-md-editor-content,
 [data-color-mode="dark"] .w-md-editor-text {
-  background-color: #151821 !important;
+  background-color: #232429 !important;
   color: #e2e8f0 !important;
 }
 
 [data-color-mode="dark"] .w-md-editor-toolbar {
-  background-color: #111318 !important;
+  background-color: #1e1f24 !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
@@ -480,14 +480,14 @@ body {
 
 [data-color-mode="dark"] .w-md-editor-toolbar li > button:hover,
 [data-color-mode="dark"] .w-md-editor-toolbar li > button:active {
-  background-color: #1a1e2a !important;
+  background-color: #2a2b31 !important;
   color: #e2e8f0 !important;
 }
 
 /* Dark: preview pane */
 [data-color-mode="dark"] .wmde-markdown,
 [data-color-mode="dark"] .w-md-editor-preview .wmde-markdown {
-  background-color: #151821 !important;
+  background-color: #232429 !important;
   color: #e2e8f0 !important;
 }
 
@@ -511,7 +511,7 @@ body {
 }
 
 [data-color-mode="dark"] .wmde-markdown pre {
-  background-color: #0d0f16 !important;
+  background-color: #1a1b20 !important;
 }
 
 [data-color-mode="dark"] .wmde-markdown table th,

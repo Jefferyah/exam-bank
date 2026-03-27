@@ -403,7 +403,7 @@ export default function ExamSetupPage() {
                 onChange={(e) => setShuffleQuestions(e.target.checked)}
                 className="sr-only"
               />
-              <span className={`text-base ${shuffleQuestions ? "opacity-100" : "opacity-40"}`}>🔀</span>
+              <span className={`text-base ${shuffleQuestions ? "opacity-100" : "opacity-40"}`}>⇅</span>
               <div>
                 <span className={`text-sm font-medium ${shuffleQuestions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>題目亂序</span>
                 <p className={`text-xs ${shuffleQuestions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂出題順序</p>
