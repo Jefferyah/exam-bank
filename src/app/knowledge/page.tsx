@@ -203,7 +203,7 @@ export default function KnowledgePage() {
     nodeGroup
       .append("text")
       .text((d) => {
-        if (sizeMetric === "wordCount") return d.wordCount > 0 ? `${d.wordCount} 字` : "未撰寫";
+        if (sizeMetric === "wordCount") return d.wordCount > 0 ? `${d.wordCount} 字` : "";
         return `${d.questionCount} 題`;
       })
       .attr("text-anchor", "middle")
