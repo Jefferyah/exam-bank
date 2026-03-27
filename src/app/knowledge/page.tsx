@@ -78,26 +78,47 @@ export default function KnowledgePage() {
       .domain([0, maxVal])
       .range([20, Math.min(80, width / 8)]);
 
-    const nodes = filteredTags.map((d) => ({
-      ...d,
-      r: radiusScale(Math.max(sizeValue(d), 1)),
-      x: width / 2 + (Math.random() - 0.5) * width * 0.3,
-      y: height / 2 + (Math.random() - 0.5) * height * 0.3,
-    }));
+    // Sort by size descending so largest initializes closest to center
+    const sortedTags = [...filteredTags].sort((a, b) => sizeValue(b) - sizeValue(a));
 
-    // Larger bubbles get stronger pull toward center
+    const nodes = sortedTags.map((d, i) => {
+      const r = radiusScale(Math.max(sizeValue(d), 1));
+      // Place larger nodes near center, smaller ones further out
+      const angle = (i / sortedTags.length) * Math.PI * 2;
+      const dist = (i / sortedTags.length) * Math.min(width, height) * 0.35;
+      return {
+        ...d,
+        r,
+        x: width / 2 + Math.cos(angle) * dist,
+        y: height / 2 + Math.sin(angle) * dist,
+      };
+    });
+
+    // Larger bubbles get much stronger pull toward center
     const maxR = d3.max(nodes, (d) => d.r) || 1;
 
     const simulation = d3
       .forceSimulation(nodes)
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("charge", d3.forceManyBody().strength(2))
+      .force("charge", d3.forceManyBody().strength(1))
       .force(
         "collide",
-        d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.8)
+        d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.9)
       )
-      .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => 0.03 + 0.07 * (d.r / maxR)))
-      .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => 0.03 + 0.07 * (d.r / maxR)));
+      // Radial force: large r → small radius (near center), small r → large radius (outer ring)
+      .force(
+        "radial",
+        d3.forceRadial<(typeof nodes)[0]>(
+          (d) => {
+            const ratio = d.r / maxR; // 1 = biggest, 0 = smallest
+            const maxDist = Math.min(width, height) * 0.35;
+            return maxDist * (1 - ratio * ratio); // quadratic: big→0, small→far
+          },
+          width / 2,
+          height / 2
+        ).strength(0.3)
+      )
+      .force("x", d3.forceX(width / 2).strength(0.02))
+      .force("y", d3.forceY(height / 2).strength(0.02));
 
     const nodeGroup = svg
       .selectAll("g")
