@@ -23,6 +23,7 @@ export default function KnowledgePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sizeMetric, setSizeMetric] = useState<SizeMetric>("questionCount");
+  const [masteryFilter, setMasteryFilter] = useState<string | null>(null); // "low" | "mid" | "high" | "none" | null
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -43,9 +44,18 @@ export default function KnowledgePage() {
       .finally(() => setLoading(false));
   }, [status]);
 
-  const filteredTags = tags.filter((t) =>
-    t.tag.toLowerCase().includes(search.toLowerCase())
-  );
+  const getMasteryLevel = (accuracy: number | null): string => {
+    if (accuracy === null) return "none";
+    if (accuracy < 40) return "low";
+    if (accuracy < 75) return "mid";
+    return "high";
+  };
+
+  const filteredTags = tags.filter((t) => {
+    if (!t.tag.toLowerCase().includes(search.toLowerCase())) return false;
+    if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
+    return true;
+  });
 
   // Accuracy → color mapping (grey=no data, red→yellow→green)
   const getAccuracyColor = useCallback((accuracy: number | null, alpha: number) => {
@@ -83,7 +93,6 @@ export default function KnowledgePage() {
 
     const nodes = sortedTags.map((d, i) => {
       const r = radiusScale(Math.max(sizeValue(d), 1));
-      // Place larger nodes near center, smaller ones further out
       const angle = (i / sortedTags.length) * Math.PI * 2;
       const dist = (i / sortedTags.length) * Math.min(width, height) * 0.35;
       return {
@@ -91,6 +100,8 @@ export default function KnowledgePage() {
         r,
         x: width / 2 + Math.cos(angle) * dist,
         y: height / 2 + Math.sin(angle) * dist,
+        fx: null as number | null,
+        fy: null as number | null,
       };
     });
 
@@ -120,14 +131,39 @@ export default function KnowledgePage() {
       .force("x", d3.forceX(width / 2).strength(0.02))
       .force("y", d3.forceY(height / 2).strength(0.02));
 
+    // Drag behavior
+    let dragStartX = 0, dragStartY = 0;
+    const drag = d3.drag<SVGGElement, (typeof nodes)[0]>()
+      .on("start", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+        dragStartX = event.x;
+        dragStartY = event.y;
+      })
+      .on("drag", (event, d) => {
+        d.fx = event.x;
+        d.fy = event.y;
+      })
+      .on("end", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+        // Only navigate if it was a click (not a drag)
+        const dx = event.x - dragStartX;
+        const dy = event.y - dragStartY;
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+          router.push(`/knowledge/${encodeURIComponent(d.tag)}`);
+        }
+      });
+
+    type NodeType = (typeof nodes)[0];
     const nodeGroup = svg
-      .selectAll("g")
+      .selectAll<SVGGElement, NodeType>("g")
       .data(nodes)
       .join("g")
-      .style("cursor", "pointer")
-      .on("click", (_event, d) => {
-        router.push(`/knowledge/${encodeURIComponent(d.tag)}`);
-      });
+      .style("cursor", "grab")
+      .call(drag);
 
     // Circles — color by accuracy
     nodeGroup
@@ -287,23 +323,28 @@ export default function KnowledgePage() {
             依筆記字數
           </button>
         </div>
-        <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ background: "hsla(0, 70%, 55%, 0.4)" }} />
-            低掌握
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ background: "hsla(60, 70%, 55%, 0.4)" }} />
-            中掌握
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ background: "hsla(120, 70%, 55%, 0.4)" }} />
-            高掌握
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ background: "rgba(156, 163, 175, 0.3)" }} />
-            無作答
-          </span>
+        <div className="flex items-center gap-1 text-xs">
+          {([
+            { key: "low", color: "hsla(0, 70%, 55%, 0.4)", label: "低掌握" },
+            { key: "mid", color: "hsla(60, 70%, 55%, 0.4)", label: "中掌握" },
+            { key: "high", color: "hsla(120, 70%, 55%, 0.4)", label: "高掌握" },
+            { key: "none", color: "rgba(156, 163, 175, 0.3)", label: "無作答" },
+          ] as const).map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setMasteryFilter(masteryFilter === item.key ? null : item.key)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all ${
+                masteryFilter === item.key
+                  ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  : masteryFilter === null
+                    ? "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                    : "text-gray-300 dark:text-gray-600 hover:text-gray-500"
+              }`}
+            >
+              <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ background: item.color }} />
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
