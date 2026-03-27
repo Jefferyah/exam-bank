@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface TagEditorProps {
@@ -97,15 +98,17 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
     return (
       <div className="flex flex-wrap items-center gap-1.5">
         {visibleTags.map((tag) => (
-          <span
+          <Link
             key={tag}
+            href={`/knowledge/${encodeURIComponent(tag)}`}
+            onClick={(e) => e.stopPropagation()}
             className={cn(
-              "inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full",
+              "inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors",
               compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs"
             )}
           >
             {tag}
-          </span>
+          </Link>
         ))}
         {!expanded && hiddenCount > 0 && (
           <button

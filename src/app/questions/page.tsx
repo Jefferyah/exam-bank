@@ -562,9 +562,14 @@ export default function QuestionsPage() {
                     </span>
                     <DifficultyStars value={q.difficulty} />
                     {q.tags?.slice(0, 3).map((tag, i) => (
-                      <span key={i} className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                      <Link
+                        key={i}
+                        href={`/knowledge/${encodeURIComponent(tag)}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      >
                         {tag}
-                      </span>
+                      </Link>
                     ))}
                   </div>
                 </div>
