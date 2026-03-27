@@ -300,13 +300,17 @@ body {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Form inputs */
+/* Form inputs (exclude md-editor textarea — it must stay transparent) */
 [data-theme="dark"] input,
 [data-theme="dark"] select,
-[data-theme="dark"] textarea {
+[data-theme="dark"] textarea:not(.w-md-editor-text-input) {
   background-color: #111318 !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
   color: #f1f5f9 !important;
+}
+[data-theme="dark"] .w-md-editor-text-input {
+  background-color: transparent !important;
+  caret-color: #e2e8f0 !important;
 }
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
@@ -336,6 +340,13 @@ body {
    ══════════════════════════════════════════ */
 
 /* ── Light mode ── */
+
+/* Base editor text — default bold + color */
+.w-md-editor-text-pre,
+.w-md-editor-text > .w-md-editor-text-pre > code {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
 
 /* Base punctuation — subtle grey */
 .w-md-editor-text-pre .punctuation {
@@ -420,11 +431,88 @@ body {
   color: #d1d5db !important;
 }
 
-/* ── Dark mode — base text color fix ── */
+/* ── Dark mode — base text color + background fix ── */
 [data-color-mode="dark"] .w-md-editor-text-pre,
 [data-color-mode="dark"] .w-md-editor-text-input,
 [data-color-mode="dark"] .w-md-editor-text > .w-md-editor-text-pre > code {
   color: #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+[data-color-mode="dark"] .w-md-editor,
+[data-color-mode="dark"] .w-md-editor .w-md-editor-content,
+[data-color-mode="dark"] .w-md-editor-text {
+  background-color: #151821 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar {
+  background-color: #111318 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar button,
+[data-color-mode="dark"] .w-md-editor-toolbar svg {
+  color: #94a3b8 !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar li > button:hover,
+[data-color-mode="dark"] .w-md-editor-toolbar li > button:active {
+  background-color: #1a1e2a !important;
+  color: #e2e8f0 !important;
+}
+
+/* Dark: preview pane */
+[data-color-mode="dark"] .wmde-markdown,
+[data-color-mode="dark"] .w-md-editor-preview .wmde-markdown {
+  background-color: #151821 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown h1,
+[data-color-mode="dark"] .wmde-markdown h2,
+[data-color-mode="dark"] .wmde-markdown h3,
+[data-color-mode="dark"] .wmde-markdown h4,
+[data-color-mode="dark"] .wmde-markdown h5,
+[data-color-mode="dark"] .wmde-markdown h6 {
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown a {
+  color: #60a5fa !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown code {
+  color: #c4b5fd !important;
+  background-color: rgba(192, 132, 252, 0.12) !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown pre {
+  background-color: #0d0f16 !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown table th,
+[data-color-mode="dark"] .wmde-markdown table td {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown table tr:nth-child(2n) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown blockquote {
+  border-left-color: rgba(255, 255, 255, 0.15) !important;
+  color: #94a3b8 !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown hr {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-color-mode="dark"] .wmde-markdown ul li::marker,
+[data-color-mode="dark"] .wmde-markdown ol li::marker {
+  color: #fb7185 !important;
 }
 
 /* Dark: base punctuation */
