@@ -56,19 +56,14 @@ export async function GET() {
       entries.map((e) => [e.tag, { content: e.content, updatedAt: e.updatedAt }])
     );
 
-    // Get per-tag accuracy from user's completed exams
-    const completedExams = await prisma.exam.findMany({
-      where: { userId: session.user.id, status: "COMPLETED" },
-      select: { id: true },
-    });
-    const examIds = completedExams.map((e) => e.id);
-
+    // Get per-tag accuracy from ALL user's exams (not just completed)
     const tagAccuracy = new Map<string, { total: number; correct: number }>();
-    if (examIds.length > 0) {
+    {
       const answers = await prisma.examAnswer.findMany({
         where: {
-          examId: { in: examIds },
+          exam: { userId: session.user.id },
           userAnswer: { not: null },
+          isCorrect: { not: null },
         },
         select: {
           isCorrect: true,
