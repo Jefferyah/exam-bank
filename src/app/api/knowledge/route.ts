@@ -47,20 +47,62 @@ export async function GET() {
       }
     }
 
-    // Get user's knowledge entries
+    // Get user's knowledge entries (with content for word count)
     const entries = await prisma.knowledgeEntry.findMany({
       where: { userId: session.user.id },
-      select: { tag: true, updatedAt: true },
+      select: { tag: true, content: true, updatedAt: true },
     });
-    const entryMap = new Map(entries.map((e) => [e.tag, e.updatedAt]));
+    const entryMap = new Map(
+      entries.map((e) => [e.tag, { content: e.content, updatedAt: e.updatedAt }])
+    );
+
+    // Get per-tag accuracy from user's completed exams
+    const completedExams = await prisma.exam.findMany({
+      where: { userId: session.user.id, status: "COMPLETED" },
+      select: { id: true },
+    });
+    const examIds = completedExams.map((e) => e.id);
+
+    const tagAccuracy = new Map<string, { total: number; correct: number }>();
+    if (examIds.length > 0) {
+      const answers = await prisma.examAnswer.findMany({
+        where: {
+          examId: { in: examIds },
+          userAnswer: { not: null },
+        },
+        select: {
+          isCorrect: true,
+          question: { select: { tags: true } },
+        },
+      });
+      for (const ans of answers) {
+        const ansTags: string[] = safeJsonParse(ans.question.tags, []);
+        for (const tag of ansTags) {
+          const t = tag.trim();
+          if (!t) continue;
+          const stat = tagAccuracy.get(t) || { total: 0, correct: 0 };
+          stat.total++;
+          if (ans.isCorrect) stat.correct++;
+          tagAccuracy.set(t, stat);
+        }
+      }
+    }
 
     const tags = [...tagCounts.entries()]
-      .map(([tag, questionCount]) => ({
-        tag,
-        questionCount,
-        hasEntry: entryMap.has(tag),
-        updatedAt: entryMap.get(tag)?.toISOString() || null,
-      }))
+      .map(([tag, questionCount]) => {
+        const entry = entryMap.get(tag);
+        const acc = tagAccuracy.get(tag);
+        return {
+          tag,
+          questionCount,
+          wordCount: entry?.content ? entry.content.length : 0,
+          accuracy: acc && acc.total > 0
+            ? Math.round((acc.correct / acc.total) * 100)
+            : null,
+          hasEntry: entryMap.has(tag),
+          updatedAt: entry?.updatedAt?.toISOString() || null,
+        };
+      })
       .sort((a, b) => b.questionCount - a.questionCount);
 
     return NextResponse.json({ tags });
