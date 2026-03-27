@@ -54,7 +54,7 @@ export function Navbar() {
       className={cn(
         "sticky top-0 z-50 border-b transition-colors",
         isDark
-          ? "bg-[#0a0b10]/85 backdrop-blur-xl border-[rgba(255,255,255,0.06)]"
+          ? "bg-[#161720]/85 backdrop-blur-xl border-[rgba(255,255,255,0.06)]"
           : "bg-white/80 backdrop-blur-xl border-gray-100"
       )}
     >
@@ -76,7 +76,7 @@ export function Navbar() {
                     "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
                     isActive
                       ? isDark
-                        ? "bg-[#38bdf8] text-[#0a0b10] font-semibold"
+                        ? "bg-[#38bdf8] text-[#161720] font-semibold"
                         : "bg-gray-100 text-gray-900 font-semibold"
                       : isDark
                         ? "text-[#7a8599] hover:text-[#f1f5f9]"
@@ -113,7 +113,7 @@ export function Navbar() {
               <div className="flex items-center space-x-3">
                 <div className={cn(
                   "h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold",
-                  isDark ? "bg-[#151821] text-[#38bdf8] border border-[rgba(255,255,255,0.06)]" : "bg-blue-50 text-blue-600"
+                  isDark ? "bg-[#232429] text-[#38bdf8] border border-[rgba(255,255,255,0.08)]" : "bg-blue-50 text-blue-600"
                 )}>
                   {(session.user.name || session.user.email || "U")[0].toUpperCase()}
                 </div>
@@ -138,7 +138,7 @@ export function Navbar() {
                 className={cn(
                   "px-5 py-2 text-sm rounded-full font-medium transition-all",
                   isDark
-                    ? "bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0a0b10] shadow-[0_0_20px_rgba(56,189,248,0.2)]"
+                    ? "bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#161720] shadow-[0_0_20px_rgba(56,189,248,0.2)]"
                     : "bg-gray-900 hover:bg-gray-800 text-white"
                 )}
               >
@@ -170,7 +170,7 @@ export function Navbar() {
       <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
         <div className={cn(
           "px-4 pt-2 pb-4 space-y-1 border-t",
-          isDark ? "border-[rgba(255,255,255,0.06)] bg-[rgba(10,11,16,0.98)]" : "border-gray-100 bg-white"
+          isDark ? "border-[rgba(255,255,255,0.08)] bg-[rgba(22,23,32,0.98)]" : "border-gray-100 bg-white"
         )}>
           {navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
@@ -181,7 +181,7 @@ export function Navbar() {
                 className={cn(
                   "block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? isDark ? "bg-[#38bdf8] text-[#0a0b10]" : "bg-gray-100 text-gray-900"
+                    ? isDark ? "bg-[#38bdf8] text-[#161720]" : "bg-gray-100 text-gray-900"
                     : isDark ? "text-[#7a8599] hover:text-[#f1f5f9]" : "text-gray-600 hover:bg-gray-50"
                 )}
                 onClick={() => setMenuOpen(false)}
