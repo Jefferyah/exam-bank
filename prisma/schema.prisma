@@ -36,6 +36,7 @@ model User {
   reviewCards         ReviewCard[]
   reviewLogs          ReviewLog[]
   knowledgeEntries    KnowledgeEntry[]
+  uploadedImages      UploadedImage[]
 }
 
 model Account {
@@ -273,6 +274,20 @@ model ReviewLog {
   examAnswer ExamAnswer? @relation(fields: [examAnswerId], references: [id], onDelete: SetNull)
 
   @@index([userId, reviewedAt])
+}
+
+// ── Uploaded Images ──
+
+model UploadedImage {
+  id        String   @id @default(cuid())
+  filename  String
+  r2Key     String   @unique
+  size      Int
+  mimeType  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ── Knowledge Base ──

@@ -19,6 +19,7 @@ export default function KnowledgeEntryPage() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -74,6 +75,83 @@ export default function KnowledgeEntryPage() {
       saveTimerRef.current = setTimeout(() => saveContent(text), 1500);
     },
     [saveContent]
+  );
+
+  // Upload image and return markdown string
+  const uploadImage = useCallback(async (file: File): Promise<string | null> => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "圖片上傳失敗");
+        return null;
+      }
+      const { url } = await res.json();
+      return `![image](${url})`;
+    } catch {
+      alert("圖片上傳失敗");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  // Handle paste event — intercept images from clipboard
+  const handlePaste = useCallback(
+    async (e: React.ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (!file) continue;
+          const md = await uploadImage(file);
+          if (md) {
+            // Insert at cursor position
+            const textarea = document.querySelector(
+              ".w-md-editor-text-input"
+            ) as HTMLTextAreaElement | null;
+            if (textarea) {
+              const start = textarea.selectionStart;
+              const end = textarea.selectionEnd;
+              const before = content.substring(0, start);
+              const after = content.substring(end);
+              const newContent = before + md + "\n" + after;
+              handleChange(newContent);
+            } else {
+              handleChange(content + "\n" + md + "\n");
+            }
+          }
+          return; // only handle first image
+        }
+      }
+    },
+    [content, handleChange, uploadImage]
+  );
+
+  // Handle drop event — intercept dropped image files
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      const files = e.dataTransfer?.files;
+      if (!files) return;
+
+      for (const file of Array.from(files)) {
+        if (file.type.startsWith("image/")) {
+          e.preventDefault();
+          const md = await uploadImage(file);
+          if (md) {
+            handleChange(content + "\n" + md + "\n");
+          }
+          return;
+        }
+      }
+    },
+    [content, handleChange, uploadImage]
   );
 
   // Cleanup timer
@@ -149,7 +227,10 @@ export default function KnowledgeEntryPage() {
       {/* Markdown Editor */}
       <div
         data-color-mode={theme === "dark" ? "dark" : "light"}
-        className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+        className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
+        onPaste={handlePaste}
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
       >
         <MDEditor
           value={content}
@@ -158,11 +239,22 @@ export default function KnowledgeEntryPage() {
           preview="live"
           visibleDragbar={false}
         />
+        {uploading && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-2xl z-50">
+            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              上傳圖片中...
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tip */}
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-        支援 Markdown 語法，輸入後自動儲存
+        支援 Markdown 語法，輸入後自動儲存 · 可直接貼上或拖放圖片
       </p>
     </div>
   );
