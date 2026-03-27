@@ -57,7 +57,7 @@ function QuestionsPageInner() {
   const [difficulty, setDifficulty] = useState("");
   const [type, setType] = useState("");
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
-  const [showBankManager, setShowBankManager] = useState(true);
+  const [showBankManager, setShowBankManager] = useState(!initialTag);
   const [deletingBankId, setDeletingBankId] = useState<string | null>(null);
   const [editingBankId, setEditingBankId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
