@@ -54,6 +54,7 @@ export default function ExamTakingPage() {
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [showExplanation, setShowExplanation] = useState(false);
   const [answerFeedback, setAnswerFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [checkedResults, setCheckedResults] = useState<Record<string, boolean>>({}); // questionId → isCorrect
   const [elapsed, setElapsed] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -449,6 +450,8 @@ export default function ExamTakingPage() {
                 const answered = !!userAnswers[a.questionId];
                 const isFlagged = flagged.has(a.questionId);
                 const isCurrent = i === currentIndex;
+                const checked = a.questionId in checkedResults;
+                const isCorrect = checkedResults[a.questionId];
                 return (
                   <button
                     key={a.id}
@@ -457,9 +460,13 @@ export default function ExamTakingPage() {
                       "w-full aspect-square rounded-lg text-xs font-medium transition-colors relative",
                       isCurrent
                         ? "bg-blue-600 text-white ring-2 ring-blue-300"
-                        : answered
-                          ? "bg-emerald-100 text-emerald-600"
-                          : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
+                        : checked
+                          ? isCorrect
+                            ? "bg-emerald-100 text-emerald-600"
+                            : "bg-red-100 text-red-600"
+                          : answered
+                            ? "bg-amber-50 text-amber-600 border border-amber-200"
+                            : "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100"
                     )}
                   >
                     {i + 1}
@@ -472,7 +479,13 @@ export default function ExamTakingPage() {
             </div>
             <div className="mt-3 space-y-1 text-xs text-gray-400 hidden lg:block">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-emerald-100 rounded border border-emerald-200" /> 已作答
+                <span className="w-3 h-3 bg-emerald-100 rounded border border-emerald-200" /> 答對
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-red-100 rounded border border-red-200" /> 答錯
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-amber-50 rounded border border-amber-200" /> 已作答（未對答案）
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 bg-gray-900 rounded" /> 目前題目
@@ -647,6 +660,7 @@ export default function ExamTakingPage() {
                   const correctAns = currentQuestion.answer;
                   const isRight = userAns === correctAns || (correctAns.includes(",") && userAns.split(",").sort().join(",") === correctAns.split(",").sort().join(","));
                   setAnswerFeedback(isRight ? "correct" : "wrong");
+                  setCheckedResults((prev) => ({ ...prev, [currentQuestion.id]: isRight }));
                   setTimeout(() => setAnswerFeedback(null), 1200);
                 } else {
                   setAnswerFeedback(null);
