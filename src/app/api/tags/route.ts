@@ -3,12 +3,16 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { safeJsonParse } from "@/lib/safe-json";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { searchParams } = new URL(request.url);
+    const bankIdsParam = searchParams.get("bankIds"); // comma-separated
+    const filterBankIds = bankIdsParam ? bankIdsParam.split(",").filter(Boolean) : [];
 
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
 
@@ -21,16 +25,35 @@ export async function GET() {
 
     // Get all questions the user can access (excluding hidden banks)
     const where: Record<string, unknown> = {};
-    if (!isAdmin) {
-      where.questionBank = {
-        OR: [
+
+    if (filterBankIds.length > 0) {
+      // Filter by specific bank IDs (still respect hidden + access)
+      where.questionBankId = { in: filterBankIds };
+      const bankFilter: Record<string, unknown> = {};
+      if (!isAdmin) {
+        bankFilter.OR = [
           { createdById: session.user.id },
           { isPublic: true },
-        ],
-        ...(hiddenBankIds.length > 0 ? { id: { notIn: hiddenBankIds } } : {}),
-      };
-    } else if (hiddenBankIds.length > 0) {
-      where.questionBank = { id: { notIn: hiddenBankIds } };
+        ];
+      }
+      if (hiddenBankIds.length > 0) {
+        bankFilter.id = { notIn: hiddenBankIds };
+      }
+      if (Object.keys(bankFilter).length > 0) {
+        where.questionBank = bankFilter;
+      }
+    } else {
+      if (!isAdmin) {
+        where.questionBank = {
+          OR: [
+            { createdById: session.user.id },
+            { isPublic: true },
+          ],
+          ...(hiddenBankIds.length > 0 ? { id: { notIn: hiddenBankIds } } : {}),
+        };
+      } else if (hiddenBankIds.length > 0) {
+        where.questionBank = { id: { notIn: hiddenBankIds } };
+      }
     }
 
     const questions = await prisma.question.findMany({

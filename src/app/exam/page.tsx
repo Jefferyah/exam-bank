@@ -68,6 +68,29 @@ export default function ExamSetupPage() {
     fetchData();
   }, []);
 
+  // Re-fetch tags when selected banks change
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const params = selectedBankIds.length > 0
+          ? `?bankIds=${selectedBankIds.join(",")}`
+          : "";
+        const res = await fetch(`/api/tags${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAllTags(data.tags || []);
+          // Remove selected tags that no longer exist in filtered list
+          setSelectedTags((prev) =>
+            prev.filter((t) => (data.tags || []).includes(t))
+          );
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    fetchTags();
+  }, [selectedBankIds]);
+
   function toggleBank(id: string) {
     setSelectedBankIds((prev) =>
       prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
