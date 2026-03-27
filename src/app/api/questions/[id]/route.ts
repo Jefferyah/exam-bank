@@ -75,11 +75,8 @@ export async function PUT(
       );
     }
 
-    // Only the bank creator or admin can update questions
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
-    if (!isAdmin && existing.createdById !== session.user.id && existing.questionBank.createdById !== session.user.id) {
-      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-    }
+    const isOwner = existing.createdById === session.user.id || existing.questionBank.createdById === session.user.id;
 
     const body = await req.json();
     const {
@@ -96,6 +93,12 @@ export async function PUT(
       difficulty,
       tags,
     } = body;
+
+    // Tags can be updated by any authenticated user; other fields require owner/admin
+    const isTagsOnly = tags !== undefined && [stem, type, options, answer, explanation, wrongOptionExplanations, extendedKnowledge, questionBankId, category, chapter, difficulty].every((v) => v === undefined);
+    if (!isTagsOnly && !isAdmin && !isOwner) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+    }
 
     const data: Record<string, unknown> = {};
     if (stem !== undefined) data.stem = stem;

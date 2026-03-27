@@ -49,7 +49,7 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
     setSuggestions(filtered.slice(0, 5));
   }, [input, allTags, tags]);
 
-  async function saveTags(newTags: string[]) {
+  async function saveTags(newTags: string[], rollback: string[]) {
     setSaving(true);
     try {
       const res = await fetch(`/api/questions/${questionId}`, {
@@ -58,11 +58,12 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
         body: JSON.stringify({ tags: newTags }),
       });
       if (res.ok) {
-        setTags(newTags);
         onTagsChange?.(newTags);
+      } else {
+        setTags(rollback);
       }
     } catch {
-      // silently fail
+      setTags(rollback);
     } finally {
       setSaving(false);
     }
@@ -71,17 +72,19 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
   function addTag(tag: string) {
     const trimmed = tag.trim();
     if (!trimmed || tags.includes(trimmed)) return;
+    const prev = [...tags];
     const newTags = [...tags, trimmed];
     setTags(newTags);
     setInput("");
     setSuggestions([]);
-    saveTags(newTags);
+    saveTags(newTags, prev);
   }
 
   function removeTag(tag: string) {
+    const prev = [...tags];
     const newTags = tags.filter((t) => t !== tag);
     setTags(newTags);
-    saveTags(newTags);
+    saveTags(newTags, prev);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
