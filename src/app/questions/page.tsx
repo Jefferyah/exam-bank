@@ -565,6 +565,8 @@ export default function QuestionsPage() {
                       <Link
                         key={i}
                         href={`/knowledge/${encodeURIComponent(tag)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >

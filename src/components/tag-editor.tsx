@@ -101,6 +101,8 @@ export function TagEditor({ questionId, initialTags, onTagsChange, compact }: Ta
           <Link
             key={tag}
             href={`/knowledge/${encodeURIComponent(tag)}`}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors",
