@@ -371,7 +371,11 @@ export default function KnowledgePage() {
             所有知識點
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {filteredTags.map((t) => (
+            {[...filteredTags].sort((a, b) =>
+              sizeMetric === "wordCount"
+                ? b.wordCount - a.wordCount
+                : b.questionCount - a.questionCount
+            ).map((t) => (
               <button
                 key={t.tag}
                 onClick={() =>
@@ -393,7 +397,9 @@ export default function KnowledgePage() {
                   {t.tag}
                 </span>
                 <span className="text-xs text-gray-400 dark:text-gray-500 ml-2 flex-shrink-0">
-                  {t.questionCount}
+                  {sizeMetric === "wordCount"
+                    ? (t.wordCount > 0 ? `${t.wordCount} 字` : "")
+                    : t.questionCount}
                 </span>
               </button>
             ))}
