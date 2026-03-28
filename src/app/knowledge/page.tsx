@@ -341,12 +341,32 @@ export default function KnowledgePage() {
       .attr("fill", "#3b82f6");
 
     simulation.on("tick", () => {
-      // After forceLink, source/target are mutated to node objects (not indices)
+      // Draw lines from circle edge (not center) by offsetting by radius along the line direction
       linkGroup
-        .attr("x1", (d) => ((d as any).source?.x ?? 0))
-        .attr("y1", (d) => ((d as any).source?.y ?? 0))
-        .attr("x2", (d) => ((d as any).target?.x ?? 0))
-        .attr("y2", (d) => ((d as any).target?.y ?? 0));
+        .attr("x1", (d) => {
+          const s = (d as any).source, t = (d as any).target;
+          const dx = t.x - s.x, dy = t.y - s.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          return s.x + (dx / dist) * (s.r ?? 0);
+        })
+        .attr("y1", (d) => {
+          const s = (d as any).source, t = (d as any).target;
+          const dx = t.x - s.x, dy = t.y - s.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          return s.y + (dy / dist) * (s.r ?? 0);
+        })
+        .attr("x2", (d) => {
+          const s = (d as any).source, t = (d as any).target;
+          const dx = s.x - t.x, dy = s.y - t.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          return t.x + (dx / dist) * (t.r ?? 0);
+        })
+        .attr("y2", (d) => {
+          const s = (d as any).source, t = (d as any).target;
+          const dx = s.x - t.x, dy = s.y - t.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          return t.y + (dy / dist) * (t.r ?? 0);
+        });
       nodeGroup.attr("transform", (d) => `translate(${d.x},${d.y})`);
     });
 
