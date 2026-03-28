@@ -43,6 +43,8 @@ export default function ExamResultPage() {
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [customPrompt, setCustomPrompt] = useState<string | null>(null);
+  const [addedToReview, setAddedToReview] = useState<Set<string>>(new Set());
+  const [addingToReview, setAddingToReview] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPrompt() {
@@ -76,6 +78,24 @@ export default function ExamResultPage() {
 
     if (params.id) fetchResult();
   }, [params.id]);
+
+  async function handleAddToReview(questionId: string) {
+    setAddingToReview(questionId);
+    try {
+      const res = await fetch("/api/review-cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      });
+      if (res.ok) {
+        setAddedToReview((prev) => new Set(prev).add(questionId));
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setAddingToReview(null);
+    }
+  }
 
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
@@ -252,11 +272,13 @@ export default function ExamResultPage() {
                     <p className="text-sm text-gray-700 break-words whitespace-pre-wrap">{a.question.explanation}</p>
                   </div>
 
-                  {/* AI solve — open in external AI web */}
+                  {/* AI solve + Add to review */}
                   {(() => {
                     const urls = getAiWebUrls(buildAiPrompt(a.question, customPrompt));
+                    const isAdded = addedToReview.has(a.questionId);
+                    const isAdding = addingToReview === a.questionId;
                     return (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 items-center">
                         <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#10a37f] hover:bg-[#0d8c6d] text-white rounded-full text-xs font-medium transition-all">
                           🤖 ChatGPT
@@ -269,6 +291,18 @@ export default function ExamResultPage() {
                           className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4285f4] hover:bg-[#3367d6] text-white rounded-full text-xs font-medium transition-all">
                           ✨ Gemini
                         </a>
+                        <button
+                          onClick={() => !isAdded && handleAddToReview(a.questionId)}
+                          disabled={isAdded || isAdding}
+                          className={cn(
+                            "inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                            isAdded
+                              ? "bg-purple-50 dark:bg-purple-500/15 text-purple-500 dark:text-purple-400 cursor-default"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-500/15 dark:hover:text-purple-400"
+                          )}
+                        >
+                          {isAdded ? "✓ 已加入複習" : isAdding ? "加入中..." : "＋ 加入複習"}
+                        </button>
                       </div>
                     );
                   })()}
