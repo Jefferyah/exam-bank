@@ -114,6 +114,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate count is a positive integer
+    const parsedCount = Number(count);
+    if (!Number.isFinite(parsedCount) || parsedCount < 1) {
+      return NextResponse.json(
+        { error: "count must be a positive integer" },
+        { status: 400 }
+      );
+    }
+
     // Build question filter
     const questionWhere: Record<string, unknown> = {};
     const isAdmin = (session.user as { role?: string }).role === "ADMIN";
@@ -267,7 +276,7 @@ export async function POST(req: NextRequest) {
 
     // Get total matching questions count
     const totalAvailable = await prisma.question.count({ where: questionWhere });
-    const actualCount = Math.min(count, totalAvailable);
+    const actualCount = Math.min(parsedCount, totalAvailable);
 
     if (actualCount === 0) {
       return NextResponse.json(
@@ -300,7 +309,7 @@ export async function POST(req: NextRequest) {
     const config = {
       questionBankIds: questionBankIds || [],
       difficulty: difficulty || null,
-      requestedCount: count,
+      requestedCount: parsedCount,
       count: actualCount,
       mode,
       timeLimit: timeLimit || null,

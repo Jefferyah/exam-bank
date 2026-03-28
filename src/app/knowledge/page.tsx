@@ -94,12 +94,13 @@ export default function KnowledgePage() {
   const handleCreateEntry = async () => {
     const trimmed = newTag.trim();
     if (!trimmed) return;
-    // Check for duplicates — navigate directly if exists
-    const existsInTags = tags.some((t) => t.tag.toLowerCase() === trimmed.toLowerCase());
-    const existsInCustom = customEntries.some((e) => e.tag.toLowerCase() === trimmed.toLowerCase());
-    if (existsInTags || existsInCustom) {
+    // Check for duplicates — navigate to existing tag (preserving original casing)
+    const existingTag = tags.find((t) => t.tag.toLowerCase() === trimmed.toLowerCase());
+    const existingCustom = customEntries.find((e) => e.tag.toLowerCase() === trimmed.toLowerCase());
+    const existingName = existingTag?.tag ?? existingCustom?.tag;
+    if (existingName) {
       setNewTag("");
-      router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
+      router.push(`/knowledge/${encodeURIComponent(existingName)}`);
       return;
     }
     // Create empty entry in DB so it appears in custom entries list

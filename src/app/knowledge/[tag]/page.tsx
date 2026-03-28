@@ -175,6 +175,15 @@ export default function KnowledgeEntryPage() {
       .catch(() => {});
   }, [status]);
 
+  // Reset state when tag changes (prev/next navigation)
+  useEffect(() => {
+    setContent("");
+    setLastSaved(null);
+    setBacklinks([]);
+    setLoading(true);
+    setAcQuery(null);
+  }, [tag]);
+
   // Load existing content
   useEffect(() => {
     if (status !== "authenticated") return;

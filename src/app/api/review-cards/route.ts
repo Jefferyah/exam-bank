@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
     const status = url.searchParams.get("status");
     const questionBankId = url.searchParams.get("questionBankId");
     const questionId = url.searchParams.get("questionId");
-    const limit = Math.min(parseInt(url.searchParams.get("limit") || "200"), 500);
+    const rawLimit = parseInt(url.searchParams.get("limit") || "200");
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 500) : 200;
     const statsOnly = url.searchParams.get("stats") === "true";
 
     // Exclude hidden banks
