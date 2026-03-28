@@ -269,16 +269,12 @@ export default function KnowledgePage() {
       .attr("class", "wiki-edge")
       .attr("stroke", (d) => {
         const w = (d as any).weight ?? 1;
-        const opacity = Math.min(0.35 + w * 0.15, 0.85);
+        const opacity = Math.min(0.15 + w * 0.08, 0.45);
         return `rgba(139, 92, 246, ${opacity})`;
       })
       .attr("stroke-width", (d) => {
         const w = (d as any).weight ?? 1;
         return Math.min(1.5 + w * 1, 6);
-      })
-      .attr("stroke-dasharray", (d) => {
-        const w = (d as any).weight ?? 1;
-        return w >= 3 ? "none" : "6,3";
       });
 
     type NodeType = (typeof nodes)[0];
