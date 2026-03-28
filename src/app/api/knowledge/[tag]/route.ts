@@ -114,3 +114,77 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ tag: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { tag } = await params;
+    const decodedTag = decodeURIComponent(tag);
+
+    await prisma.knowledgeEntry.deleteMany({
+      where: {
+        userId: session.user.id,
+        tag: decodedTag,
+      },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("DELETE /api/knowledge/[tag] error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete knowledge entry" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ tag: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { tag } = await params;
+    const decodedTag = decodeURIComponent(tag);
+    const body = await req.json();
+    const { newTag } = body;
+
+    if (!newTag || typeof newTag !== "string" || !newTag.trim()) {
+      return NextResponse.json({ error: "newTag is required" }, { status: 400 });
+    }
+
+    const trimmedNew = newTag.trim();
+
+    // Check if target tag already exists
+    const existing = await prisma.knowledgeEntry.findUnique({
+      where: { userId_tag: { userId: session.user.id, tag: trimmedNew } },
+    });
+    if (existing) {
+      return NextResponse.json({ error: "該知識點名稱已存在" }, { status: 409 });
+    }
+
+    await prisma.knowledgeEntry.update({
+      where: { userId_tag: { userId: session.user.id, tag: decodedTag } },
+      data: { tag: trimmedNew },
+    });
+
+    return NextResponse.json({ ok: true, newTag: trimmedNew });
+  } catch (error) {
+    console.error("PATCH /api/knowledge/[tag] error:", error);
+    return NextResponse.json(
+      { error: "Failed to rename knowledge entry" },
+      { status: 500 }
+    );
+  }
+}

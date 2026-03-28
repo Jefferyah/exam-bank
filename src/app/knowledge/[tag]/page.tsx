@@ -129,6 +129,9 @@ export default function KnowledgeEntryPage() {
   const [navTags, setNavTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [backlinks, setBacklinks] = useState<string[]>([]);
+  const [renaming, setRenaming] = useState(false);
+  const [renameDraft, setRenameDraft] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [acQuery, setAcQuery] = useState<string | null>(null); // autocomplete query, null = hidden
   const [acIndex, setAcIndex] = useState(0);
   const [acPos, setAcPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -153,6 +156,33 @@ export default function KnowledgeEntryPage() {
   const handlePreviewChange = (mode: "edit" | "live" | "preview") => {
     setPreviewMode(mode);
     setEditorPreview(mode);
+  };
+
+  const handleRename = async () => {
+    const trimmed = renameDraft.trim();
+    if (!trimmed || trimmed === tag) { setRenaming(false); return; }
+    const res = await fetch(`/api/knowledge/${encodeURIComponent(tag)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newTag: trimmed }),
+    });
+    if (res.ok) {
+      router.replace(`/knowledge/${encodeURIComponent(trimmed)}`);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "改名失敗");
+    }
+    setRenaming(false);
+  };
+
+  const handleDelete = async () => {
+    const res = await fetch(`/api/knowledge/${encodeURIComponent(tag)}`, { method: "DELETE" });
+    if (res.ok) {
+      router.replace("/knowledge");
+    } else {
+      alert("刪除失敗");
+    }
+    setShowDeleteConfirm(false);
   };
 
   useEffect(() => {
@@ -478,7 +508,7 @@ export default function KnowledgeEntryPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 relative">
         <button
           onClick={() => router.push("/knowledge")}
           className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors"
@@ -498,9 +528,23 @@ export default function KnowledgeEntryPage() {
           </svg>
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-            {tag}
-          </h1>
+          {renaming ? (
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={renameDraft}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
+                className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-purple-400 outline-none w-full"
+              />
+              <button onClick={handleRename} className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap">確定</button>
+              <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600 whitespace-nowrap">取消</button>
+            </div>
+          ) : (
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+              {tag}
+            </h1>
+          )}
           <div className="flex items-center gap-3 mt-0.5">
             <Link
               href={`/questions?tags=${encodeURIComponent(tag)}`}
@@ -525,7 +569,33 @@ export default function KnowledgeEntryPage() {
           {!saving && lastSaved && (
             <span className="text-xs text-emerald-500">已儲存</span>
           )}
+          {!renaming && (
+            <>
+              <button
+                onClick={() => { setRenameDraft(tag); setRenaming(true); }}
+                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                改名
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+              >
+                刪除
+              </button>
+            </>
+          )}
         </div>
+        {/* Delete confirmation */}
+        {showDeleteConfirm && (
+          <div className="absolute top-0 right-0 mt-12 mr-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 z-50">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">確定要刪除「{tag}」嗎？此操作無法復原。</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200">取消</button>
+              <button onClick={handleDelete} className="px-3 py-1.5 text-xs rounded-lg bg-red-500 text-white hover:bg-red-600">確定刪除</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Editor mode toggle + tip */}
