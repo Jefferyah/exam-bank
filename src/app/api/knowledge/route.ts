@@ -99,7 +99,7 @@ export async function GET() {
 
     // Standalone knowledge entries (user-created, no matching question tag)
     const customEntries = entries
-      .filter((e) => !tagCounts.has(e.tag) && e.content.trim().length > 0)
+      .filter((e) => !tagCounts.has(e.tag))
       .map((e) => ({
         tag: e.tag,
         wordCount: e.content.length,

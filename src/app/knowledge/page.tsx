@@ -91,16 +91,24 @@ export default function KnowledgePage() {
     setKnowledgeNavList([...sorted.map((t) => t.tag), ...customTags]);
   }, [filteredTags, customEntries, search, sizeMetric]);
 
-  const handleCreateEntry = () => {
+  const handleCreateEntry = async () => {
     const trimmed = newTag.trim();
     if (!trimmed) return;
-    // Check for duplicates
+    // Check for duplicates — navigate directly if exists
     const existsInTags = tags.some((t) => t.tag.toLowerCase() === trimmed.toLowerCase());
     const existsInCustom = customEntries.some((e) => e.tag.toLowerCase() === trimmed.toLowerCase());
     if (existsInTags || existsInCustom) {
+      setNewTag("");
       router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
       return;
     }
+    // Create empty entry in DB so it appears in custom entries list
+    await fetch(`/api/knowledge/${encodeURIComponent(trimmed)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "" }),
+    });
+    setNewTag("");
     router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
   };
 
@@ -352,14 +360,33 @@ export default function KnowledgePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          知識庫
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          點擊知識點，開始撰寫你的學習筆記
-        </p>
+      {/* Header + Create */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            知識庫
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            點擊知識點，開始撰寫你的學習筆記
+          </p>
+        </div>
+        <div className="flex gap-2 flex-shrink-0">
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreateEntry()}
+            placeholder="新增知識主題..."
+            className="w-48 sm:w-56 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-300"
+          />
+          <button
+            onClick={handleCreateEntry}
+            disabled={!newTag.trim()}
+            className="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          >
+            建立
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -433,36 +460,6 @@ export default function KnowledgePage() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Create new knowledge entry */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <svg
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCreateEntry()}
-            placeholder="輸入知識主題名稱，建立新知識..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-300"
-          />
-        </div>
-        <button
-          onClick={handleCreateEntry}
-          disabled={!newTag.trim()}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-        >
-          建立
-        </button>
       </div>
 
       {/* Custom knowledge entries */}
