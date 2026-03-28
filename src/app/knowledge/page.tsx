@@ -206,14 +206,15 @@ export default function KnowledgePage() {
       .force("y", d3.forceY(height / 2).strength(0.02));
 
     // Add link force if there are connections
+    // Note: d3.forceLink mutates source/target from indices to node objects
     if (graphLinks.length > 0) {
       simulation.force(
         "link",
         d3.forceLink(graphLinks)
           .distance((l) => {
-            const s = nodes[(l as unknown as { source: number }).source];
-            const t = nodes[(l as unknown as { target: number }).target];
-            return (s?.r || 30) + (t?.r || 30) + 20;
+            const s = (l as any).source;
+            const t = (l as any).target;
+            return ((s?.r ?? 30) + (t?.r ?? 30) + 20);
           })
           .strength(0.3)
       );
@@ -333,11 +334,12 @@ export default function KnowledgePage() {
       .attr("fill", "#3b82f6");
 
     simulation.on("tick", () => {
+      // After forceLink, source/target are mutated to node objects (not indices)
       linkGroup
-        .attr("x1", (d) => nodes[(d as unknown as { source: number }).source]?.x ?? 0)
-        .attr("y1", (d) => nodes[(d as unknown as { source: number }).source]?.y ?? 0)
-        .attr("x2", (d) => nodes[(d as unknown as { target: number }).target]?.x ?? 0)
-        .attr("y2", (d) => nodes[(d as unknown as { target: number }).target]?.y ?? 0);
+        .attr("x1", (d) => ((d as any).source?.x ?? 0))
+        .attr("y1", (d) => ((d as any).source?.y ?? 0))
+        .attr("x2", (d) => ((d as any).target?.x ?? 0))
+        .attr("y2", (d) => ((d as any).target?.y ?? 0));
       nodeGroup.attr("transform", (d) => `translate(${d.x},${d.y})`);
     });
 
