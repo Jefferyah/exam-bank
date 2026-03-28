@@ -193,36 +193,38 @@ export default function KnowledgePage() {
 
     const simulation = d3
       .forceSimulation(nodes)
-      .force("charge", d3.forceManyBody().strength(2))
+      .force("charge", d3.forceManyBody().strength(-2)) // slight repulsion to prevent overlap
       .force(
         "collide",
-        d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.9)
+        d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.8)
       )
-      // Radial force: large bubbles stay near center, linked nodes weakened so link force wins
+      // Radial force: large bubbles target center (dist=0), small ones pushed outward
       .force(
         "radial",
         d3.forceRadial<(typeof nodes)[0]>(
           (d) => {
             const ratio = d.r / maxR;
             const maxDist = Math.min(width, height) * 0.35;
-            return maxDist * (1 - ratio * ratio * ratio);
+            // Top 30% of sizes → near center; small ones → pushed to edge
+            return maxDist * Math.pow(1 - ratio, 2);
           },
           width / 2,
           height / 2
         ).strength((d) => {
-          if (linkedNodeIndices.has(d.index ?? -1)) return 0.02;
+          if (linkedNodeIndices.has(d.index ?? -1)) return 0.03;
           const ratio = d.r / maxR;
-          return 0.15 + ratio * ratio * 0.8; // larger bubbles: much stronger pull to center
+          // Very strong for large bubbles (up to 1.0), weak for small ones
+          return 0.05 + ratio * ratio * 0.95;
         })
       )
-      // Center pull: larger bubbles get much stronger centering
+      // Center pull: largest bubbles get very strong centering
       .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => {
         const ratio = d.r / maxR;
-        return 0.01 + ratio * ratio * 0.3;
+        return 0.005 + Math.pow(ratio, 3) * 0.8;
       }))
       .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => {
         const ratio = d.r / maxR;
-        return 0.01 + ratio * ratio * 0.3;
+        return 0.005 + Math.pow(ratio, 3) * 0.8;
       }));
 
     // Add link force if there are connections
