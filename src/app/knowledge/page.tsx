@@ -192,26 +192,31 @@ export default function KnowledgePage() {
 
     const simulation = d3
       .forceSimulation(nodes)
-      .force("charge", d3.forceManyBody().strength(1))
+      .force("charge", d3.forceManyBody().strength(2))
       .force(
         "collide",
         d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.9)
       )
-      // Radial force: weaker for linked nodes so link force can pull them together
+      // Radial force: large bubbles stay near center, linked nodes weakened so link force wins
       .force(
         "radial",
         d3.forceRadial<(typeof nodes)[0]>(
           (d) => {
             const ratio = d.r / maxR;
             const maxDist = Math.min(width, height) * 0.35;
-            return maxDist * (1 - ratio * ratio);
+            return maxDist * (1 - ratio * ratio * ratio);
           },
           width / 2,
           height / 2
-        ).strength((d) => linkedNodeIndices.has(d.index ?? -1) ? 0.05 : 0.3)
+        ).strength((d) => {
+          if (linkedNodeIndices.has(d.index ?? -1)) return 0.02;
+          const ratio = d.r / maxR;
+          return 0.15 + ratio * 0.5; // larger bubbles: stronger pull to center
+        })
       )
-      .force("x", d3.forceX(width / 2).strength(0.02))
-      .force("y", d3.forceY(height / 2).strength(0.02));
+      // Center pull: larger bubbles get much stronger centering
+      .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => 0.01 + (d.r / maxR) * 0.12))
+      .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => 0.01 + (d.r / maxR) * 0.12));
 
     // Add link force if there are connections
     // Note: d3.forceLink mutates source/target from indices to node objects
@@ -222,9 +227,10 @@ export default function KnowledgePage() {
           .distance((l) => {
             const s = (l as any).source;
             const t = (l as any).target;
-            return ((s?.r ?? 30) + (t?.r ?? 30) + 5);
+            return ((s?.r ?? 30) + (t?.r ?? 30) + 2);
           })
-          .strength(1.2)
+          .strength(2)
+          .iterations(4)
       );
     }
 
