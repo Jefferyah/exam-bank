@@ -259,9 +259,9 @@ export default function KnowledgePage() {
       .data(graphLinks)
       .join("line")
       .attr("class", "wiki-edge")
-      .attr("stroke", "rgba(139, 92, 246, 0.25)")
-      .attr("stroke-width", 1.5)
-      .attr("stroke-dasharray", "4,3");
+      .attr("stroke", "rgba(139, 92, 246, 0.55)")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "6,3");
 
     type NodeType = (typeof nodes)[0];
     const nodeGroup = svg
