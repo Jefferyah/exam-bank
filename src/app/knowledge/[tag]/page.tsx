@@ -267,8 +267,8 @@ export default function KnowledgeEntryPage() {
       setContent(text);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => saveContent(text), 1500);
-      // Trigger autocomplete check after MDEditor updates the textarea
-      requestAnimationFrame(() => acInputRef.current());
+      // Trigger autocomplete: wait for DOM to settle, then read cursor from textarea
+      setTimeout(() => acInputRef.current(), 20);
     },
     [saveContent]
   );
@@ -356,10 +356,11 @@ export default function KnowledgeEntryPage() {
   }, []);
 
   const handleAutocompleteInput = useCallback(() => {
-    if (acInteractingRef.current) return; // don't update while interacting with dropdown
+    if (acInteractingRef.current) return;
     const textarea = getTextarea();
     if (!textarea) return;
     const pos = textarea.selectionStart;
+    if (pos === 0 && textarea.value.length > 0) return; // cursor reset by React re-render, skip
     acCursorRef.current = pos;
     acTextRef.current = textarea.value;
     const textBefore = textarea.value.substring(0, pos);
@@ -485,11 +486,17 @@ export default function KnowledgeEntryPage() {
       }, 150);
     };
 
-    textarea.addEventListener("input", onInput);
+    // Use keyup + click instead of input — MDEditor's React-controlled textarea
+    // may not fire native input events reliably, and selectionStart can be stale.
+    const onKeyUp = () => setTimeout(() => handleAutocompleteInput(), 0);
+    const onClick = () => setTimeout(() => handleAutocompleteInput(), 0);
+    textarea.addEventListener("keyup", onKeyUp);
+    textarea.addEventListener("click", onClick);
     textarea.addEventListener("keydown", onKeyDown);
     textarea.addEventListener("blur", onBlur);
     return () => {
-      textarea.removeEventListener("input", onInput);
+      textarea.removeEventListener("keyup", onKeyUp);
+      textarea.removeEventListener("click", onClick);
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("blur", onBlur);
     };
