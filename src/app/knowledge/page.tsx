@@ -68,7 +68,20 @@ export default function KnowledgePage() {
     return "high";
   };
 
-  const filteredTags = tags.filter((t) => {
+  // Merge custom entries into tags for unified display
+  const allTagData: TagData[] = [
+    ...tags,
+    ...customEntries.map((e) => ({
+      tag: e.tag,
+      questionCount: 0,
+      wordCount: e.wordCount,
+      accuracy: null,
+      hasEntry: true,
+      updatedAt: e.updatedAt,
+    })),
+  ];
+
+  const filteredTags = allTagData.filter((t) => {
     if (!t.tag.toLowerCase().includes(search.toLowerCase())) return false;
     if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
     return true;
@@ -85,11 +98,8 @@ export default function KnowledgePage() {
       .sort((a, b) =>
         sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
       );
-    const customTags = customEntries
-      .filter((e) => e.tag.toLowerCase().includes(search.toLowerCase()))
-      .map((e) => e.tag);
-    setKnowledgeNavList([...sorted.map((t) => t.tag), ...customTags]);
-  }, [filteredTags, customEntries, search, sizeMetric]);
+    setKnowledgeNavList(sorted.map((t) => t.tag));
+  }, [filteredTags, sizeMetric]);
 
   const handleCreateEntry = async () => {
     const trimmed = newTag.trim();
