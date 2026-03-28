@@ -104,7 +104,11 @@ export default function KnowledgeEntryPage() {
     fetch("/api/knowledge")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data?.tags) setAllTags(data.tags.map((t: { tag: string }) => t.tag));
+        if (data?.tags) {
+          const questionTags = data.tags.map((t: { tag: string }) => t.tag);
+          const customTags = (data.customEntries || []).map((e: { tag: string }) => e.tag);
+          setAllTags([...new Set([...questionTags, ...customTags])]);
+        }
       })
       .catch(() => {});
   }, [status]);

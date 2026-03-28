@@ -328,11 +328,14 @@ export default function KnowledgePage() {
   }, [filteredTags, links, router, sizeMetric, getAccuracyColor]);
 
   useEffect(() => {
-    const cleanup = renderBubbles();
-    const handleResize = () => renderBubbles();
+    let currentCleanup = renderBubbles();
+    const handleResize = () => {
+      currentCleanup?.();
+      currentCleanup = renderBubbles();
+    };
     window.addEventListener("resize", handleResize);
     return () => {
-      cleanup?.();
+      currentCleanup?.();
       window.removeEventListener("resize", handleResize);
     };
   }, [renderBubbles]);

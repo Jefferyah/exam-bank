@@ -25,22 +25,35 @@ export async function GET(
           },
         },
       }),
-      // Phase 3: find all entries that contain [[decodedTag]] in their content
+      // Phase 3: find all entries that might contain [[decodedTag]] (with possible whitespace)
       prisma.knowledgeEntry.findMany({
         where: {
           userId: session.user.id,
-          content: { contains: `[[${decodedTag}]]` },
+          content: { contains: decodedTag },
           NOT: { tag: decodedTag }, // exclude self
         },
-        select: { tag: true },
+        select: { tag: true, content: true },
       }),
     ]);
+
+    // Parse wiki-links and trim to match consistently with the graph API
+    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
+    const backlinks = allEntries
+      .filter((e) => {
+        wikiLinkRegex.lastIndex = 0;
+        let match: RegExpExecArray | null;
+        while ((match = wikiLinkRegex.exec(e.content)) !== null) {
+          if (match[1].trim() === decodedTag) return true;
+        }
+        return false;
+      })
+      .map((e) => e.tag);
 
     return NextResponse.json({
       tag: decodedTag,
       content: entry?.content || "",
       updatedAt: entry?.updatedAt?.toISOString() || null,
-      backlinks: allEntries.map((e) => e.tag),
+      backlinks,
     });
   } catch (error) {
     console.error("GET /api/knowledge/[tag] error:", error);
