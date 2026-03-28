@@ -34,13 +34,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       : "light";
   });
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, theme);
     applyTheme(theme);
   }, [theme]);
+
+  // Sync theme across tabs
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && (e.newValue === "dark" || e.newValue === "light")) {
+        setTheme(e.newValue);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const value = useMemo(
     () => ({
