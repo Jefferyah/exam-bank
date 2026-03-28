@@ -54,7 +54,7 @@ function rehypeWikiLinks(node: Root | RootContent, _index?: number, parent?: Roo
 
 /** Autocomplete dropdown — uses native DOM listeners to ensure clicks work */
 function AutocompleteDropdown({
-  visible, items, activeIndex, position, onSelect, onInteract,
+  visible, items, activeIndex, position, onSelect, onInteract, createQuery,
 }: {
   visible: boolean;
   items: string[];
@@ -62,8 +62,12 @@ function AutocompleteDropdown({
   position: { top: number; left: number };
   onSelect: (tag: string) => void;
   onInteract: () => void;
+  createQuery?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Show "create" option when query has content and doesn't exactly match an existing tag
+  const showCreate = createQuery && createQuery.trim().length > 0 && !items.some((t) => t.toLowerCase() === createQuery.toLowerCase());
+  const totalItems = items.length + (showCreate ? 1 : 0);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -86,7 +90,7 @@ function AutocompleteDropdown({
     return () => el.removeEventListener("mousedown", handleMouseDown, true);
   }, [visible, items, onSelect, onInteract]);
 
-  if (!visible) return null;
+  if (!visible || totalItems === 0) return null;
 
   return (
     <div
@@ -110,6 +114,18 @@ function AutocompleteDropdown({
           {t}
         </div>
       ))}
+      {showCreate && (
+        <div
+          data-ac-tag={createQuery.trim()}
+          className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors border-t border-gray-100 dark:border-gray-700 ${
+            activeIndex === items.length
+              ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+              : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+          }`}
+        >
+          + 建立「{createQuery.trim()}」
+        </div>
+      )}
     </div>
   );
 }
@@ -414,6 +430,8 @@ export default function KnowledgeEntryPage() {
   const acFiltered = acQuery !== null
     ? allTags.filter((t) => t.toLowerCase().includes(acQuery.toLowerCase()) && t !== tag).slice(0, 8)
     : [];
+  const acShowCreate = acQuery !== null && acQuery.trim().length > 0 && !acFiltered.some((t) => t.toLowerCase() === acQuery.toLowerCase());
+  const acTotalItems = acFiltered.length + (acShowCreate ? 1 : 0);
 
   // Attach input/keydown listeners to the textarea
   useEffect(() => {
@@ -423,10 +441,10 @@ export default function KnowledgeEntryPage() {
     const onInput = () => handleAutocompleteInput();
     const onKeyDown = (e: KeyboardEvent) => {
       // Autocomplete navigation
-      if (acQuery !== null && acFiltered.length > 0) {
+      if (acQuery !== null && acTotalItems > 0) {
         if (e.key === "ArrowDown") {
           e.preventDefault();
-          setAcIndex((i) => Math.min(i + 1, acFiltered.length - 1));
+          setAcIndex((i) => Math.min(i + 1, acTotalItems - 1));
           return;
         } else if (e.key === "ArrowUp") {
           e.preventDefault();
@@ -434,7 +452,8 @@ export default function KnowledgeEntryPage() {
           return;
         } else if (e.key === "Enter" || e.key === "Tab") {
           e.preventDefault();
-          insertWikiLink(acFiltered[acIndex]);
+          const selected = acIndex < acFiltered.length ? acFiltered[acIndex] : acQuery.trim();
+          insertWikiLink(selected);
           return;
         } else if (e.key === "Escape") {
           setAcQuery(null);
@@ -500,7 +519,7 @@ export default function KnowledgeEntryPage() {
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("blur", onBlur);
     };
-  }, [getTextarea, handleAutocompleteInput, handleChange, acQuery, acFiltered, acIndex, insertWikiLink]);
+  }, [getTextarea, handleAutocompleteInput, handleChange, acQuery, acFiltered, acIndex, acTotalItems, insertWikiLink]);
 
   // Cleanup timer
   useEffect(() => {
@@ -691,12 +710,13 @@ export default function KnowledgeEntryPage() {
 
       {/* Phase 2: Autocomplete dropdown — rendered in-tree, above editor */}
       <AutocompleteDropdown
-        visible={acQuery !== null && acFiltered.length > 0}
+        visible={acQuery !== null && acTotalItems > 0}
         items={acFiltered}
         activeIndex={acIndex}
         position={acPos}
         onSelect={insertWikiLink}
         onInteract={() => { acInteractingRef.current = true; }}
+        createQuery={acQuery || undefined}
       />
 
       {/* Outgoing wiki-links parsed from content */}
