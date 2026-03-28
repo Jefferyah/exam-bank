@@ -271,7 +271,7 @@ export default function AdminPage() {
   const promptSection = (
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">AI Prompt 設定</h2>
+        <h2 className="text-lg font-semibold text-gray-900">解題 AI Prompt 設定</h2>
         <p className="text-sm text-gray-500 mt-1">
           自訂 AI 解題時使用的 Prompt 模板
           {customPrompt && <span className="ml-1 text-blue-500">（目前使用自訂 Prompt）</span>}
