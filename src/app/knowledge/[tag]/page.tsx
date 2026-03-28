@@ -528,6 +528,32 @@ export default function KnowledgeEntryPage() {
         </div>
       </div>
 
+      {/* Editor mode toggle + tip */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+          {([
+            { key: "edit" as const, label: "編輯" },
+            { key: "live" as const, label: "分割" },
+            { key: "preview" as const, label: "預覽" },
+          ]).map((m) => (
+            <button
+              key={m.key}
+              onClick={() => handlePreviewChange(m.key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                previewMode === m.key
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          自動儲存 · 可貼上或拖放圖片
+        </p>
+      </div>
+
       {/* Markdown Editor */}
       <div
         ref={editorRef}
@@ -569,32 +595,6 @@ export default function KnowledgeEntryPage() {
         onSelect={insertWikiLink}
         onInteract={() => { acInteractingRef.current = true; }}
       />
-
-      {/* Editor mode toggle + tip */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
-          {([
-            { key: "edit" as const, label: "編輯" },
-            { key: "live" as const, label: "分割" },
-            { key: "preview" as const, label: "預覽" },
-          ]).map((m) => (
-            <button
-              key={m.key}
-              onClick={() => handlePreviewChange(m.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                previewMode === m.key
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          自動儲存 · 可貼上或拖放圖片
-        </p>
-      </div>
 
       {/* Outgoing wiki-links parsed from content */}
       {(() => {
