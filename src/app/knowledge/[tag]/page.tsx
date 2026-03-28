@@ -7,8 +7,49 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useTheme } from "@/components/theme-provider";
 import { getKnowledgeNav, getEditorPreview, setEditorPreview } from "@/lib/knowledge-nav";
+import type { Element, Root, RootContent } from "hast";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
+
+/** Phase 1: rehypeRewrite — transform [[tag]] text into clickable links */
+function rehypeWikiLinks(node: Root | RootContent, _index?: number, parent?: Root | Element) {
+  if (node.type !== "text" || !parent || !("children" in parent)) return;
+  const regex = /\[\[([^\]]+)\]\]/g;
+  if (!regex.test(node.value)) return;
+  regex.lastIndex = 0;
+
+  const children: RootContent[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(node.value)) !== null) {
+    if (match.index > lastIndex) {
+      children.push({ type: "text", value: node.value.slice(lastIndex, match.index) });
+    }
+    const linkedTag = match[1].trim();
+    children.push({
+      type: "element",
+      tagName: "a",
+      properties: {
+        href: `/knowledge/${encodeURIComponent(linkedTag)}`,
+        className: "wiki-link",
+        "data-wiki-tag": linkedTag,
+      },
+      children: [{ type: "text", value: linkedTag }],
+    } as unknown as RootContent);
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < node.value.length) {
+    children.push({ type: "text", value: node.value.slice(lastIndex) });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pChildren = parent.children as any[];
+  const idx = pChildren.indexOf(node);
+  if (idx >= 0) {
+    pChildren.splice(idx, 1, ...children);
+  }
+}
 
 export default function KnowledgeEntryPage() {
   const { data: session, status } = useSession();
@@ -24,7 +65,13 @@ export default function KnowledgeEntryPage() {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"edit" | "live" | "preview">("live");
   const [navTags, setNavTags] = useState<string[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [backlinks, setBacklinks] = useState<string[]>([]);
+  const [acQuery, setAcQuery] = useState<string | null>(null); // autocomplete query, null = hidden
+  const [acIndex, setAcIndex] = useState(0);
+  const [acPos, setAcPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   // Load editor preview preference & nav context
   useEffect(() => {
@@ -48,6 +95,17 @@ export default function KnowledgeEntryPage() {
     }
   }, [status, router]);
 
+  // Load all tags for autocomplete
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/knowledge")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.tags) setAllTags(data.tags.map((t: { tag: string }) => t.tag));
+      })
+      .catch(() => {});
+  }, [status]);
+
   // Load existing content
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -57,6 +115,7 @@ export default function KnowledgeEntryPage() {
         if (data) {
           setContent(data.content || "");
           if (data.updatedAt) setLastSaved(data.updatedAt);
+          if (data.backlinks) setBacklinks(data.backlinks);
         }
       })
       .catch(() => {})
@@ -173,6 +232,99 @@ export default function KnowledgeEntryPage() {
     [content, handleChange, uploadImage]
   );
 
+  // Phase 2: Autocomplete — detect [[ and show suggestions
+  const getTextarea = useCallback(() => {
+    return editorRef.current?.querySelector(".w-md-editor-text-input") as HTMLTextAreaElement | null;
+  }, []);
+
+  const handleAutocompleteInput = useCallback(() => {
+    const textarea = getTextarea();
+    if (!textarea) return;
+    const pos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, pos);
+    // Find unclosed [[ before cursor
+    const match = textBefore.match(/\[\[([^\]]*?)$/);
+    if (match) {
+      setAcQuery(match[1]);
+      setAcIndex(0);
+      // Position the dropdown near the cursor
+      // Use a mirror div approach or simple offset from textarea
+      const linesBefore = textBefore.split("\n");
+      const lineHeight = 22;
+      const charWidth = 8;
+      const currentLine = linesBefore.length;
+      const currentCol = linesBefore[linesBefore.length - 1].length;
+      const rect = textarea.getBoundingClientRect();
+      const scrollTop = textarea.scrollTop;
+      setAcPos({
+        top: rect.top + currentLine * lineHeight - scrollTop + 4,
+        left: rect.left + Math.min(currentCol * charWidth, rect.width - 200),
+      });
+    } else {
+      setAcQuery(null);
+    }
+  }, [getTextarea]);
+
+  const insertWikiLink = useCallback((selectedTag: string) => {
+    const textarea = getTextarea();
+    if (!textarea) return;
+    const pos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, pos);
+    const textAfter = textarea.value.substring(pos);
+    // Find the [[ start
+    const match = textBefore.match(/\[\[([^\]]*?)$/);
+    if (!match) return;
+    const start = textBefore.length - match[0].length;
+    const newText = textBefore.substring(0, start) + `[[${selectedTag}]]` + textAfter;
+    handleChange(newText);
+    setAcQuery(null);
+    // Restore cursor position after the inserted link
+    requestAnimationFrame(() => {
+      const ta = getTextarea();
+      if (ta) {
+        const newPos = start + selectedTag.length + 4; // [[ + tag + ]]
+        ta.selectionStart = ta.selectionEnd = newPos;
+        ta.focus();
+      }
+    });
+  }, [getTextarea, handleChange]);
+
+  const acFiltered = acQuery !== null
+    ? allTags.filter((t) => t.toLowerCase().includes(acQuery.toLowerCase()) && t !== tag).slice(0, 8)
+    : [];
+
+  // Attach input/keydown listeners to the textarea
+  useEffect(() => {
+    const textarea = getTextarea();
+    if (!textarea) return;
+
+    const onInput = () => handleAutocompleteInput();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (acQuery === null || acFiltered.length === 0) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setAcIndex((i) => Math.min(i + 1, acFiltered.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setAcIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        if (acFiltered.length > 0) {
+          e.preventDefault();
+          insertWikiLink(acFiltered[acIndex]);
+        }
+      } else if (e.key === "Escape") {
+        setAcQuery(null);
+      }
+    };
+
+    textarea.addEventListener("input", onInput);
+    textarea.addEventListener("keydown", onKeyDown);
+    return () => {
+      textarea.removeEventListener("input", onInput);
+      textarea.removeEventListener("keydown", onKeyDown);
+    };
+  }, [getTextarea, handleAutocompleteInput, acQuery, acFiltered, acIndex, insertWikiLink]);
+
   // Cleanup timer
   useEffect(() => {
     return () => {
@@ -245,6 +397,7 @@ export default function KnowledgeEntryPage() {
 
       {/* Markdown Editor */}
       <div
+        ref={editorRef}
         data-color-mode={theme === "dark" ? "dark" : "light"}
         className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
         onPaste={handlePaste}
@@ -257,6 +410,9 @@ export default function KnowledgeEntryPage() {
           height={550}
           preview={previewMode}
           visibleDragbar={false}
+          previewOptions={{
+            rehypeRewrite: rehypeWikiLinks,
+          }}
         />
         {uploading && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-2xl z-50">
@@ -270,6 +426,34 @@ export default function KnowledgeEntryPage() {
           </div>
         )}
       </div>
+
+      {/* Phase 2: Autocomplete dropdown */}
+      {acQuery !== null && acFiltered.length > 0 && (
+        <div
+          className="fixed z-[100] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
+          style={{ top: acPos.top, left: acPos.left }}
+        >
+          <div className="px-3 py-1.5 text-[10px] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 uppercase tracking-wider">
+            插入知識連結
+          </div>
+          {acFiltered.map((t, i) => (
+            <button
+              key={t}
+              onMouseDown={(e) => {
+                e.preventDefault(); // prevent blur
+                insertWikiLink(t);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                i === acIndex
+                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Editor mode toggle + tip */}
       <div className="flex items-center justify-between">
@@ -296,6 +480,26 @@ export default function KnowledgeEntryPage() {
           自動儲存 · 可貼上或拖放圖片
         </p>
       </div>
+
+      {/* Phase 3: Backlinks */}
+      {backlinks.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm">
+          <h3 className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            被引用於
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {backlinks.map((bl) => (
+              <Link
+                key={bl}
+                href={`/knowledge/${encodeURIComponent(bl)}`}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+              >
+                {bl}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Prev / Next navigation */}
       {navTags.length > 1 && currentIndex >= 0 && (

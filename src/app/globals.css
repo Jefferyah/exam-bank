@@ -611,3 +611,28 @@ body {
 [data-color-mode="dark"] .w-md-editor-text-pre .token.hr {
   color: #3a3f4f !important;
 }
+
+/* ══════════════════════════════════════════
+   Wiki-link [[tag]] styles
+   ══════════════════════════════════════════ */
+.wiki-link {
+  color: #7c3aed !important;
+  background: rgba(124, 58, 237, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-decoration: none !important;
+  font-weight: 500;
+  transition: background 150ms ease, color 150ms ease;
+}
+.wiki-link:hover {
+  background: rgba(124, 58, 237, 0.16);
+  color: #6d28d9 !important;
+}
+[data-color-mode="dark"] .wiki-link {
+  color: #c4b5fd !important;
+  background: rgba(192, 132, 252, 0.12);
+}
+[data-color-mode="dark"] .wiki-link:hover {
+  background: rgba(192, 132, 252, 0.22);
+  color: #ddd6fe !important;
+}

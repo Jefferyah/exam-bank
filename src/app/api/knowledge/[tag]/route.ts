@@ -15,19 +15,32 @@ export async function GET(
     const { tag } = await params;
     const decodedTag = decodeURIComponent(tag);
 
-    const entry = await prisma.knowledgeEntry.findUnique({
-      where: {
-        userId_tag: {
-          userId: session.user.id,
-          tag: decodedTag,
+    // Fetch entry + backlinks in parallel
+    const [entry, allEntries] = await Promise.all([
+      prisma.knowledgeEntry.findUnique({
+        where: {
+          userId_tag: {
+            userId: session.user.id,
+            tag: decodedTag,
+          },
         },
-      },
-    });
+      }),
+      // Phase 3: find all entries that contain [[decodedTag]] in their content
+      prisma.knowledgeEntry.findMany({
+        where: {
+          userId: session.user.id,
+          content: { contains: `[[${decodedTag}]]` },
+          NOT: { tag: decodedTag }, // exclude self
+        },
+        select: { tag: true },
+      }),
+    ]);
 
     return NextResponse.json({
       tag: decodedTag,
       content: entry?.content || "",
       updatedAt: entry?.updatedAt?.toISOString() || null,
+      backlinks: allEntries.map((e) => e.tag),
     });
   } catch (error) {
     console.error("GET /api/knowledge/[tag] error:", error);
