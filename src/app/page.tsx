@@ -186,10 +186,10 @@ export default function HomePage() {
             {analytics.recentTrend.map((exam) => {
               const pct = exam.score ?? 0;
               const barColor =
-                pct >= 80 ? "from-emerald-300 to-emerald-400 dark:from-emerald-700 dark:to-emerald-600"
-                : pct >= 60 ? "from-amber-200 to-amber-300 dark:from-amber-700 dark:to-amber-600"
-                : pct >= 40 ? "from-orange-200 to-orange-300 dark:from-orange-700 dark:to-orange-600"
-                : "from-red-200 to-red-300 dark:from-red-700 dark:to-red-600";
+                pct >= 80 ? "from-emerald-300 to-emerald-400 dark:from-emerald-400/40 dark:to-emerald-500/40"
+                : pct >= 60 ? "from-amber-200 to-amber-300 dark:from-amber-400/40 dark:to-amber-500/40"
+                : pct >= 40 ? "from-orange-200 to-orange-300 dark:from-orange-400/40 dark:to-orange-500/40"
+                : "from-red-200 to-red-300 dark:from-red-400/40 dark:to-red-500/40";
               const textColor =
                 pct >= 80 ? "text-emerald-600 dark:text-emerald-400"
                 : pct >= 60 ? "text-amber-600 dark:text-amber-400"
@@ -261,7 +261,7 @@ export default function HomePage() {
                   <div
                     className={cn(
                       "h-2 rounded-full transition-all",
-                      d.accuracy >= 70 ? "bg-emerald-300 dark:bg-emerald-700" : d.accuracy >= 50 ? "bg-amber-200 dark:bg-amber-700" : "bg-red-200 dark:bg-red-700"
+                      d.accuracy >= 70 ? "bg-emerald-300 dark:bg-emerald-400/40" : d.accuracy >= 50 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
                     )}
                     style={{ width: `${d.accuracy}%` }}
                   />
