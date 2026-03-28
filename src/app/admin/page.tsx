@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { DEFAULT_AI_PROMPT } from "@/lib/ai-prompt";
+import { DEFAULT_AI_PROMPT, DEFAULT_KNOWLEDGE_AI_PROMPT } from "@/lib/ai-prompt";
 import { groupBanksByCategory } from "@/lib/group-banks";
 
 interface AdminStats {
@@ -50,6 +50,9 @@ export default function AdminPage() {
   const [promptDraft, setPromptDraft] = useState("");
   const [savingPrompt, setSavingPrompt] = useState(false);
   const [promptMessage, setPromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [knowledgePromptDraft, setKnowledgePromptDraft] = useState("");
+  const [customKnowledgePrompt, setCustomKnowledgePrompt] = useState<string | null>(null);
+  const [knowledgePromptMessage, setKnowledgePromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [migratingTasks, setMigratingTasks] = useState(false);
   const [migrateMessage, setMigrateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -88,6 +91,8 @@ export default function AdminPage() {
           const promptData = await promptRes.json();
           setCustomPrompt(promptData.aiPromptTemplate || null);
           setPromptDraft(promptData.aiPromptTemplate || DEFAULT_AI_PROMPT);
+          setCustomKnowledgePrompt(promptData.aiKnowledgePromptTemplate || null);
+          setKnowledgePromptDraft(promptData.aiKnowledgePromptTemplate || DEFAULT_KNOWLEDGE_AI_PROMPT);
         }
 
         // Fetch question banks for reset filter
@@ -209,6 +214,32 @@ export default function AdminPage() {
     }
   }
 
+  async function handleSaveKnowledgePrompt() {
+    setSavingPrompt(true);
+    setKnowledgePromptMessage(null);
+    try {
+      const isDefault = knowledgePromptDraft.trim() === DEFAULT_KNOWLEDGE_AI_PROMPT.trim();
+      const res = await fetch("/api/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiKnowledgePromptTemplate: isDefault ? null : knowledgePromptDraft }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCustomKnowledgePrompt(data.aiKnowledgePromptTemplate);
+        setKnowledgePromptMessage({ type: "success", text: isDefault ? "已恢復為預設 Prompt" : "Prompt 已儲存" });
+      } else {
+        const data = await res.json();
+        setKnowledgePromptMessage({ type: "error", text: data.error || "儲存失敗" });
+      }
+    } catch (err) {
+      console.error("Failed to save knowledge prompt:", err);
+      setKnowledgePromptMessage({ type: "error", text: "儲存失敗，請稍後再試" });
+    } finally {
+      setSavingPrompt(false);
+    }
+  }
+
   const role = (session?.user as { role?: string } | undefined)?.role;
 
   if (status === "loading") {
@@ -284,6 +315,61 @@ export default function AdminPage() {
               promptMessage.type === "success" ? "text-emerald-600" : "text-red-600"
             )}>
               {promptMessage.text}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const knowledgePromptSection = (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">知識庫 AI Prompt 設定</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          自訂知識庫 AI 整理時使用的 Prompt 模板
+          {customKnowledgePrompt && <span className="ml-1 text-blue-500">（目前使用自訂 Prompt）</span>}
+          {!customKnowledgePrompt && <span className="ml-1 text-gray-400">（目前使用預設 Prompt）</span>}
+        </p>
+      </div>
+
+      <textarea
+        value={knowledgePromptDraft}
+        onChange={(e) => setKnowledgePromptDraft(e.target.value)}
+        className="w-full min-h-[200px] px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y font-mono"
+      />
+
+      <div>
+        <p className="text-xs text-gray-500 mb-2">可用變數：</p>
+        <div className="flex flex-wrap gap-1.5">
+          {["{{主題}}", "{{筆記內容}}", "{{#筆記內容}}...{{/筆記內容}}"].map((t) => (
+            <span key={t} className="inline-block px-2 py-0.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs rounded-full font-mono">{t}</span>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 mt-1">{"{{#筆記內容}}...{{/筆記內容}} 為條件區塊，筆記為空時不顯示"}</p>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSaveKnowledgePrompt}
+            disabled={savingPrompt}
+            className="px-5 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
+          >
+            {savingPrompt ? "儲存中..." : "儲存 Prompt"}
+          </button>
+          <button
+            onClick={() => { setKnowledgePromptDraft(DEFAULT_KNOWLEDGE_AI_PROMPT); setKnowledgePromptMessage(null); }}
+            className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          >
+            恢復預設
+          </button>
+          {knowledgePromptMessage && (
+            <p className={cn(
+              "text-sm",
+              knowledgePromptMessage.type === "success" ? "text-emerald-600" : "text-red-600"
+            )}>
+              {knowledgePromptMessage.text}
             </p>
           )}
         </div>
@@ -388,6 +474,7 @@ export default function AdminPage() {
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">設定</h1>
         {promptSection}
+        {knowledgePromptSection}
         {resetSection}
       </div>
     );
@@ -582,6 +669,7 @@ export default function AdminPage() {
 
           {/* AI Prompt Settings */}
           {promptSection}
+          {knowledgePromptSection}
 
           {/* Reset Learning Records */}
           {resetSection}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useTheme } from "@/components/theme-provider";
 import { getKnowledgeNav, getEditorPreview, setEditorPreview } from "@/lib/knowledge-nav";
+import { buildKnowledgeAiPrompt, getAiWebUrls } from "@/lib/ai-prompt";
 import type { Element, Root, RootContent } from "hast";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
@@ -129,6 +130,7 @@ export default function KnowledgeEntryPage() {
   const [navTags, setNavTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [backlinks, setBacklinks] = useState<string[]>([]);
+  const [customKnowledgePrompt, setCustomKnowledgePrompt] = useState<string | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -203,6 +205,11 @@ export default function KnowledgeEntryPage() {
           setAllTags([...new Set([...questionTags, ...customTags])]);
         }
       })
+      .catch(() => {});
+    // Fetch custom knowledge AI prompt
+    fetch("/api/user-settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data?.aiKnowledgePromptTemplate) setCustomKnowledgePrompt(data.aiKnowledgePromptTemplate); })
       .catch(() => {});
   }, [status]);
 
@@ -619,9 +626,28 @@ export default function KnowledgeEntryPage() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          自動儲存 · 可貼上或拖放圖片
-        </p>
+        <div className="flex items-center gap-2">
+          {(() => {
+            const urls = getAiWebUrls(buildKnowledgeAiPrompt(tag, content, customKnowledgePrompt));
+            return (
+              <>
+                <span className="text-xs text-gray-400 mr-1">AI 整理</span>
+                <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#10a37f] hover:bg-[#0d8c6d] text-white rounded-full text-[11px] font-medium transition-all">
+                  ChatGPT
+                </a>
+                <a href={urls.claude} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#d97706] hover:bg-[#b45309] text-white rounded-full text-[11px] font-medium transition-all">
+                  Claude
+                </a>
+                <a href={urls.gemini} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#4285f4] hover:bg-[#3367d6] text-white rounded-full text-[11px] font-medium transition-all">
+                  Gemini
+                </a>
+              </>
+            );
+          })()}
+        </div>
       </div>
 
       {/* Markdown Editor */}

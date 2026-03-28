@@ -12,11 +12,12 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { aiPromptTemplate: true, dailyGoal: true },
+      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true },
     });
 
     return NextResponse.json({
       aiPromptTemplate: user?.aiPromptTemplate || null,
+      aiKnowledgePromptTemplate: user?.aiKnowledgePromptTemplate || null,
       dailyGoal: user?.dailyGoal || null,
     });
   } catch (error) {
@@ -34,11 +35,11 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { aiPromptTemplate, dailyGoal } = body;
+    const { aiPromptTemplate, aiKnowledgePromptTemplate, dailyGoal } = body;
 
     const data: Record<string, unknown> = {};
 
-    // AI prompt template
+    // AI prompt template (exam questions)
     if (aiPromptTemplate !== undefined) {
       const template = typeof aiPromptTemplate === "string" && aiPromptTemplate.trim()
         ? aiPromptTemplate.trim()
@@ -47,6 +48,17 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: "Prompt 長度不得超過 2000 字元" }, { status: 400 });
       }
       data.aiPromptTemplate = template;
+    }
+
+    // AI knowledge prompt template
+    if (aiKnowledgePromptTemplate !== undefined) {
+      const template = typeof aiKnowledgePromptTemplate === "string" && aiKnowledgePromptTemplate.trim()
+        ? aiKnowledgePromptTemplate.trim()
+        : null;
+      if (template && template.length > 2000) {
+        return NextResponse.json({ error: "Prompt 長度不得超過 2000 字元" }, { status: 400 });
+      }
+      data.aiKnowledgePromptTemplate = template;
     }
 
     // Daily goal
@@ -65,11 +77,12 @@ export async function PUT(req: NextRequest) {
     const updated = await prisma.user.update({
       where: { id: session.user.id },
       data,
-      select: { aiPromptTemplate: true, dailyGoal: true },
+      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true },
     });
 
     return NextResponse.json({
       aiPromptTemplate: updated.aiPromptTemplate,
+      aiKnowledgePromptTemplate: updated.aiKnowledgePromptTemplate,
       dailyGoal: updated.dailyGoal,
     });
   } catch (error) {

@@ -68,3 +68,61 @@ export function getAiWebUrls(prompt: string) {
     gemini: `https://gemini.google.com/app?q=${encoded}`,
   };
 }
+
+/**
+ * Knowledge base AI prompt — helps user understand a topic.
+ *
+ * Template variables:
+ *   {{主題}}   — knowledge tag name
+ *   {{筆記內容}} — current note content (may be empty)
+ */
+
+export const DEFAULT_KNOWLEDGE_AI_PROMPT = `你是一位專業的學習輔導老師，請用繁體中文幫我整理以下知識主題。
+
+【主題】
+{{主題}}
+
+{{#筆記內容}}
+【目前筆記】
+{{筆記內容}}
+{{/筆記內容}}
+
+請依照以下格式回答：
+
+## 核心概念
+用 3-5 句話解釋這個主題的核心意義和重要性
+
+## 關鍵要點
+列出 5-8 個最重要的知識點，每點用一句話說明
+
+## 常見考點
+列出 3-5 個跟這個主題相關、考試中最容易出現的考點
+
+## 易混淆概念
+指出 2-3 個容易跟此主題混淆的相關概念，說明差異
+
+## 記憶口訣
+提供一個幫助記憶的口訣或聯想方式`;
+
+export function buildKnowledgeAiPrompt(
+  tag: string,
+  noteContent: string,
+  customTemplate?: string | null
+): string {
+  const template = customTemplate?.trim() || DEFAULT_KNOWLEDGE_AI_PROMPT;
+
+  let result = template
+    .replace(/\{\{主題\}\}/g, tag);
+
+  // Handle conditional {{#筆記內容}}...{{/筆記內容}} block
+  if (noteContent.trim()) {
+    result = result
+      .replace(/\{\{#筆記內容\}\}/g, "")
+      .replace(/\{\{\/筆記內容\}\}/g, "")
+      .replace(/\{\{筆記內容\}\}/g, noteContent.trim());
+  } else {
+    result = result.replace(/\{\{#筆記內容\}\}[\s\S]*?\{\{\/筆記內容\}\}/g, "");
+  }
+
+  return result;
+}
