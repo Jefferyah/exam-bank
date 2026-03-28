@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useTheme } from "@/components/theme-provider";
+import { getKnowledgeNav, getEditorPreview, setEditorPreview } from "@/lib/knowledge-nav";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
@@ -21,7 +22,25 @@ export default function KnowledgeEntryPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"edit" | "live" | "preview">("live");
+  const [navTags, setNavTags] = useState<string[]>([]);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load editor preview preference & nav context
+  useEffect(() => {
+    setPreviewMode(getEditorPreview());
+    const nav = getKnowledgeNav();
+    if (nav) setNavTags(nav.tags);
+  }, []);
+
+  const currentIndex = navTags.indexOf(tag);
+  const prevTag = currentIndex > 0 ? navTags[currentIndex - 1] : null;
+  const nextTag = currentIndex >= 0 && currentIndex < navTags.length - 1 ? navTags[currentIndex + 1] : null;
+
+  const handlePreviewChange = (mode: "edit" | "live" | "preview") => {
+    setPreviewMode(mode);
+    setEditorPreview(mode);
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -236,7 +255,7 @@ export default function KnowledgeEntryPage() {
           value={content}
           onChange={handleChange}
           height={550}
-          preview="live"
+          preview={previewMode}
           visibleDragbar={false}
         />
         {uploading && (
@@ -252,10 +271,68 @@ export default function KnowledgeEntryPage() {
         )}
       </div>
 
-      {/* Tip */}
-      <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-        支援 Markdown 語法，輸入後自動儲存 · 可直接貼上或拖放圖片
-      </p>
+      {/* Editor mode toggle + tip */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+          {([
+            { key: "edit" as const, label: "編輯" },
+            { key: "live" as const, label: "分割" },
+            { key: "preview" as const, label: "預覽" },
+          ]).map((m) => (
+            <button
+              key={m.key}
+              onClick={() => handlePreviewChange(m.key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                previewMode === m.key
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          自動儲存 · 可貼上或拖放圖片
+        </p>
+      </div>
+
+      {/* Prev / Next navigation */}
+      {navTags.length > 1 && currentIndex >= 0 && (
+        <div className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-3 shadow-sm">
+          <button
+            onClick={() => prevTag && router.push(`/knowledge/${encodeURIComponent(prevTag)}`)}
+            disabled={!prevTag}
+            className={`flex items-center gap-2 text-sm transition-colors ${
+              prevTag
+                ? "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="max-w-[120px] sm:max-w-[200px] truncate">{prevTag || "無"}</span>
+          </button>
+          <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
+            {currentIndex + 1} / {navTags.length}
+          </span>
+          <button
+            onClick={() => nextTag && router.push(`/knowledge/${encodeURIComponent(nextTag)}`)}
+            disabled={!nextTag}
+            className={`flex items-center gap-2 text-sm transition-colors ${
+              nextTag
+                ? "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
+                : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+            }`}
+          >
+            <span className="max-w-[120px] sm:max-w-[200px] truncate">{nextTag || "無"}</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

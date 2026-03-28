@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import * as d3 from "d3";
+import { setKnowledgeNavList } from "@/lib/knowledge-nav";
 
 type SizeMetric = "questionCount" | "wordCount";
 
@@ -56,6 +57,14 @@ export default function KnowledgePage() {
     if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
     return true;
   });
+
+  // Store nav list whenever filtered tags change
+  useEffect(() => {
+    const sorted = [...filteredTags].sort((a, b) =>
+      sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
+    );
+    setKnowledgeNavList(sorted.map((t) => t.tag));
+  }, [filteredTags, sizeMetric]);
 
   // Accuracy → color mapping (grey=no data, red→yellow→green)
   const getAccuracyColor = useCallback((accuracy: number | null, alpha: number) => {
