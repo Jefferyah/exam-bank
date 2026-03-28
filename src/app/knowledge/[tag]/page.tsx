@@ -428,7 +428,7 @@ export default function KnowledgeEntryPage() {
   }, [getTextarea, handleChange]);
 
   const acFiltered = acQuery !== null
-    ? allTags.filter((t) => t.toLowerCase().includes(acQuery.toLowerCase()) && t !== tag).slice(0, 8)
+    ? allTags.filter((t) => t.toLowerCase().startsWith(acQuery.toLowerCase()) && t !== tag).slice(0, 8)
     : [];
   const acShowCreate = acQuery !== null && acQuery.trim().length > 0 && !acFiltered.some((t) => t.toLowerCase() === acQuery.toLowerCase());
   const acTotalItems = acFiltered.length + (acShowCreate ? 1 : 0);
