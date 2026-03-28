@@ -526,13 +526,13 @@ function DashboardTab({
           <div>
             <div className="flex items-end justify-between mb-2">
               <span className="text-3xl font-bold text-gray-900">{a.todayQuestions}<span className="text-lg font-normal text-gray-400 ml-0.5">/ {dailyGoal}</span></span>
-              <span className={cn("text-sm font-medium", todayProgress >= 100 ? "text-emerald-600" : "text-gray-500")}>
+              <span className={cn("text-sm font-semibold", todayProgress >= 100 ? "bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 bg-clip-text text-transparent" : "text-gray-500")}>
                 {todayProgress >= 100 ? "已達成!" : `${todayProgress}%`}
               </span>
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
               <div
-                className={cn("h-3 rounded-full transition-all duration-500", todayProgress >= 100 ? "bg-emerald-500" : "bg-gray-400")}
+                className={cn("h-3 rounded-full transition-all duration-500", todayProgress >= 100 ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-violet-500 dark:from-cyan-400 dark:via-blue-500 dark:to-indigo-500" : "bg-gradient-to-r from-indigo-200 via-purple-200 to-violet-200 dark:from-cyan-800 dark:via-blue-800 dark:to-indigo-800")}
                 style={{ width: `${todayProgress}%` }}
               />
             </div>
