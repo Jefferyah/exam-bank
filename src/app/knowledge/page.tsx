@@ -182,6 +182,13 @@ export default function KnowledgePage() {
       .map((l) => ({ source: nodeIndex.get(l.source)!, target: nodeIndex.get(l.target)! }))
       .filter((l) => l.source !== undefined && l.target !== undefined);
 
+    // Track which nodes have links so we can weaken radial force on them
+    const linkedNodeIndices = new Set<number>();
+    for (const l of graphLinks) {
+      linkedNodeIndices.add(l.source);
+      linkedNodeIndices.add(l.target);
+    }
+
     const simulation = d3
       .forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(1))
@@ -189,18 +196,18 @@ export default function KnowledgePage() {
         "collide",
         d3.forceCollide<(typeof nodes)[0]>().radius((d) => d.r + 3).strength(0.9)
       )
-      // Radial force: large r → small radius (near center), small r → large radius (outer ring)
+      // Radial force: weaker for linked nodes so link force can pull them together
       .force(
         "radial",
         d3.forceRadial<(typeof nodes)[0]>(
           (d) => {
-            const ratio = d.r / maxR; // 1 = biggest, 0 = smallest
+            const ratio = d.r / maxR;
             const maxDist = Math.min(width, height) * 0.35;
-            return maxDist * (1 - ratio * ratio); // quadratic: big→0, small→far
+            return maxDist * (1 - ratio * ratio);
           },
           width / 2,
           height / 2
-        ).strength(0.3)
+        ).strength((d) => linkedNodeIndices.has(d.index!) ? 0.05 : 0.3)
       )
       .force("x", d3.forceX(width / 2).strength(0.02))
       .force("y", d3.forceY(height / 2).strength(0.02));
@@ -214,10 +221,9 @@ export default function KnowledgePage() {
           .distance((l) => {
             const s = (l as any).source;
             const t = (l as any).target;
-            // Tight distance: just enough so circles don't overlap
             return ((s?.r ?? 30) + (t?.r ?? 30) + 5);
           })
-          .strength(0.8)
+          .strength(1.2)
       );
     }
 
