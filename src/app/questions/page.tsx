@@ -399,7 +399,7 @@ function QuestionsPageInner() {
                             <div
                               key={bank.id}
                               className={cn(
-                                "flex items-center justify-between p-4 transition-colors group",
+                                "flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 transition-colors group gap-2",
                                 isHidden ? "bg-gray-50 dark:bg-gray-800 opacity-60" : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750"
                               )}
                             >
@@ -469,7 +469,7 @@ function QuestionsPageInner() {
                                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{bank.description}</p>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                              <div className="flex items-center gap-1.5 flex-wrap mt-2 sm:mt-0 sm:ml-4 sm:flex-shrink-0">
                                 {editingBankId !== bank.id && (
                                   <>
                                     <button
