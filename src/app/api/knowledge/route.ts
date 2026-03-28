@@ -97,6 +97,22 @@ export async function GET() {
       }
     }
 
+    // Parse wiki-links [[tag]] from all entries to build link graph
+    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
+    const links: { source: string; target: string }[] = [];
+    const allTagNames = new Set(tagCounts.keys());
+
+    for (const entry of entries) {
+      let match: RegExpExecArray | null;
+      wikiLinkRegex.lastIndex = 0;
+      while ((match = wikiLinkRegex.exec(entry.content)) !== null) {
+        const target = match[1].trim();
+        if (target && target !== entry.tag && allTagNames.has(target)) {
+          links.push({ source: entry.tag, target });
+        }
+      }
+    }
+
     const tags = [...tagCounts.entries()]
       .map(([tag, questionCount]) => {
         const entry = entryMap.get(tag);
@@ -114,7 +130,7 @@ export async function GET() {
       })
       .sort((a, b) => b.questionCount - a.questionCount);
 
-    return NextResponse.json({ tags });
+    return NextResponse.json({ tags, links });
   } catch (error) {
     console.error("GET /api/knowledge error:", error);
     return NextResponse.json(

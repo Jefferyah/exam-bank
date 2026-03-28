@@ -72,6 +72,8 @@ export default function KnowledgeEntryPage() {
   const [acPos, setAcPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const acCursorRef = useRef<number>(0); // store cursor position for autocomplete
+  const acInteractingRef = useRef(false); // track if user is interacting with dropdown
 
   // Load editor preview preference & nav context
   useEffect(() => {
@@ -238,17 +240,16 @@ export default function KnowledgeEntryPage() {
   }, []);
 
   const handleAutocompleteInput = useCallback(() => {
+    if (acInteractingRef.current) return; // don't update while interacting with dropdown
     const textarea = getTextarea();
     if (!textarea) return;
     const pos = textarea.selectionStart;
+    acCursorRef.current = pos;
     const textBefore = textarea.value.substring(0, pos);
-    // Find unclosed [[ before cursor
     const match = textBefore.match(/\[\[([^\]]*?)$/);
     if (match) {
       setAcQuery(match[1]);
       setAcIndex(0);
-      // Position the dropdown near the cursor
-      // Use a mirror div approach or simple offset from textarea
       const linesBefore = textBefore.split("\n");
       const lineHeight = 22;
       const charWidth = 8;
@@ -266,23 +267,24 @@ export default function KnowledgeEntryPage() {
   }, [getTextarea]);
 
   const insertWikiLink = useCallback((selectedTag: string) => {
+    acInteractingRef.current = false;
     const textarea = getTextarea();
     if (!textarea) return;
-    const pos = textarea.selectionStart;
-    const textBefore = textarea.value.substring(0, pos);
-    const textAfter = textarea.value.substring(pos);
-    // Find the [[ start
+    // Use stored cursor position (more reliable than reading from textarea after blur)
+    const pos = acCursorRef.current || textarea.selectionStart;
+    const fullText = textarea.value;
+    const textBefore = fullText.substring(0, pos);
+    const textAfter = fullText.substring(pos);
     const match = textBefore.match(/\[\[([^\]]*?)$/);
     if (!match) return;
     const start = textBefore.length - match[0].length;
     const newText = textBefore.substring(0, start) + `[[${selectedTag}]]` + textAfter;
     handleChange(newText);
     setAcQuery(null);
-    // Restore cursor position after the inserted link
     requestAnimationFrame(() => {
       const ta = getTextarea();
       if (ta) {
-        const newPos = start + selectedTag.length + 4; // [[ + tag + ]]
+        const newPos = start + selectedTag.length + 4;
         ta.selectionStart = ta.selectionEnd = newPos;
         ta.focus();
       }
@@ -432,6 +434,10 @@ export default function KnowledgeEntryPage() {
         <div
           className="fixed z-[100] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
           style={{ top: acPos.top, left: acPos.left }}
+          onMouseDown={(e) => {
+            e.preventDefault(); // prevent textarea blur
+            acInteractingRef.current = true;
+          }}
         >
           <div className="px-3 py-1.5 text-[10px] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 uppercase tracking-wider">
             插入知識連結

@@ -17,10 +17,16 @@ interface TagData {
   updatedAt: string | null;
 }
 
+interface TagLink {
+  source: string;
+  target: string;
+}
+
 export default function KnowledgePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [tags, setTags] = useState<TagData[]>([]);
+  const [links, setLinks] = useState<TagLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sizeMetric, setSizeMetric] = useState<SizeMetric>("questionCount");
@@ -40,6 +46,7 @@ export default function KnowledgePage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.tags) setTags(data.tags);
+        if (data?.links) setLinks(data.links);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -60,9 +67,11 @@ export default function KnowledgePage() {
 
   // Store nav list whenever filtered tags change
   useEffect(() => {
-    const sorted = [...filteredTags].sort((a, b) =>
-      sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
-    );
+    const sorted = [...filteredTags]
+      .filter((t) => t.wordCount > 0)
+      .sort((a, b) =>
+        sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
+      );
     setKnowledgeNavList(sorted.map((t) => t.tag));
   }, [filteredTags, sizeMetric]);
 
@@ -117,6 +126,14 @@ export default function KnowledgePage() {
     // Larger bubbles get much stronger pull toward center
     const maxR = d3.max(nodes, (d) => d.r) || 1;
 
+    // Build link data — map tag names to node indices
+    const nodeIndex = new Map(nodes.map((n, i) => [n.tag, i]));
+    const filteredTagSet = new Set(filteredTags.map((t) => t.tag));
+    const graphLinks = links
+      .filter((l) => filteredTagSet.has(l.source) && filteredTagSet.has(l.target))
+      .map((l) => ({ source: nodeIndex.get(l.source)!, target: nodeIndex.get(l.target)! }))
+      .filter((l) => l.source !== undefined && l.target !== undefined);
+
     const simulation = d3
       .forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(1))
@@ -139,6 +156,20 @@ export default function KnowledgePage() {
       )
       .force("x", d3.forceX(width / 2).strength(0.02))
       .force("y", d3.forceY(height / 2).strength(0.02));
+
+    // Add link force if there are connections
+    if (graphLinks.length > 0) {
+      simulation.force(
+        "link",
+        d3.forceLink(graphLinks)
+          .distance((l) => {
+            const s = nodes[(l as unknown as { source: number }).source];
+            const t = nodes[(l as unknown as { target: number }).target];
+            return (s?.r || 30) + (t?.r || 30) + 20;
+          })
+          .strength(0.3)
+      );
+    }
 
     // Drag behavior
     let dragStartX = 0, dragStartY = 0;
@@ -165,6 +196,16 @@ export default function KnowledgePage() {
           router.push(`/knowledge/${encodeURIComponent(d.tag)}`);
         }
       });
+
+    // Draw link lines (behind nodes)
+    const linkGroup = svg
+      .selectAll<SVGLineElement, (typeof graphLinks)[0]>("line.wiki-edge")
+      .data(graphLinks)
+      .join("line")
+      .attr("class", "wiki-edge")
+      .attr("stroke", "rgba(139, 92, 246, 0.25)")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "4,3");
 
     type NodeType = (typeof nodes)[0];
     const nodeGroup = svg
@@ -244,13 +285,18 @@ export default function KnowledgePage() {
       .attr("fill", "#3b82f6");
 
     simulation.on("tick", () => {
+      linkGroup
+        .attr("x1", (d) => nodes[(d as unknown as { source: number }).source]?.x ?? 0)
+        .attr("y1", (d) => nodes[(d as unknown as { source: number }).source]?.y ?? 0)
+        .attr("x2", (d) => nodes[(d as unknown as { target: number }).target]?.x ?? 0)
+        .attr("y2", (d) => nodes[(d as unknown as { target: number }).target]?.y ?? 0);
       nodeGroup.attr("transform", (d) => `translate(${d.x},${d.y})`);
     });
 
     return () => {
       simulation.stop();
     };
-  }, [filteredTags, router, sizeMetric, getAccuracyColor]);
+  }, [filteredTags, links, router, sizeMetric, getAccuracyColor]);
 
   useEffect(() => {
     const cleanup = renderBubbles();
