@@ -633,7 +633,7 @@ function DashboardTab({
             <div className="absolute left-10 right-2 top-0 bottom-6 flex items-end gap-1">
               {a.recentTrend.slice().reverse().map((e) => {
                 const score = e.score ?? 0;
-                const barColor = score >= 80 ? "bg-emerald-500" : score >= 60 ? "bg-amber-500" : "bg-red-500";
+                const barColor = score >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : score >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40";
                 const barHeight = Math.max(4, score);
                 return (
                   <Link key={e.id} href={`/exam/${e.id}/result`} className="flex-1 h-full relative group flex items-end">
@@ -672,7 +672,7 @@ function DashboardTab({
           <div className="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
             {a.dailyActivity.map((d) => {
               const intensity = d.questions === 0 ? 0 : d.questions <= 5 ? 1 : d.questions <= 15 ? 2 : d.questions <= 30 ? 3 : 4;
-              const colors = ["bg-gray-100 dark:bg-gray-700", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500"];
+              const colors = ["bg-gray-100 dark:bg-gray-700", "bg-purple-100 dark:bg-purple-400/20", "bg-purple-200 dark:bg-purple-400/30", "bg-purple-300 dark:bg-purple-400/40", "bg-purple-400 dark:bg-purple-400/50"];
               const dayLabel = new Date(d.date + "T00:00:00").toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
               return (
                 <div
@@ -689,7 +689,7 @@ function DashboardTab({
           </div>
           <div className="flex items-center justify-end gap-1 mt-2 text-[10px] text-gray-400">
             <span>少</span>
-            {["bg-gray-100 dark:bg-gray-700", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500"].map((c, i) => (
+            {["bg-gray-100 dark:bg-gray-700", "bg-purple-100 dark:bg-purple-400/20", "bg-purple-200 dark:bg-purple-400/30", "bg-purple-300 dark:bg-purple-400/40", "bg-purple-400 dark:bg-purple-400/50"].map((c, i) => (
               <div key={i} className={cn("w-3 h-3 rounded-sm", c)} />
             ))}
             <span>多</span>
@@ -745,7 +745,7 @@ function DashboardTab({
                   <div
                     className={cn(
                       "h-4 rounded-full transition-all",
-                      d.accuracy >= 80 ? "bg-emerald-500" : d.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
+                      d.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : d.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
                     )}
                     style={{ width: `${Math.max(d.accuracy, 3)}%` }}
                   />
@@ -784,7 +784,7 @@ function DashboardTab({
                   return (
                     <div key={d.difficulty} className="flex-1 flex flex-col items-center gap-1">
                       <span className="text-xs font-bold text-gray-700">{d.avgTime}s</span>
-                      <div className="w-full rounded-t-lg bg-gradient-to-t from-gray-500 to-gray-400 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
+                      <div className="w-full rounded-t-lg bg-gradient-to-t from-purple-300 to-purple-200 dark:from-purple-400/40 dark:to-purple-300/30 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
                       <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
                       <span className="text-[10px] text-gray-400">{d.count}題</span>
                     </div>
@@ -814,7 +814,7 @@ function DashboardTab({
                               <span className="text-[10px] text-gray-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
                             </div>
                             <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-gray-400 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
+                              <div className="bg-emerald-300 dark:bg-emerald-400/40 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
                             </div>
                           </div>
                         )}
@@ -824,7 +824,7 @@ function DashboardTab({
                               <span className="text-[10px] text-gray-500 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
                             </div>
                             <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-gray-300 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
+                              <div className="bg-red-200 dark:bg-red-400/40 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
                             </div>
                           </div>
                         )}
@@ -871,7 +871,7 @@ function DashboardTab({
                         <div
                           className={cn(
                             "h-2.5 rounded-full transition-all",
-                            d.accuracy >= 80 ? "bg-emerald-500" : d.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
+                            d.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : d.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
                           )}
                           style={{ width: `${d.accuracy}%` }}
                         />
@@ -913,7 +913,7 @@ function DashboardTab({
                   <div
                     className={cn(
                       "h-2.5 rounded-full transition-all",
-                      t.accuracy >= 80 ? "bg-emerald-500" : t.accuracy >= 60 ? "bg-amber-500" : "bg-red-500"
+                      t.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : t.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
                     )}
                     style={{ width: `${t.accuracy}%` }}
                   />
@@ -1322,28 +1322,28 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
           <div className="h-4 rounded-full overflow-hidden flex bg-gray-100 dark:bg-gray-700">
             {newCount > 0 && (
               <div
-                className="bg-gray-400 transition-all"
+                className="bg-blue-200 dark:bg-blue-400/40 transition-all"
                 style={{ width: `${(newCount / total) * 100}%` }}
                 title={`新卡片 ${newCount}`}
               />
             )}
             {learningCount > 0 && (
               <div
-                className="bg-gray-300 transition-all"
+                className="bg-amber-200 dark:bg-amber-400/40 transition-all"
                 style={{ width: `${(learningCount / total) * 100}%` }}
                 title={`學習中 ${learningCount}`}
               />
             )}
             {reviewCount > 0 && (
               <div
-                className="bg-gray-500 transition-all"
+                className="bg-purple-200 dark:bg-purple-400/40 transition-all"
                 style={{ width: `${(reviewCount / total) * 100}%` }}
                 title={`複習中 ${reviewCount}`}
               />
             )}
             {masteredCount > 0 && (
               <div
-                className="bg-gray-700 transition-all"
+                className="bg-emerald-300 dark:bg-emerald-400/40 transition-all"
                 style={{ width: `${(masteredCount / total) * 100}%` }}
                 title={`已精熟 ${masteredCount}`}
               />
@@ -1353,28 +1353,28 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
           {/* Legend */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-gray-400" />
+              <span className="w-3 h-3 rounded-full bg-blue-200 dark:bg-blue-400/40" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{newCount}</div>
                 <div className="text-xs text-gray-400">新卡片</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-gray-300" />
+              <span className="w-3 h-3 rounded-full bg-amber-200 dark:bg-amber-400/40" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{learningCount}</div>
                 <div className="text-xs text-gray-400">學習中</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-gray-500" />
+              <span className="w-3 h-3 rounded-full bg-purple-200 dark:bg-purple-400/40" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{reviewCount}</div>
                 <div className="text-xs text-gray-400">複習中</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-gray-700" />
+              <span className="w-3 h-3 rounded-full bg-emerald-300 dark:bg-emerald-400/40" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{masteredCount}</div>
                 <div className="text-xs text-gray-400">已精熟</div>
@@ -1390,7 +1390,7 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
             </div>
             <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 mt-1">
               <div
-                className="h-2 rounded-full bg-gray-500 transition-all"
+                className="h-2 rounded-full bg-emerald-300 dark:bg-emerald-400/40 transition-all"
                 style={{ width: `${stats.masteryRate}%` }}
               />
             </div>
