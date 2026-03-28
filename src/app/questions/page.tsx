@@ -86,7 +86,11 @@ function QuestionsPageInner() {
       const res = await fetch("/api/question-banks?includeHidden=true");
       if (res.ok) {
         const data = await res.json();
-        setQuestionBanks(Array.isArray(data) ? data : data.questionBanks || []);
+        const banks = Array.isArray(data) ? data : data.questionBanks || [];
+        setQuestionBanks(banks);
+        // Default all categories collapsed
+        const cats = groupBanksByCategory(banks).map((g) => g.category);
+        setCollapsedCategories(new Set(cats));
       }
     } catch (err) {
       console.error("Failed to fetch question banks:", err);
