@@ -165,8 +165,8 @@ export default function ReviewPage() {
       try {
         const [analyticsRes, favRes, notesRes, srsRes] = await Promise.all([
           fetch("/api/analytics"),
-          fetch("/api/favorites?limit=100"),
-          fetch("/api/notes?limit=100"),
+          fetch("/api/favorites?limit=500"),
+          fetch("/api/notes?limit=500"),
           fetch("/api/review-cards?stats=true"),
         ]);
 
@@ -211,16 +211,19 @@ export default function ReviewPage() {
   }
 
   async function handleReviewWrong() {
-    if (wrongQuestions.length === 0) return;
+    // Use processedWrong (excludes mastered) instead of full wrongQuestions
+    const unmasteredIds = processedWrong.map((q) => q.questionId);
+    if (unmasteredIds.length === 0) return;
     try {
       const res = await fetch("/api/exams", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: `錯題重做 - ${new Date().toLocaleDateString("zh-TW")}`,
-          count: Math.min(wrongQuestions.length, 50),
+          count: Math.min(unmasteredIds.length, 50),
           mode: "PRACTICE",
           wrongOnly: true,
+          excludeQuestionIds: [...mastered],
         }),
       });
       if (res.ok) { const data = await res.json(); router.push(`/exam/${data.id}`); }

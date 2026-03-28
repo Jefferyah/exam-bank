@@ -96,6 +96,10 @@ export async function GET(req: NextRequest) {
     ]);
     const bankMap = new Map(questionBanks.map((b) => [b.id, b.name]));
     const hiddenBankIds = new Set(hiddenBanks.map((h) => h.questionBankId));
+    // Filter out hidden banks from all exam answers early so all downstream stats are consistent
+    const allExamAnswersFiltered = allExamAnswers.filter(
+      (a) => !hiddenBankIds.has(a.question.questionBankId)
+    );
     // Build exam mode lookup from allCompletedExams
     const examModeMap = new Map(allCompletedExams.map((e) => [e.id, e.mode]));
 
@@ -111,7 +115,7 @@ export async function GET(req: NextRequest) {
       string,
       { total: number; correct: number }
     > = {};
-    for (const answer of allExamAnswers) {
+    for (const answer of allExamAnswersFiltered) {
       const bankId = answer.question.questionBankId;
       if (!bankStats[bankId]) {
         bankStats[bankId] = { total: 0, correct: 0 };
@@ -142,7 +146,7 @@ export async function GET(req: NextRequest) {
       number,
       { total: number; correct: number }
     > = {};
-    for (const answer of allExamAnswers) {
+    for (const answer of allExamAnswersFiltered) {
       const diff = answer.question.difficulty;
       if (!difficultyStats[diff]) {
         difficultyStats[diff] = { total: 0, correct: 0 };
@@ -212,7 +216,7 @@ export async function GET(req: NextRequest) {
 
     // ── Time analysis ──
     // Time analysis: only count MOCK (exam) mode for meaningful speed data
-    const answeredWithTime = allExamAnswers.filter(
+    const answeredWithTime = allExamAnswersFiltered.filter(
       (a) => a.userAnswer != null && (a.timeSpent ?? 0) > 0 && examModeMap.get(a.examId) === "MOCK"
     );
     const avgTimePerQuestion =
@@ -284,11 +288,11 @@ export async function GET(req: NextRequest) {
 
     // ── Tag-wise accuracy (using effective tags per user) ──
     const tagOverrideMap = await getEffectiveTagsMap(
-      allExamAnswers.map((a) => a.question.id),
+      allExamAnswersFiltered.map((a) => a.question.id),
       userId
     );
     const tagStats: Record<string, { total: number; correct: number }> = {};
-    for (const answer of allExamAnswers) {
+    for (const answer of allExamAnswersFiltered) {
       if (answer.userAnswer == null) continue;
       const tags: string[] = tagOverrideMap.get(answer.question.id) ?? safeJsonParse(answer.question.tags, []);
       for (const tag of tags) {
@@ -341,7 +345,7 @@ export async function GET(req: NextRequest) {
     const examFinishMap = new Map(
       allCompletedExams.map((e) => [e.id, e.finishedAt])
     );
-    for (const a of allExamAnswers) {
+    for (const a of allExamAnswersFiltered) {
       if (a.userAnswer == null) continue;
       const finished = examFinishMap.get(a.examId);
       if (!finished) continue;
@@ -383,19 +387,19 @@ export async function GET(req: NextRequest) {
     // Count answered questions from COMPLETED exams finished today
     // PLUS answered questions from IN_PROGRESS exams started today
     const todayStart = localDayStart(todayKey);
-    const todayCompletedAnswered = allExamAnswers.filter((a) => {
+    const todayCompletedAnswered = allExamAnswersFiltered.filter((a) => {
       if (a.userAnswer == null) return false;
       const finished = examFinishMap.get(a.examId);
       if (!finished) return false;
       return new Date(finished) >= todayStart;
     }).length;
 
-    // Also count in-progress exams started today
+    // Also count answers from in-progress exams (include all, not just started today,
+    // so cross-midnight sessions are counted)
     const inProgressExams = await prisma.exam.findMany({
       where: {
         userId,
         status: "IN_PROGRESS",
-        startedAt: { gte: todayStart },
       },
       select: { id: true },
     });

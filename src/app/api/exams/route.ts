@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       chapters: filterChapters,
       shuffleOptions = false,
       shuffleQuestions = true,
+      excludeQuestionIds,
     } = body;
 
     if (!title) {
@@ -271,6 +272,16 @@ export async function POST(req: NextRequest) {
         } else {
           questionWhere.id = { notIn: [...triedIds] };
         }
+      }
+    }
+
+    // Exclude specific question IDs (e.g. mastered wrong questions)
+    if (excludeQuestionIds && Array.isArray(excludeQuestionIds) && excludeQuestionIds.length > 0) {
+      if (questionWhere.id) {
+        const existingIds = (questionWhere.id as { in: string[] }).in;
+        questionWhere.id = { in: existingIds.filter((id: string) => !excludeQuestionIds.includes(id)) };
+      } else {
+        questionWhere.id = { notIn: excludeQuestionIds };
       }
     }
 

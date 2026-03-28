@@ -67,7 +67,7 @@ export default function ReviewSessionPage() {
   useEffect(() => {
     async function fetchDueCards() {
       try {
-        const res = await fetch("/api/review-cards?due=today&limit=50");
+        const res = await fetch("/api/review-cards?due=today&limit=200");
         if (res.ok) {
           const data = await res.json();
           setCards(data.cards || []);
@@ -312,7 +312,7 @@ export default function ReviewSessionPage() {
       <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-4">
         <div
           className="h-1.5 bg-blue-500 rounded-full transition-all"
-          style={{ width: `${((currentIndex) / cards.length) * 100}%` }}
+          style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
         />
       </div>
 
