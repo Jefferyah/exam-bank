@@ -348,7 +348,7 @@ function QuestionsPageInner() {
                 className={cn(
                   "px-3 py-1.5 text-xs rounded-full transition-colors border",
                   showHidden
-                    ? "text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                    ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700"
                     : "text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100"
                 )}
               >
@@ -451,12 +451,12 @@ function QuestionsPageInner() {
                                       {bank._count?.questions ?? 0} 題
                                     </span>
                                     {bank.isPublic ? (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0">公開</span>
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium rounded-full flex-shrink-0">公開</span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs font-medium rounded-full flex-shrink-0">私人</span>
                                     )}
                                     {isHidden && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0">已隱藏</span>
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-medium rounded-full flex-shrink-0">已隱藏</span>
                                     )}
                                     {!isOwner && bank.createdBy && (
                                       <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
@@ -480,7 +480,7 @@ function QuestionsPageInner() {
                                         !canManage
                                           ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
                                           : bank.isPublic
-                                            ? "text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                            ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
                                             : "text-gray-600 bg-gray-100 hover:bg-gray-200"
                                       )}
                                       title={!canManage ? "只有擁有者可以操作" : ""}
@@ -502,7 +502,7 @@ function QuestionsPageInner() {
                                     </button>
                                     <button
                                       onClick={() => { setQuestionBankId(bank.id); setShowBankManager(false); }}
-                                      className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition-colors"
+                                      className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-full transition-colors"
                                     >
                                       篩選
                                     </button>
@@ -512,8 +512,8 @@ function QuestionsPageInner() {
                                         className={cn(
                                           "px-3 py-1.5 text-xs rounded-full transition-colors",
                                           isHidden
-                                            ? "text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                                            : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                                            ? "text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/30"
+                                            : "text-amber-600 bg-amber-50 hover:bg-amber-100"
                                         )}
                                       >
                                         {isHidden ? "取消隱藏" : "隱藏"}
