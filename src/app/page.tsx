@@ -346,7 +346,7 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
         <span className={cn(
           "text-xs font-medium px-2.5 py-1 rounded-full",
           isComplete
-            ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+            ? "bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 text-white"
             : "bg-gray-100 dark:bg-gray-700 text-gray-500"
         )}>
           {isComplete ? "已達成！" : `${progress}%`}
@@ -367,8 +367,8 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
           className={cn(
             "h-3 rounded-full transition-all duration-700 ease-out",
             isComplete
-              ? "bg-gradient-to-r from-gray-700 to-gray-900 dark:from-gray-300 dark:to-gray-100"
-              : "bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-500 dark:to-gray-400"
+              ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-violet-500 dark:from-cyan-400 dark:via-blue-500 dark:to-indigo-500"
+              : "bg-gradient-to-r from-indigo-200 via-purple-200 to-violet-200 dark:from-cyan-800 dark:via-blue-800 dark:to-indigo-800"
           )}
           style={{ width: `${progress}%` }}
         />
@@ -377,7 +377,7 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
       {!isComplete && dailyGoal - todayQuestions > 0 && (
         <p className="text-xs text-gray-400 mt-2">
           還差 <span className="font-medium text-gray-600 dark:text-gray-300">{dailyGoal - todayQuestions}</span> 題就達標了，
-          <Link href="/exam" className="text-blue-500 hover:text-blue-600 ml-0.5">繼續練習 →</Link>
+          <Link href="/exam" className="text-purple-500 hover:text-purple-600 dark:text-cyan-400 dark:hover:text-cyan-300 ml-0.5">繼續練習 →</Link>
         </p>
       )}
     </div>

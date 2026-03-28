@@ -212,12 +212,18 @@ export default function KnowledgePage() {
         ).strength((d) => {
           if (linkedNodeIndices.has(d.index ?? -1)) return 0.02;
           const ratio = d.r / maxR;
-          return 0.15 + ratio * 0.5; // larger bubbles: stronger pull to center
+          return 0.15 + ratio * ratio * 0.8; // larger bubbles: much stronger pull to center
         })
       )
       // Center pull: larger bubbles get much stronger centering
-      .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => 0.01 + (d.r / maxR) * 0.12))
-      .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => 0.01 + (d.r / maxR) * 0.12));
+      .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => {
+        const ratio = d.r / maxR;
+        return 0.01 + ratio * ratio * 0.3;
+      }))
+      .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => {
+        const ratio = d.r / maxR;
+        return 0.01 + ratio * ratio * 0.3;
+      }));
 
     // Add link force if there are connections
     // Note: d3.forceLink mutates source/target from indices to node objects
