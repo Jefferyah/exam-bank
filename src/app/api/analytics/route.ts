@@ -409,6 +409,7 @@ export async function GET(req: NextRequest) {
         where: {
           examId: { in: inProgressExams.map((e) => e.id) },
           userAnswer: { not: null },
+          createdAt: { gte: todayStart },
         },
       });
     }
@@ -429,6 +430,7 @@ export async function GET(req: NextRequest) {
       recentTrend,
       mostWrongQuestions: allWrongQuestions.slice(0, 10),
       allWrongQuestions,
+      totalWrongCount: allWrongQuestions.reduce((sum, q) => sum + q.wrongCount, 0),
       // New analytics
       timeAnalysis: {
         avgTimePerQuestion,

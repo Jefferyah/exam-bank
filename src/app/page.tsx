@@ -14,6 +14,7 @@ interface AnalyticsData {
   bankAccuracy: { questionBankId: string; questionBankName: string; total: number; correct: number; accuracy: number }[];
   recentTrend: { id: string; title: string; score: number | null; finishedAt: string; startedAt: string; questionBankNames?: string[] }[];
   mostWrongQuestions: { questionId: string; stem: string; questionBankName: string; difficulty: number; wrongCount: number; lastWrongAt: string }[];
+  totalWrongCount: number;
   todayQuestions: number;
   dailyGoal: number | null;
 }
@@ -119,7 +120,7 @@ export default function HomePage() {
                 開始使用 →
               </Link>
               <Link
-                href="/questions"
+                href="/login"
                 className="inline-flex items-center gap-2 px-6 md:px-8 py-3 md:py-3.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-base md:text-lg font-medium transition-all whitespace-nowrap"
               >
                 瀏覽題庫 →
@@ -135,7 +136,7 @@ export default function HomePage() {
     return heroSection;
   }
 
-  const wrongCount = analytics?.mostWrongQuestions?.reduce((sum, q) => sum + q.wrongCount, 0) || 0;
+  const wrongCount = analytics?.totalWrongCount || 0;
 
   return (
     <div>
@@ -185,7 +186,7 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <QuickAction href="/exam" label="開始練習" desc="模擬測驗" bgColor="bg-blue-50" textColor="text-blue-600" />
         <QuickAction href="/questions" label="瀏覽題庫" desc="搜尋題目" bgColor="bg-emerald-50" textColor="text-emerald-600" />
-        <QuickAction href="/review" label="查看錯題" desc="重點複習" bgColor="bg-amber-50" textColor="text-amber-600" />
+        <QuickAction href="/review?tab=wrong" label="查看錯題" desc="重點複習" bgColor="bg-amber-50" textColor="text-amber-600" />
       </div>
 
       {/* Recent exams */}
@@ -336,7 +337,11 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
 
   useEffect(() => {
     if (isComplete && !hasTriggeredRef.current) {
+      const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
+      const celebrated = sessionStorage.getItem("exam-bank-goal-celebrated-day");
+      if (celebrated === today) return;
       hasTriggeredRef.current = true;
+      sessionStorage.setItem("exam-bank-goal-celebrated-day", today);
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 3000);
       return () => clearTimeout(timer);
