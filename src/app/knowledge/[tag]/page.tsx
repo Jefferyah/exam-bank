@@ -137,6 +137,7 @@ export default function KnowledgeEntryPage() {
   const acCursorRef = useRef<number>(0); // store cursor position for autocomplete
   const acTextRef = useRef<string>(""); // store text content when [[ detected
   const acInteractingRef = useRef(false); // track if user is interacting with dropdown
+  const acInputRef = useRef<() => void>(() => {}); // ref to autocomplete handler to avoid circular deps
 
   // Load editor preview preference & nav context
   useEffect(() => {
@@ -222,13 +223,15 @@ export default function KnowledgeEntryPage() {
     [tag]
   );
 
-  // Auto-save with debounce
+  // Auto-save with debounce + trigger autocomplete
   const handleChange = useCallback(
     (val: string | undefined) => {
       const text = val || "";
       setContent(text);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => saveContent(text), 1500);
+      // Trigger autocomplete check after MDEditor updates the textarea
+      requestAnimationFrame(() => acInputRef.current());
     },
     [saveContent]
   );
@@ -342,6 +345,9 @@ export default function KnowledgeEntryPage() {
       setAcQuery(null);
     }
   }, [getTextarea]);
+
+  // Keep ref in sync so handleChange can call it without circular deps
+  acInputRef.current = handleAutocompleteInput;
 
   const insertWikiLink = useCallback((selectedTag: string) => {
     acInteractingRef.current = false;
