@@ -37,7 +37,7 @@ export default function KnowledgePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [newTag, setNewTag] = useState("");
-  const [sizeMetric, setSizeMetric] = useState<SizeMetric>("questionCount");
+  const [sizeMetric, setSizeMetric] = useState<SizeMetric>("wordCount");
   const [masteryFilter, setMasteryFilter] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -214,9 +214,10 @@ export default function KnowledgePage() {
           .distance((l) => {
             const s = (l as any).source;
             const t = (l as any).target;
-            return ((s?.r ?? 30) + (t?.r ?? 30) + 20);
+            // Tight distance: just enough so circles don't overlap
+            return ((s?.r ?? 30) + (t?.r ?? 30) + 5);
           })
-          .strength(0.3)
+          .strength(0.8)
       );
     }
 
