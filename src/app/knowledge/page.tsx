@@ -293,6 +293,13 @@ export default function KnowledgePage() {
       .style("cursor", "grab")
       .call(drag);
 
+    // Opaque backing circle to occlude lines passing behind bubbles
+    nodeGroup
+      .append("circle")
+      .attr("r", (d) => d.r)
+      .attr("fill", "var(--bubble-bg, white)")
+      .attr("stroke", "none");
+
     // Circles — color by accuracy
     nodeGroup
       .append("circle")
@@ -554,7 +561,7 @@ export default function KnowledgePage() {
       {filteredTags.length > 0 ? (
         <div
           ref={containerRef}
-          className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm overflow-hidden"
+          className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 shadow-sm overflow-hidden [--bubble-bg:white] dark:[--bubble-bg:#1f2937]"
         >
           <svg ref={svgRef} className="w-full" />
         </div>
