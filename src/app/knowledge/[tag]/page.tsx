@@ -384,20 +384,58 @@ export default function KnowledgeEntryPage() {
 
     const onInput = () => handleAutocompleteInput();
     const onKeyDown = (e: KeyboardEvent) => {
-      if (acQuery === null || acFiltered.length === 0) return;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setAcIndex((i) => Math.min(i + 1, acFiltered.length - 1));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setAcIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === "Enter" || e.key === "Tab") {
-        if (acFiltered.length > 0) {
+      // Autocomplete navigation
+      if (acQuery !== null && acFiltered.length > 0) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setAcIndex((i) => Math.min(i + 1, acFiltered.length - 1));
+          return;
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setAcIndex((i) => Math.max(i - 1, 0));
+          return;
+        } else if (e.key === "Enter" || e.key === "Tab") {
           e.preventDefault();
           insertWikiLink(acFiltered[acIndex]);
+          return;
+        } else if (e.key === "Escape") {
+          setAcQuery(null);
+          return;
         }
-      } else if (e.key === "Escape") {
-        setAcQuery(null);
+      }
+
+      // Tab / Shift+Tab list indentation
+      if (e.key === "Tab") {
+        const ta = e.target as HTMLTextAreaElement;
+        const { selectionStart, selectionEnd, value } = ta;
+        const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+        const lineEnd = value.indexOf("\n", selectionStart);
+        const line = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
+        const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s/);
+        if (listMatch) {
+          e.preventDefault();
+          let newValue: string;
+          let newStart: number;
+          let newEnd: number;
+          if (e.shiftKey) {
+            const removeCount = Math.min(2, listMatch[1].length);
+            if (removeCount === 0) return;
+            newValue = value.substring(0, lineStart) + value.substring(lineStart + removeCount);
+            newStart = Math.max(lineStart, selectionStart - removeCount);
+            newEnd = Math.max(lineStart, selectionEnd - removeCount);
+          } else {
+            newValue = value.substring(0, lineStart) + "  " + value.substring(lineStart);
+            newStart = selectionStart + 2;
+            newEnd = selectionEnd + 2;
+          }
+          // Update React state via handleChange
+          handleChange(newValue);
+          // Restore cursor position after React re-renders
+          requestAnimationFrame(() => {
+            ta.selectionStart = newStart;
+            ta.selectionEnd = newEnd;
+          });
+        }
       }
     };
 
@@ -418,7 +456,7 @@ export default function KnowledgeEntryPage() {
       textarea.removeEventListener("keydown", onKeyDown);
       textarea.removeEventListener("blur", onBlur);
     };
-  }, [getTextarea, handleAutocompleteInput, acQuery, acFiltered, acIndex, insertWikiLink]);
+  }, [getTextarea, handleAutocompleteInput, handleChange, acQuery, acFiltered, acIndex, insertWikiLink]);
 
   // Cleanup timer
   useEffect(() => {

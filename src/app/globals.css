@@ -341,11 +341,14 @@ body {
 
 /* ── Light mode ── */
 
-/* Base editor text — default bold + color */
+/* Base editor text — default bold + color + larger font */
 .w-md-editor-text-pre,
+.w-md-editor-text-input,
 .w-md-editor-text > .w-md-editor-text-pre > code {
   color: #334155 !important;
   font-weight: 700 !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
 }
 
 /* List item lines — color the entire line (text after - is not tokenized) */
@@ -448,6 +451,8 @@ body {
 [data-color-mode="dark"] .w-md-editor-text > .w-md-editor-text-pre > code {
   color: #cbd5e1 !important;
   font-weight: 700 !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
 }
 
 /* Dark: List item lines */
