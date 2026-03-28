@@ -183,9 +183,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Filter by tags (AND logic — questions must contain ALL specified tags)
+    // Also include questions where user has tag overrides matching the tag
     if (filterTags && Array.isArray(filterTags) && filterTags.length > 0) {
+      // Find questions with user tag overrides matching ALL specified tags
+      const tagOverrideQuestions = await prisma.userTagOverride.findMany({
+        where: { userId: session.user.id },
+        select: { questionId: true, tags: true },
+      });
+      const overrideMatchIds = tagOverrideQuestions
+        .filter((o) => {
+          const overrideTags: string[] = safeJsonParse(o.tags, []);
+          return filterTags.every((tag: string) =>
+            overrideTags.some((t: string) => t.includes(tag))
+          );
+        })
+        .map((o) => o.questionId);
+
       questionWhere.AND = filterTags.map((tag: string) => ({
-        tags: { contains: tag },
+        OR: [
+          { tags: { contains: tag } },
+          ...(overrideMatchIds.length > 0 ? [{ id: { in: overrideMatchIds } }] : []),
+        ],
       }));
     }
 

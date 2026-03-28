@@ -112,14 +112,10 @@ export async function GET(
     }
 
     // Auto-recover exams stuck in COMPLETING for > 5 minutes (server crash recovery)
-    // Check the most recent answer's createdAt as a proxy for when COMPLETING began
+    // Use exam.updatedAt which is auto-set when status changes to COMPLETING
     if (exam.status === "COMPLETING") {
       const stuckThreshold = 5 * 60 * 1000; // 5 minutes
-      const lastAnswerTime = exam.answers.reduce(
-        (latest, a) => Math.max(latest, new Date(a.createdAt).getTime()),
-        exam.startedAt.getTime()
-      );
-      if (Date.now() - lastAnswerTime > stuckThreshold) {
+      if (Date.now() - exam.updatedAt.getTime() > stuckThreshold) {
         await prisma.exam.update({
           where: { id },
           data: { status: "IN_PROGRESS" },
@@ -176,11 +172,7 @@ export async function PUT(
     // Auto-recover stuck COMPLETING state (server crash recovery)
     if (exam.status === "COMPLETING") {
       const stuckThreshold = 5 * 60 * 1000;
-      const lastAnswerTime = exam.answers.reduce(
-        (latest, a) => Math.max(latest, new Date(a.createdAt).getTime()),
-        exam.startedAt.getTime()
-      );
-      if (Date.now() - lastAnswerTime > stuckThreshold) {
+      if (Date.now() - exam.updatedAt.getTime() > stuckThreshold) {
         await prisma.exam.update({
           where: { id },
           data: { status: "IN_PROGRESS" },

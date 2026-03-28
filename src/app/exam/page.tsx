@@ -243,8 +243,17 @@ export default function ExamSetupPage() {
           </div>
         ) : questionBanks.filter((b) => !hiddenBankIds.has(b.id)).length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <p>尚無題庫</p>
-            <p className="text-sm mt-1">請先到題庫頁面匯入或新增題目</p>
+            {session ? (
+              <>
+                <p>尚無題庫</p>
+                <p className="text-sm mt-1">請先到題庫頁面匯入或新增題目</p>
+              </>
+            ) : (
+              <>
+                <p>請先登入以查看題庫</p>
+                <a href="/login" className="text-blue-500 hover:text-blue-600 text-sm mt-2 inline-block">前往登入</a>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

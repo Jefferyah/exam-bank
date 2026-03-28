@@ -202,6 +202,11 @@ export default function ExamTakingPage() {
         } else {
           newAnswer = [...labels, value].sort().join(",");
         }
+        // Remove key entirely when all options are unchecked
+        if (!newAnswer) {
+          const { [questionId]: _, ...rest } = prev;
+          return rest;
+        }
         return { ...prev, [questionId]: newAnswer };
       }
       newAnswer = value;
@@ -248,11 +253,16 @@ export default function ExamTakingPage() {
     if (content === undefined) return;
     setSavingNote(true);
     try {
-      await fetch("/api/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, content: content || " " }),
-      });
+      if (!content.trim()) {
+        // Delete note when content is empty
+        await fetch(`/api/notes?questionId=${questionId}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ questionId, content }),
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -393,7 +403,8 @@ export default function ExamTakingPage() {
   if (!exam || !currentQuestion) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8 text-center text-gray-600">
-        找不到此測驗
+        <p>找不到此測驗，可能尚未登入或測驗不存在</p>
+        <a href="/login" className="text-blue-500 hover:text-blue-600 text-sm mt-2 inline-block">前往登入</a>
       </div>
     );
   }
@@ -624,7 +635,8 @@ export default function ExamTakingPage() {
                 optionStyle = "border-blue-200 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30";
               }
               if (showExplanation && isPractice) {
-                const isCorrect = currentQuestion.answer.includes(opt.label);
+                const correctParts = currentQuestion.answer.split(",").map((s: string) => s.trim().toUpperCase());
+                const isCorrect = correctParts.includes(opt.label.toUpperCase());
                 if (isCorrect) {
                   optionStyle = "border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30";
                 } else if (selected && !isCorrect) {
@@ -656,9 +668,9 @@ export default function ExamTakingPage() {
                 const next = !showExplanation;
                 setShowExplanation(next);
                 if (next) {
-                  const userAns = userAnswers[currentQuestion.id] || "";
-                  const correctAns = currentQuestion.answer;
-                  const isRight = userAns === correctAns || (correctAns.includes(",") && userAns.split(",").sort().join(",") === correctAns.split(",").sort().join(","));
+                  const userAns = (userAnswers[currentQuestion.id] || "").split(",").map((s: string) => s.trim().toUpperCase()).filter(Boolean).sort().join(",");
+                  const correctAns = currentQuestion.answer.split(",").map((s: string) => s.trim().toUpperCase()).filter(Boolean).sort().join(",");
+                  const isRight = userAns === correctAns;
                   setAnswerFeedback(isRight ? "correct" : "wrong");
                   setCheckedResults((prev) => ({ ...prev, [currentQuestion.id]: isRight }));
                   setTimeout(() => setAnswerFeedback(null), 1200);
