@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -319,11 +320,22 @@ export default function KnowledgeEntryPage() {
       }
     };
 
+    const onBlur = () => {
+      // Delay closing so portal click can fire first
+      setTimeout(() => {
+        if (!acInteractingRef.current) {
+          setAcQuery(null);
+        }
+      }, 150);
+    };
+
     textarea.addEventListener("input", onInput);
     textarea.addEventListener("keydown", onKeyDown);
+    textarea.addEventListener("blur", onBlur);
     return () => {
       textarea.removeEventListener("input", onInput);
       textarea.removeEventListener("keydown", onKeyDown);
+      textarea.removeEventListener("blur", onBlur);
     };
   }, [getTextarea, handleAutocompleteInput, acQuery, acFiltered, acIndex, insertWikiLink]);
 
@@ -429,13 +441,14 @@ export default function KnowledgeEntryPage() {
         )}
       </div>
 
-      {/* Phase 2: Autocomplete dropdown */}
-      {acQuery !== null && acFiltered.length > 0 && (
+      {/* Phase 2: Autocomplete dropdown — portal to body to escape editor z-index */}
+      {acQuery !== null && acFiltered.length > 0 && createPortal(
         <div
-          className="fixed z-[100] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
+          className="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
           style={{ top: acPos.top, left: acPos.left }}
           onMouseDown={(e) => {
-            e.preventDefault(); // prevent textarea blur
+            e.preventDefault();
+            e.stopPropagation();
             acInteractingRef.current = true;
           }}
         >
@@ -446,9 +459,10 @@ export default function KnowledgeEntryPage() {
             <button
               key={t}
               onMouseDown={(e) => {
-                e.preventDefault(); // prevent blur
-                insertWikiLink(t);
+                e.preventDefault();
+                e.stopPropagation();
               }}
+              onClick={() => insertWikiLink(t)}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 i === acIndex
                   ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
@@ -458,7 +472,8 @@ export default function KnowledgeEntryPage() {
               {t}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Editor mode toggle + tip */}
