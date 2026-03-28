@@ -78,6 +78,7 @@ export function getAiWebUrls(prompt: string) {
  */
 
 export const DEFAULT_KNOWLEDGE_AI_PROMPT = `你是一位專業的學習輔導老師，請用繁體中文幫我整理以下知識主題。
+請使用 Markdown 格式回覆，善用標題、清單、粗體、表格等語法，方便我直接貼入筆記。
 
 【主題】
 {{主題}}
@@ -85,6 +86,8 @@ export const DEFAULT_KNOWLEDGE_AI_PROMPT = `你是一位專業的學習輔導老
 {{#筆記內容}}
 【目前筆記】
 {{筆記內容}}
+
+請根據目前筆記內容進行補充和優化，不要重複已有的內容。
 {{/筆記內容}}
 
 請依照以下格式回答：
