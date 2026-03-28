@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     const tags = searchParams.get("tags");
     const category = searchParams.get("category");
 
-    const where: Record<string, unknown> = {};
+    let where: Record<string, unknown> = {};
 
     // Exclude user's hidden banks
     const hiddenBanks = await prisma.hiddenBank.findMany({
@@ -59,11 +59,41 @@ export async function GET(req: NextRequest) {
     if (type) {
       where.type = type;
     }
-    if (tags) {
+    if (tags && !searchParams.get("tagExact")) {
       where.tags = { contains: tags };
     }
     if (category) {
       where.category = { contains: category };
+    }
+
+    // When filtering by tag, also include questions with user tag overrides matching the tag
+    // This handles the case where effective tags differ from DB tags
+    if (tags) {
+      const tagOverrides = await prisma.userTagOverride.findMany({
+        where: { userId: session.user.id, tags: { contains: tags } },
+        select: { questionId: true },
+      });
+      if (tagOverrides.length > 0) {
+        const overrideIds = tagOverrides.map((o) => o.questionId);
+        // Build an OR: original DB tags contain it OR user has an override for it
+        const existingWhere = { ...where };
+        delete existingWhere.tags;
+        where = {
+          ...existingWhere,
+          OR: [
+            { tags: { contains: tags } },
+            { id: { in: overrideIds } },
+          ],
+        };
+        // Merge with existing OR (search) if present
+        if (existingWhere.OR) {
+          where.AND = [
+            { OR: existingWhere.OR as Record<string, unknown>[] },
+            { OR: where.OR as Record<string, unknown>[] },
+          ];
+          delete where.OR;
+        }
+      }
     }
 
     const [questions, total] = await Promise.all([

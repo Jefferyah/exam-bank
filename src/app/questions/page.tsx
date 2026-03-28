@@ -239,6 +239,13 @@ function QuestionsPageInner() {
       });
       if (res.ok) {
         await fetchHiddenBanks();
+        // Clear filter if the hidden bank was currently selected
+        if (questionBankId === bankId) {
+          setQuestionBankId("");
+        }
+        // Refresh questions list and tags to reflect the change
+        fetchQuestions(1);
+        fetchTags(questionBankId === bankId ? undefined : questionBankId || undefined);
       }
     } catch {
       alert("操作失敗，請重試");
@@ -311,18 +318,22 @@ function QuestionsPageInner() {
           >
             {showBankManager ? "收起題庫" : "管理題庫"}
           </button>
-          <Link
-            href="/questions/create"
-            className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium shadow-sm transition-all"
-          >
-            新增題目
-          </Link>
-          <Link
-            href="/questions/import"
-            className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors"
-          >
-            匯入題目
-          </Link>
+          {(currentUserRole === "ADMIN" || currentUserRole === "TEACHER") && (
+            <>
+              <Link
+                href="/questions/create"
+                className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium shadow-sm transition-all"
+              >
+                新增題目
+              </Link>
+              <Link
+                href="/questions/import"
+                className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-colors"
+              >
+                匯入題目
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -343,7 +354,7 @@ function QuestionsPageInner() {
               >
                 {showHidden ? "隱藏已隱藏題庫" : `顯示已隱藏題庫 (${hiddenBankIds.size})`}
               </button>
-              <span className="text-sm text-gray-600">共 {questionBanks.length} 個題庫</span>
+              <span className="text-sm text-gray-600">共 {showHidden ? questionBanks.length : questionBanks.filter((b) => !hiddenBankIds.has(b.id)).length} 個題庫</span>
             </div>
           </div>
 
@@ -640,16 +651,17 @@ function QuestionsPageInner() {
                     </span>
                     <DifficultyStars value={q.difficulty} />
                     {q.tags?.slice(0, 3).map((tag, i) => (
-                      <Link
+                      <button
                         key={i}
-                        href={`/knowledge/${encodeURIComponent(tag)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.open(`/knowledge/${encodeURIComponent(tag)}`, "_blank");
+                        }}
                         className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         {tag}
-                      </Link>
+                      </button>
                     ))}
                   </div>
                 </div>
