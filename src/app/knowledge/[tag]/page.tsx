@@ -552,6 +552,35 @@ export default function KnowledgeEntryPage() {
         </p>
       </div>
 
+      {/* Outgoing wiki-links parsed from content */}
+      {(() => {
+        const outgoing: string[] = [];
+        const re = /\[\[([^\]]+)\]\]/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+          const t = m[1].trim();
+          if (t && t !== tag && !outgoing.includes(t)) outgoing.push(t);
+        }
+        return outgoing.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm">
+            <h3 className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+              相關知識點
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {outgoing.map((t) => (
+                <Link
+                  key={t}
+                  href={`/knowledge/${encodeURIComponent(t)}`}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  {t}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      })()}
+
       {/* Phase 3: Backlinks */}
       {backlinks.length > 0 && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm">
