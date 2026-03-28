@@ -154,26 +154,10 @@ export default function HomePage() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="題庫總數"
-          value={totalQuestions}
-          accent="blue"
-        />
-        <StatCard
-          label="已完成測驗"
-          value={analytics?.completedExams || 0}
-          accent="emerald"
-        />
-        <StatCard
-          label="平均分數"
-          value={`${(analytics?.avgScore || 0).toFixed(1)}%`}
-          accent="amber"
-        />
-        <StatCard
-          label="錯題次數"
-          value={wrongCount}
-          accent="red"
-        />
+        <StatCard label="題庫總數" value={totalQuestions} />
+        <StatCard label="已完成測驗" value={analytics?.completedExams || 0} />
+        <StatCard label="平均分數" value={`${(analytics?.avgScore || 0).toFixed(1)}%`} />
+        <StatCard label="錯題次數" value={wrongCount} />
       </div>
 
       {/* Daily Goal */}
@@ -184,9 +168,9 @@ export default function HomePage() {
 
       {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <QuickAction href="/exam" label="開始練習" desc="模擬測驗" bgColor="bg-blue-50" textColor="text-blue-600" />
-        <QuickAction href="/questions" label="瀏覽題庫" desc="搜尋題目" bgColor="bg-emerald-50" textColor="text-emerald-600" />
-        <QuickAction href="/review?tab=wrong" label="查看錯題" desc="重點複習" bgColor="bg-amber-50" textColor="text-amber-600" />
+        <QuickAction href="/exam" label="開始練習" desc="模擬測驗" />
+        <QuickAction href="/questions" label="瀏覽題庫" desc="搜尋題目" />
+        <QuickAction href="/review?tab=wrong" label="查看錯題" desc="重點複習" />
       </div>
 
       {/* Recent exams */}
@@ -202,15 +186,15 @@ export default function HomePage() {
             {analytics.recentTrend.map((exam) => {
               const pct = exam.score ?? 0;
               const barColor =
-                pct >= 80 ? "from-emerald-200 to-emerald-300"
-                : pct >= 60 ? "from-blue-200 to-blue-300"
-                : pct >= 40 ? "from-amber-200 to-amber-300"
-                : "from-red-200 to-red-300";
+                pct >= 80 ? "from-gray-400 to-gray-500"
+                : pct >= 60 ? "from-gray-300 to-gray-400"
+                : pct >= 40 ? "from-gray-300 to-gray-400"
+                : "from-gray-300 to-gray-400";
               const textColor =
-                pct >= 80 ? "text-emerald-500"
-                : pct >= 60 ? "text-blue-500"
-                : pct >= 40 ? "text-amber-500"
-                : "text-red-500";
+                pct >= 80 ? "text-gray-900"
+                : pct >= 60 ? "text-gray-700"
+                : pct >= 40 ? "text-gray-600"
+                : "text-gray-500";
               return (
                 <Link
                   key={exam.id}
@@ -223,7 +207,7 @@ export default function HomePage() {
                         {exam.title || "測驗"}
                       </p>
                       {exam.questionBankNames && exam.questionBankNames.length > 0 && (
-                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full truncate max-w-[160px] flex-shrink-0">
+                        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full truncate max-w-[160px] flex-shrink-0">
                           {exam.questionBankNames.join(", ")}
                         </span>
                       )}
@@ -277,7 +261,7 @@ export default function HomePage() {
                   <div
                     className={cn(
                       "h-2 rounded-full transition-all",
-                      d.accuracy >= 70 ? "bg-emerald-300" : d.accuracy >= 50 ? "bg-amber-300" : "bg-red-300"
+                      d.accuracy >= 70 ? "bg-gray-500" : d.accuracy >= 50 ? "bg-gray-400" : "bg-gray-300"
                     )}
                     style={{ width: `${d.accuracy}%` }}
                   />
@@ -292,37 +276,23 @@ export default function HomePage() {
   );
 }
 
-const accentStyles = {
-  blue:    { bar: "from-blue-400 to-indigo-500",    bg: "bg-blue-50",    text: "text-blue-600" },
-  emerald: { bar: "from-emerald-400 to-teal-500",   bg: "bg-emerald-50", text: "text-emerald-600" },
-  amber:   { bar: "from-amber-400 to-orange-500",   bg: "bg-amber-50",   text: "text-amber-600" },
-  red:     { bar: "from-rose-400 to-red-500",       bg: "bg-red-50",     text: "text-red-600" },
-} as const;
-
-function StatCard({ label, value, accent }: { label: string; value: string | number; accent: keyof typeof accentStyles }) {
-  const s = accentStyles[accent];
+function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-2xl p-5 transition-all hover:shadow-md",
-      "bg-white border border-gray-100 dark:border-gray-700 shadow-sm",
-      s.bg
-    )}>
-      {/* Left gradient bar */}
-      <div className={cn("absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b", s.bar)} />
-      <p className={cn("text-sm font-medium", s.text)}>{label}</p>
+    <div className="rounded-2xl p-5 transition-all hover:shadow-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
+      <p className="text-sm font-medium text-gray-500">{label}</p>
       <p className="text-3xl font-bold mt-1.5 tracking-tight text-gray-900">{value}</p>
     </div>
   );
 }
 
-function QuickAction({ href, label, desc, bgColor, textColor }: { href: string; label: string; desc: string; bgColor: string; textColor: string }) {
+function QuickAction({ href, label, desc }: { href: string; label: string; desc: string }) {
   return (
     <Link
       href={href}
-      className={cn("rounded-2xl p-4 text-center transition-all hover:shadow-md border border-transparent hover:border-gray-200", bgColor)}
+      className="rounded-2xl p-4 text-center transition-all hover:shadow-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-200 shadow-sm"
     >
-      <p className={cn("font-semibold", textColor)}>{label}</p>
-      <p className={cn("text-sm opacity-70", textColor)}>{desc}</p>
+      <p className="font-semibold text-gray-900">{label}</p>
+      <p className="text-sm text-gray-400">{desc}</p>
     </Link>
   );
 }
@@ -376,7 +346,7 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
         <span className={cn(
           "text-xs font-medium px-2.5 py-1 rounded-full",
           isComplete
-            ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
+            ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
             : "bg-gray-100 dark:bg-gray-700 text-gray-500"
         )}>
           {isComplete ? "已達成！" : `${progress}%`}
@@ -385,8 +355,7 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
 
       <div className="flex items-end gap-2 mb-3">
         <span className={cn(
-          "text-3xl font-bold tabular-nums",
-          isComplete ? "text-emerald-600" : "text-gray-900"
+          "text-3xl font-bold tabular-nums text-gray-900"
         )}>
           {todayQuestions}
         </span>
@@ -398,10 +367,8 @@ function DailyGoalCard({ todayQuestions, dailyGoal }: { todayQuestions: number; 
           className={cn(
             "h-3 rounded-full transition-all duration-700 ease-out",
             isComplete
-              ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
-              : progress >= 50
-                ? "bg-gradient-to-r from-blue-400 to-blue-500"
-                : "bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-500 dark:to-gray-400"
+              ? "bg-gradient-to-r from-gray-700 to-gray-900 dark:from-gray-300 dark:to-gray-100"
+              : "bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-500 dark:to-gray-400"
           )}
           style={{ width: `${progress}%` }}
         />
