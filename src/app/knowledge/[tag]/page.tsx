@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -52,6 +51,68 @@ function rehypeWikiLinks(node: Root | RootContent, _index?: number, parent?: Roo
   }
 }
 
+/** Autocomplete dropdown — uses native DOM listeners to ensure clicks work */
+function AutocompleteDropdown({
+  visible, items, activeIndex, position, onSelect, onInteract,
+}: {
+  visible: boolean;
+  items: string[];
+  activeIndex: number;
+  position: { top: number; left: number };
+  onSelect: (tag: string) => void;
+  onInteract: () => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !visible) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onInteract();
+
+      // Find which button was clicked
+      const target = (e.target as HTMLElement).closest("[data-ac-tag]");
+      if (target) {
+        const tag = target.getAttribute("data-ac-tag");
+        if (tag) onSelect(tag);
+      }
+    };
+
+    el.addEventListener("mousedown", handleMouseDown, true);
+    return () => el.removeEventListener("mousedown", handleMouseDown, true);
+  }, [visible, items, onSelect, onInteract]);
+
+  if (!visible) return null;
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
+      style={{ top: position.top, left: position.left, pointerEvents: "auto" }}
+    >
+      <div className="px-3 py-1.5 text-[10px] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 uppercase tracking-wider">
+        插入知識連結
+      </div>
+      {items.map((t, i) => (
+        <div
+          key={t}
+          data-ac-tag={t}
+          className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors ${
+            i === activeIndex
+              ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          }`}
+        >
+          {t}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function KnowledgeEntryPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -74,6 +135,7 @@ export default function KnowledgeEntryPage() {
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const acCursorRef = useRef<number>(0); // store cursor position for autocomplete
+  const acTextRef = useRef<string>(""); // store text content when [[ detected
   const acInteractingRef = useRef(false); // track if user is interacting with dropdown
 
   // Load editor preview preference & nav context
@@ -250,6 +312,7 @@ export default function KnowledgeEntryPage() {
     if (!textarea) return;
     const pos = textarea.selectionStart;
     acCursorRef.current = pos;
+    acTextRef.current = textarea.value;
     const textBefore = textarea.value.substring(0, pos);
     const match = textBefore.match(/\[\[([^\]]*?)$/);
     if (match) {
@@ -273,11 +336,10 @@ export default function KnowledgeEntryPage() {
 
   const insertWikiLink = useCallback((selectedTag: string) => {
     acInteractingRef.current = false;
-    const textarea = getTextarea();
-    if (!textarea) return;
-    // Use stored cursor position (more reliable than reading from textarea after blur)
-    const pos = acCursorRef.current || textarea.selectionStart;
-    const fullText = textarea.value;
+    // Use stored text + cursor position (textarea may have lost focus/state)
+    const pos = acCursorRef.current;
+    const fullText = acTextRef.current;
+    if (!fullText || !pos) return;
     const textBefore = fullText.substring(0, pos);
     const textAfter = fullText.substring(pos);
     const match = textBefore.match(/\[\[([^\]]*?)$/);
@@ -445,40 +507,15 @@ export default function KnowledgeEntryPage() {
         )}
       </div>
 
-      {/* Phase 2: Autocomplete dropdown — portal to body to escape editor z-index */}
-      {acQuery !== null && acFiltered.length > 0 && createPortal(
-        <div
-          className="fixed z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden min-w-[200px] max-w-[300px]"
-          style={{ top: acPos.top, left: acPos.left }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            acInteractingRef.current = true;
-          }}
-        >
-          <div className="px-3 py-1.5 text-[10px] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 uppercase tracking-wider">
-            插入知識連結
-          </div>
-          {acFiltered.map((t, i) => (
-            <button
-              key={t}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onClick={() => insertWikiLink(t)}
-              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                i === acIndex
-                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>,
-        document.body
-      )}
+      {/* Phase 2: Autocomplete dropdown — rendered in-tree, above editor */}
+      <AutocompleteDropdown
+        visible={acQuery !== null && acFiltered.length > 0}
+        items={acFiltered}
+        activeIndex={acIndex}
+        position={acPos}
+        onSelect={insertWikiLink}
+        onInteract={() => { acInteractingRef.current = true; }}
+      />
 
       {/* Editor mode toggle + tip */}
       <div className="flex items-center justify-between">
