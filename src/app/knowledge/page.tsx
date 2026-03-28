@@ -163,6 +163,7 @@ export default function KnowledgePage() {
       const dist = (i / sortedTags.length) * Math.min(width, height) * 0.35;
       return {
         ...d,
+        index: i,
         r,
         x: width / 2 + Math.cos(angle) * dist,
         y: height / 2 + Math.sin(angle) * dist,
