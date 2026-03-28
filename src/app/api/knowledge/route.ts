@@ -109,8 +109,8 @@ export async function GET() {
 
     // Parse wiki-links [[tag]] from all entries to build link graph
     const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
-    const links: { source: string; target: string }[] = [];
     const allTagNames = new Set([...tagCounts.keys(), ...customEntries.map((e) => e.tag)]);
+    const linkWeightMap = new Map<string, number>();
 
     for (const entry of entries) {
       let match: RegExpExecArray | null;
@@ -118,10 +118,17 @@ export async function GET() {
       while ((match = wikiLinkRegex.exec(entry.content)) !== null) {
         const target = match[1].trim();
         if (target && target !== entry.tag && allTagNames.has(target)) {
-          links.push({ source: entry.tag, target });
+          // Normalize key so A→B and B→A are the same edge
+          const key = [entry.tag, target].sort().join("\0");
+          linkWeightMap.set(key, (linkWeightMap.get(key) || 0) + 1);
         }
       }
     }
+
+    const links = [...linkWeightMap.entries()].map(([key, weight]) => {
+      const [source, target] = key.split("\0");
+      return { source, target, weight };
+    });
 
     const tags = [...tagCounts.entries()]
       .map(([tag, questionCount]) => {

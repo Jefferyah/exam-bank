@@ -20,6 +20,7 @@ interface TagData {
 interface TagLink {
   source: string;
   target: string;
+  weight?: number;
 }
 
 interface CustomEntry {
@@ -180,7 +181,7 @@ export default function KnowledgePage() {
     const filteredTagSet = new Set(filteredTags.map((t) => t.tag));
     const graphLinks = links
       .filter((l) => filteredTagSet.has(l.source) && filteredTagSet.has(l.target))
-      .map((l) => ({ source: nodeIndex.get(l.source)!, target: nodeIndex.get(l.target)! }))
+      .map((l) => ({ source: nodeIndex.get(l.source)!, target: nodeIndex.get(l.target)!, weight: l.weight ?? 1 }))
       .filter((l) => l.source !== undefined && l.target !== undefined);
 
     // Track which nodes have links so we can weaken radial force on them
@@ -266,9 +267,19 @@ export default function KnowledgePage() {
       .data(graphLinks)
       .join("line")
       .attr("class", "wiki-edge")
-      .attr("stroke", "rgba(139, 92, 246, 0.55)")
-      .attr("stroke-width", 2)
-      .attr("stroke-dasharray", "6,3");
+      .attr("stroke", (d) => {
+        const w = (d as any).weight ?? 1;
+        const opacity = Math.min(0.35 + w * 0.15, 0.85);
+        return `rgba(139, 92, 246, ${opacity})`;
+      })
+      .attr("stroke-width", (d) => {
+        const w = (d as any).weight ?? 1;
+        return Math.min(1.5 + w * 1, 6);
+      })
+      .attr("stroke-dasharray", (d) => {
+        const w = (d as any).weight ?? 1;
+        return w >= 3 ? "none" : "6,3";
+      });
 
     type NodeType = (typeof nodes)[0];
     const nodeGroup = svg
