@@ -532,7 +532,7 @@ function DashboardTab({
             </div>
             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
               <div
-                className={cn("h-3 rounded-full transition-all duration-500", todayProgress >= 100 ? "bg-emerald-500" : "bg-blue-500")}
+                className={cn("h-3 rounded-full transition-all duration-500", todayProgress >= 100 ? "bg-emerald-500" : "bg-gray-400")}
                 style={{ width: `${todayProgress}%` }}
               />
             </div>
@@ -576,9 +576,9 @@ function DashboardTab({
 
       {/* ── Quick Insight Banner ── */}
       {(scoreImprovement !== null || worstDiff) && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-100 dark:border-blue-800 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">學習洞察</h3>
-          <div className="flex flex-col gap-1.5 text-sm text-blue-800 dark:text-blue-300">
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-200 mb-2">學習洞察</h3>
+          <div className="flex flex-col gap-1.5 text-sm text-gray-700 dark:text-gray-300">
             {scoreImprovement !== null && (
               <p>
                 {scoreImprovement > 0
@@ -672,7 +672,7 @@ function DashboardTab({
           <div className="grid grid-cols-10 sm:grid-cols-15 gap-1.5">
             {a.dailyActivity.map((d) => {
               const intensity = d.questions === 0 ? 0 : d.questions <= 5 ? 1 : d.questions <= 15 ? 2 : d.questions <= 30 ? 3 : 4;
-              const colors = ["bg-gray-100 dark:bg-gray-700", "bg-emerald-200", "bg-emerald-400", "bg-emerald-500", "bg-emerald-600"];
+              const colors = ["bg-gray-100 dark:bg-gray-700", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500"];
               const dayLabel = new Date(d.date + "T00:00:00").toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" });
               return (
                 <div
@@ -689,7 +689,7 @@ function DashboardTab({
           </div>
           <div className="flex items-center justify-end gap-1 mt-2 text-[10px] text-gray-400">
             <span>少</span>
-            {["bg-gray-100 dark:bg-gray-700", "bg-emerald-200", "bg-emerald-400", "bg-emerald-500", "bg-emerald-600"].map((c, i) => (
+            {["bg-gray-100 dark:bg-gray-700", "bg-gray-200", "bg-gray-300", "bg-gray-400", "bg-gray-500"].map((c, i) => (
               <div key={i} className={cn("w-3 h-3 rounded-sm", c)} />
             ))}
             <span>多</span>
@@ -767,9 +767,9 @@ function DashboardTab({
 
           {/* Average time badge */}
           {a.timeAnalysis.avgTimePerQuestion > 0 && (
-            <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl">
-              <span className="text-2xl font-bold text-blue-600">{a.timeAnalysis.avgTimePerQuestion}s</span>
-              <span className="text-sm text-blue-700 dark:text-blue-300">平均每題作答時間</span>
+            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">{a.timeAnalysis.avgTimePerQuestion}s</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">平均每題作答時間</span>
             </div>
           )}
 
@@ -784,7 +784,7 @@ function DashboardTab({
                   return (
                     <div key={d.difficulty} className="flex-1 flex flex-col items-center gap-1">
                       <span className="text-xs font-bold text-gray-700">{d.avgTime}s</span>
-                      <div className="w-full rounded-t-lg bg-gradient-to-t from-blue-600 to-blue-400 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
+                      <div className="w-full rounded-t-lg bg-gradient-to-t from-gray-500 to-gray-400 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
                       <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
                       <span className="text-[10px] text-gray-400">{d.count}題</span>
                     </div>
@@ -811,20 +811,20 @@ function DashboardTab({
                         {b.avgCorrectTime > 0 && (
                           <div className="flex-1">
                             <div className="flex items-center gap-1 mb-1">
-                              <span className="text-[10px] text-emerald-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
+                              <span className="text-[10px] text-gray-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
                             </div>
                             <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
+                              <div className="bg-gray-400 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
                             </div>
                           </div>
                         )}
                         {b.avgWrongTime > 0 && (
                           <div className="flex-1">
                             <div className="flex items-center gap-1 mb-1">
-                              <span className="text-[10px] text-red-600 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
+                              <span className="text-[10px] text-gray-500 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
                             </div>
                             <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-red-500 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
+                              <div className="bg-gray-300 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
                             </div>
                           </div>
                         )}
@@ -860,7 +860,7 @@ function DashboardTab({
                         </span>
                       )}
                       {i === sortedBanks.length - 1 && sortedBanks.length > 1 && (
-                        <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 text-[10px] rounded-full font-medium flex-shrink-0">
+                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-[10px] rounded-full font-medium flex-shrink-0">
                           最強
                         </span>
                       )}
@@ -906,7 +906,7 @@ function DashboardTab({
           <div className="space-y-2">
             {a.tagAccuracy.slice(0, 15).map((t) => (
               <div key={t.tag} className="flex items-center gap-3 p-2">
-                <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
+                <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
                   {t.tag}
                 </span>
                 <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 min-w-0">
@@ -953,7 +953,7 @@ function DashboardTab({
                     href={`/questions/${q.questionId}`}
                     onClick={() => setQuestionNavList(a.mostWrongQuestions.slice(0, 5).map((wq: { questionId: string }) => wq.questionId), "常錯題目")}
                   >
-                    <p className="text-sm text-gray-900 line-clamp-1 hover:text-blue-600 transition-colors">{q.stem}</p>
+                    <p className="text-sm text-gray-900 line-clamp-1 hover:text-gray-600 transition-colors">{q.stem}</p>
                   </Link>
                   <div className="flex items-center gap-2 mt-1 text-[10px] text-gray-500">
                     <span className="text-red-500 font-medium">錯 {q.wrongCount} 次</span>
@@ -1015,7 +1015,7 @@ function WrongTab({
       <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
         <span>共 {allWrongCount} 題</span>
         {masteredCount > 0 && (
-          <span className="text-emerald-600">已掌握 {masteredCount} 題</span>
+          <span className="text-gray-600">已掌握 {masteredCount} 題</span>
         )}
         <span>顯示 {wrongQuestions.length} 題</span>
       </div>
@@ -1025,7 +1025,7 @@ function WrongTab({
         {allWrongCount > 0 && (
           <button
             onClick={handleReviewWrong}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-full text-sm font-medium transition-colors"
           >
             重做錯題
           </button>
@@ -1109,8 +1109,8 @@ function WrongQuestionCard({
             className={cn(
               "px-2 py-1 rounded-full text-[10px] font-medium transition-colors border",
               mastered.has(q.questionId)
-                ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100"
-                : "bg-gray-50 border-gray-200 text-gray-400 hover:text-emerald-600 hover:border-emerald-200"
+                ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
+                : "bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300"
             )}
           >
             {mastered.has(q.questionId) ? "已掌握" : "掌握"}
@@ -1204,7 +1204,7 @@ function NotesTab({
       {hasNotes && (
         <button
           onClick={handleReviewNotes}
-          className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-medium transition-colors"
+          className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium transition-colors"
         >
           重做所有筆記題
         </button>
@@ -1232,7 +1232,7 @@ function NotesTab({
                 <DifficultyStars value={n.question.difficulty} />
                 <Link
                   href={`/questions/${n.questionId}`}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   重做
                 </Link>
@@ -1247,11 +1247,11 @@ function NotesTab({
 
 /* ── Helpers ── */
 const CARD_COLORS = {
-  blue:    { bar: "from-blue-400 to-blue-600",    bg: "bg-blue-50/60 dark:bg-blue-950/20",    text: "text-blue-600 dark:text-blue-400",    sub: "text-blue-500/70 dark:text-blue-400/60" },
-  emerald: { bar: "from-emerald-400 to-emerald-600", bg: "bg-emerald-50/60 dark:bg-emerald-950/20", text: "text-emerald-600 dark:text-emerald-400", sub: "text-emerald-500/70 dark:text-emerald-400/60" },
-  amber:   { bar: "from-amber-400 to-amber-600",   bg: "bg-amber-50/60 dark:bg-amber-950/20",   text: "text-amber-600 dark:text-amber-400",   sub: "text-amber-500/70 dark:text-amber-400/60" },
-  orange:  { bar: "from-orange-400 to-orange-600",  bg: "bg-orange-50/60 dark:bg-orange-950/20",  text: "text-orange-600 dark:text-orange-400",  sub: "text-orange-500/70 dark:text-orange-400/60" },
-  red:     { bar: "from-red-400 to-red-600",     bg: "bg-red-50/60 dark:bg-red-950/20",     text: "text-red-600 dark:text-red-400",     sub: "text-red-500/70 dark:text-red-400/60" },
+  blue:    { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
+  emerald: { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
+  amber:   { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
+  orange:  { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
+  red:     { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
 } as const;
 
 function SummaryCard({ label, value, unit, color, detail }: {
@@ -1302,12 +1302,12 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
         {stats.dueToday > 0 ? (
           <Link
             href="/exam/review"
-            className="inline-flex px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-medium transition-colors"
+            className="inline-flex px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium transition-colors"
           >
             開始間隔複習
           </Link>
         ) : (
-          <p className="text-sm text-emerald-500 font-medium">
+          <p className="text-sm text-gray-500 font-medium">
             {total > 0 ? "今天的複習已完成！" : "做練習來建立複習排程"}
           </p>
         )}
@@ -1329,21 +1329,21 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
             )}
             {learningCount > 0 && (
               <div
-                className="bg-blue-400 transition-all"
+                className="bg-gray-300 transition-all"
                 style={{ width: `${(learningCount / total) * 100}%` }}
                 title={`學習中 ${learningCount}`}
               />
             )}
             {reviewCount > 0 && (
               <div
-                className="bg-amber-400 transition-all"
+                className="bg-gray-500 transition-all"
                 style={{ width: `${(reviewCount / total) * 100}%` }}
                 title={`複習中 ${reviewCount}`}
               />
             )}
             {masteredCount > 0 && (
               <div
-                className="bg-emerald-400 transition-all"
+                className="bg-gray-700 transition-all"
                 style={{ width: `${(masteredCount / total) * 100}%` }}
                 title={`已精熟 ${masteredCount}`}
               />
@@ -1360,21 +1360,21 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-400" />
+              <span className="w-3 h-3 rounded-full bg-gray-300" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{learningCount}</div>
                 <div className="text-xs text-gray-400">學習中</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-amber-400" />
+              <span className="w-3 h-3 rounded-full bg-gray-500" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{reviewCount}</div>
                 <div className="text-xs text-gray-400">複習中</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-400" />
+              <span className="w-3 h-3 rounded-full bg-gray-700" />
               <div>
                 <div className="text-sm font-semibold text-gray-900">{masteredCount}</div>
                 <div className="text-xs text-gray-400">已精熟</div>
@@ -1390,7 +1390,7 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
             </div>
             <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 mt-1">
               <div
-                className="h-2 rounded-full bg-emerald-400 transition-all"
+                className="h-2 rounded-full bg-gray-500 transition-all"
                 style={{ width: `${stats.masteryRate}%` }}
               />
             </div>

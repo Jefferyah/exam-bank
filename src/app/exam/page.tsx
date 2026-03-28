@@ -184,18 +184,18 @@ export default function ExamSetupPage() {
       {srsDueCount > 0 && (
         <Link
           href="/exam/review"
-          className="block bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-4 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+          className="block bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-blue-700 dark:text-blue-300">
+              <p className="font-semibold text-gray-700 dark:text-gray-300">
                 今天有 {srsDueCount} 張卡片需要複習
               </p>
-              <p className="text-sm text-blue-500 dark:text-blue-400 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 間隔複習幫你在最佳時間點鞏固記憶
               </p>
             </div>
-            <span className="text-blue-500 text-lg">→</span>
+            <span className="text-gray-500 text-lg">→</span>
           </div>
         </Link>
       )}
@@ -209,24 +209,24 @@ export default function ExamSetupPage() {
             onClick={() => setMode("PRACTICE")}
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               mode === "PRACTICE"
-                ? "bg-blue-50 text-blue-600 border-blue-200"
+                ? "bg-gray-900 text-white border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100"
                 : "border-gray-100 hover:border-gray-200 hover:shadow-md bg-white"
             }`}
           >
-            <p className="font-semibold text-gray-900">練習模式</p>
-            <p className="text-sm text-gray-600 mt-1">可隨時查看答案，無時間限制</p>
+            <p className={`font-semibold ${mode === "PRACTICE" ? "text-white dark:text-gray-900" : "text-gray-900"}`}>練習模式</p>
+            <p className={`text-sm mt-1 ${mode === "PRACTICE" ? "text-gray-300 dark:text-gray-500" : "text-gray-600"}`}>可隨時查看答案，無時間限制</p>
           </button>
           <button
             type="button"
             onClick={() => setMode("MOCK")}
             className={`p-4 rounded-2xl border-2 transition-all text-left ${
               mode === "MOCK"
-                ? "bg-blue-50 text-blue-600 border-blue-200"
+                ? "bg-gray-900 text-white border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100"
                 : "border-gray-100 hover:border-gray-200 hover:shadow-md bg-white"
             }`}
           >
-            <p className="font-semibold text-gray-900">模擬考模式</p>
-            <p className="text-sm text-gray-600 mt-1">計時作答，交卷後顯示結果</p>
+            <p className={`font-semibold ${mode === "MOCK" ? "text-white dark:text-gray-900" : "text-gray-900"}`}>模擬考模式</p>
+            <p className={`text-sm mt-1 ${mode === "MOCK" ? "text-gray-300 dark:text-gray-500" : "text-gray-600"}`}>計時作答，交卷後顯示結果</p>
           </button>
         </div>
       </div>
@@ -251,7 +251,7 @@ export default function ExamSetupPage() {
             ) : (
               <>
                 <p>請先登入以查看題庫</p>
-                <a href="/login" className="text-blue-500 hover:text-blue-600 text-sm mt-2 inline-block">前往登入</a>
+                <a href="/login" className="text-gray-500 hover:text-gray-700 text-sm mt-2 inline-block">前往登入</a>
               </>
             )}
           </div>
@@ -268,7 +268,7 @@ export default function ExamSetupPage() {
                       key={bank.id}
                       className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                         selectedBankIds.includes(bank.id)
-                          ? "bg-blue-50 ring-1 ring-blue-400"
+                          ? "bg-gray-100 dark:bg-gray-700 ring-1 ring-gray-400 dark:ring-gray-500"
                           : "bg-gray-50 hover:bg-gray-100"
                       }`}
                     >
@@ -276,7 +276,7 @@ export default function ExamSetupPage() {
                         type="checkbox"
                         checked={selectedBankIds.includes(bank.id)}
                         onChange={() => toggleBank(bank.id)}
-                        className="accent-blue-500 mt-0.5"
+                        className="accent-gray-500 mt-0.5"
                       />
                       <span className="text-sm text-gray-900 min-w-0 truncate">
                         {bank.name}
@@ -302,7 +302,7 @@ export default function ExamSetupPage() {
               onClick={() => toggleDifficulty(d)}
               className={`flex-shrink-0 px-3 md:px-4 py-2 rounded-full text-sm font-medium transition-all border ${
                 difficultyRange.includes(d)
-                  ? "bg-blue-50 border-blue-200 shadow-sm"
+                  ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 shadow-sm"
                   : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
               }`}
             >
@@ -341,7 +341,7 @@ export default function ExamSetupPage() {
               max={200}
               value={count}
               onChange={(e) => setCount(parseInt(e.target.value) || 20)}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
           {mode === "MOCK" && (
@@ -353,7 +353,7 @@ export default function ExamSetupPage() {
                 max={360}
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
             </div>
           )}
@@ -378,7 +378,7 @@ export default function ExamSetupPage() {
                 key={label}
                 className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
                   checked
-                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                    ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 shadow-sm"
                     : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
                 }`}
               >
@@ -389,7 +389,7 @@ export default function ExamSetupPage() {
                   className="sr-only"
                 />
                 <span className={`text-base ${checked ? "opacity-100" : "opacity-40"}`}>{icon}</span>
-                <span className={`text-sm font-medium ${checked ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>{label}</span>
+                <span className={`text-sm font-medium ${checked ? "text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>{label}</span>
               </label>
             ))}
           </div>
@@ -402,7 +402,7 @@ export default function ExamSetupPage() {
             <label
               className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
                 shuffleQuestions
-                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                  ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 shadow-sm"
                   : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
               }`}
             >
@@ -414,14 +414,14 @@ export default function ExamSetupPage() {
               />
               <span className={`text-base ${shuffleQuestions ? "opacity-100" : "opacity-40"}`}>⇅</span>
               <div>
-                <span className={`text-sm font-medium ${shuffleQuestions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>題目亂序</span>
-                <p className={`text-xs ${shuffleQuestions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂出題順序</p>
+                <span className={`text-sm font-medium ${shuffleQuestions ? "text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>題目亂序</span>
+                <p className={`text-xs ${shuffleQuestions ? "text-gray-500 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂出題順序</p>
               </div>
             </label>
             <label
               className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all ${
                 shuffleOptions
-                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm"
+                  ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500 shadow-sm"
                   : "bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500"
               }`}
             >
@@ -433,8 +433,8 @@ export default function ExamSetupPage() {
               />
               <span className={`text-base ${shuffleOptions ? "opacity-100" : "opacity-40"}`}>⇄</span>
               <div>
-                <span className={`text-sm font-medium ${shuffleOptions ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400"}`}>選項亂序</span>
-                <p className={`text-xs ${shuffleOptions ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂選項順序</p>
+                <span className={`text-sm font-medium ${shuffleOptions ? "text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>選項亂序</span>
+                <p className={`text-xs ${shuffleOptions ? "text-gray-500 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}>隨機打亂選項順序</p>
               </div>
             </label>
           </div>
@@ -479,7 +479,7 @@ function ExamChapterFilter({ allChapters, selectedChapters, onToggle }: {
           <p className="text-sm text-gray-600">不選則不限章節</p>
         </div>
         {selectedChapters.length > 0 && (
-          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+          <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">
             已選 {selectedChapters.length}
           </span>
         )}
@@ -492,7 +492,7 @@ function ExamChapterFilter({ allChapters, selectedChapters, onToggle }: {
             onClick={() => onToggle(chapter)}
             className={`px-4 py-2.5 rounded-xl text-sm font-medium text-left transition-all border ${
               selectedChapters.includes(chapter)
-                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                ? "bg-gray-900 text-white border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100 shadow-sm"
                 : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
             }`}
           >
@@ -504,7 +504,7 @@ function ExamChapterFilter({ allChapters, selectedChapters, onToggle }: {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
         >
           {expanded ? "收合" : `顯示全部 (${allChapters.length})`}
         </button>
@@ -549,7 +549,7 @@ function ExamTagFilter({ allTags, selectedTags, onToggle }: {
           <p className="text-sm text-gray-600">不選則不限標籤，選多個則取交集</p>
         </div>
         {selectedTags.length > 0 && (
-          <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+          <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">
             已選 {selectedTags.length}
           </span>
         )}
@@ -560,7 +560,7 @@ function ExamTagFilter({ allTags, selectedTags, onToggle }: {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="搜尋標籤..."
-        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400"
       />
       {/* Tags */}
       <div className="flex flex-wrap gap-2">
@@ -571,7 +571,7 @@ function ExamTagFilter({ allTags, selectedTags, onToggle }: {
             onClick={() => onToggle(tag)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
               selectedTags.includes(tag)
-                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                ? "bg-gray-900 text-white border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100 shadow-sm"
                 : "bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200"
             }`}
           >
@@ -587,7 +587,7 @@ function ExamTagFilter({ allTags, selectedTags, onToggle }: {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
         >
           {expanded ? "收合" : `顯示全部 (${allTags.length})`}
         </button>

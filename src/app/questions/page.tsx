@@ -312,7 +312,7 @@ function QuestionsPageInner() {
             className={cn(
               "px-6 py-2.5 rounded-full text-sm font-medium transition-colors border",
               showBankManager
-                ? "bg-blue-50 text-blue-600 border-blue-200"
+                ? "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
                 : "bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
             )}
           >
@@ -348,7 +348,7 @@ function QuestionsPageInner() {
                 className={cn(
                   "px-3 py-1.5 text-xs rounded-full transition-colors border",
                   showHidden
-                    ? "text-amber-600 bg-amber-50 border-amber-200"
+                    ? "text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
                     : "text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100"
                 )}
               >
@@ -385,7 +385,7 @@ function QuestionsPageInner() {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>{group.banks.length} 個題庫</span>
-                        <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">{totalQuestions} 題</span>
+                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">{totalQuestions} 題</span>
                       </div>
                     </button>
                     {/* Bank list */}
@@ -447,16 +447,16 @@ function QuestionsPageInner() {
                                 ) : (
                                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                                     <p className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px] sm:max-w-xs">{bank.name}</p>
-                                    <span className="inline-block px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full flex-shrink-0">
+                                    <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0">
                                       {bank._count?.questions ?? 0} 題
                                     </span>
                                     {bank.isPublic ? (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded-full flex-shrink-0">公開</span>
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0">公開</span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 text-xs font-medium rounded-full flex-shrink-0">私人</span>
                                     )}
                                     {isHidden && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-full flex-shrink-0">已隱藏</span>
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0">已隱藏</span>
                                     )}
                                     {!isOwner && bank.createdBy && (
                                       <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-400 text-xs rounded-full flex-shrink-0 max-w-[120px] truncate">
@@ -480,7 +480,7 @@ function QuestionsPageInner() {
                                         !canManage
                                           ? "text-gray-400 bg-gray-100 cursor-not-allowed opacity-50"
                                           : bank.isPublic
-                                            ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                                            ? "text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
                                             : "text-gray-600 bg-gray-100 hover:bg-gray-200"
                                       )}
                                       title={!canManage ? "只有擁有者可以操作" : ""}
@@ -502,7 +502,7 @@ function QuestionsPageInner() {
                                     </button>
                                     <button
                                       onClick={() => { setQuestionBankId(bank.id); setShowBankManager(false); }}
-                                      className="px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-colors"
+                                      className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full transition-colors"
                                     >
                                       篩選
                                     </button>
@@ -512,7 +512,7 @@ function QuestionsPageInner() {
                                         className={cn(
                                           "px-3 py-1.5 text-xs rounded-full transition-colors",
                                           isHidden
-                                            ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                            ? "text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
                                             : "text-gray-600 bg-gray-100 hover:bg-gray-200"
                                         )}
                                       >
@@ -643,7 +643,7 @@ function QuestionsPageInner() {
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-900 font-medium line-clamp-2">{q.stem}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-3">
-                    <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                    <span className="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full">
                       {q.questionBank?.name || "未分類"}
                     </span>
                     <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
@@ -658,7 +658,7 @@ function QuestionsPageInner() {
                           e.stopPropagation();
                           window.open(`/knowledge/${encodeURIComponent(tag)}`, "_blank");
                         }}
-                        className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
                         {tag}
                       </button>
@@ -749,7 +749,7 @@ function TagFilterCombobox({ tags, value, onChange }: { tags: string[]; value: s
               onMouseDown={(e) => { e.preventDefault(); onChange(""); setOpen(false); }}
               className={cn(
                 "w-full text-left px-3 py-2 text-sm transition-colors",
-                !value ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                !value ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               )}
             >
               全部標籤
@@ -760,7 +760,7 @@ function TagFilterCombobox({ tags, value, onChange }: { tags: string[]; value: s
                 onMouseDown={(e) => { e.preventDefault(); onChange(tag); setOpen(false); }}
                 className={cn(
                   "w-full text-left px-3 py-2 text-sm transition-colors",
-                  value === tag ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  value === tag ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 )}
               >
                 {tag}
