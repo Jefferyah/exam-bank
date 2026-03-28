@@ -207,7 +207,7 @@ export default function KnowledgePage() {
           },
           width / 2,
           height / 2
-        ).strength((d) => linkedNodeIndices.has(d.index!) ? 0.05 : 0.3)
+        ).strength((d) => linkedNodeIndices.has(d.index ?? -1) ? 0.05 : 0.3)
       )
       .force("x", d3.forceX(width / 2).strength(0.02))
       .force("y", d3.forceY(height / 2).strength(0.02));
