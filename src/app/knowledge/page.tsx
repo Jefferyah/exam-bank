@@ -22,15 +22,23 @@ interface TagLink {
   target: string;
 }
 
+interface CustomEntry {
+  tag: string;
+  wordCount: number;
+  updatedAt: string;
+}
+
 export default function KnowledgePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [tags, setTags] = useState<TagData[]>([]);
   const [links, setLinks] = useState<TagLink[]>([]);
+  const [customEntries, setCustomEntries] = useState<CustomEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [newTag, setNewTag] = useState("");
   const [sizeMetric, setSizeMetric] = useState<SizeMetric>("questionCount");
-  const [masteryFilter, setMasteryFilter] = useState<string | null>(null); // "low" | "mid" | "high" | "none" | null
+  const [masteryFilter, setMasteryFilter] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +55,7 @@ export default function KnowledgePage() {
       .then((data) => {
         if (data?.tags) setTags(data.tags);
         if (data?.links) setLinks(data.links);
+        if (data?.customEntries) setCustomEntries(data.customEntries);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -65,6 +74,10 @@ export default function KnowledgePage() {
     return true;
   });
 
+  const filteredCustom = customEntries.filter((e) =>
+    e.tag.toLowerCase().includes(search.toLowerCase())
+  );
+
   // Store nav list whenever filtered tags change
   useEffect(() => {
     const sorted = [...filteredTags]
@@ -72,8 +85,24 @@ export default function KnowledgePage() {
       .sort((a, b) =>
         sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
       );
-    setKnowledgeNavList(sorted.map((t) => t.tag));
-  }, [filteredTags, sizeMetric]);
+    const customTags = customEntries
+      .filter((e) => e.tag.toLowerCase().includes(search.toLowerCase()))
+      .map((e) => e.tag);
+    setKnowledgeNavList([...sorted.map((t) => t.tag), ...customTags]);
+  }, [filteredTags, customEntries, search, sizeMetric]);
+
+  const handleCreateEntry = () => {
+    const trimmed = newTag.trim();
+    if (!trimmed) return;
+    // Check for duplicates
+    const existsInTags = tags.some((t) => t.tag.toLowerCase() === trimmed.toLowerCase());
+    const existsInCustom = customEntries.some((e) => e.tag.toLowerCase() === trimmed.toLowerCase());
+    if (existsInTags || existsInCustom) {
+      router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
+      return;
+    }
+    router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
+  };
 
   // Accuracy → color mapping (grey=no data, red→yellow→green)
   const getAccuracyColor = useCallback((accuracy: number | null, alpha: number) => {
@@ -402,6 +431,62 @@ export default function KnowledgePage() {
           ))}
         </div>
       </div>
+
+      {/* Create new knowledge entry */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreateEntry()}
+            placeholder="輸入知識主題名稱，建立新知識..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-300"
+          />
+        </div>
+        <button
+          onClick={handleCreateEntry}
+          disabled={!newTag.trim()}
+          className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+        >
+          建立
+        </button>
+      </div>
+
+      {/* Custom knowledge entries */}
+      {filteredCustom.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-purple-500 dark:text-purple-400 uppercase tracking-wider">
+            自訂知識點
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {filteredCustom.map((e) => (
+              <button
+                key={e.tag}
+                onClick={() => router.push(`/knowledge/${encodeURIComponent(e.tag)}`)}
+                className="relative flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all hover:shadow-sm bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 overflow-hidden"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-400 to-violet-500" />
+                <span className="text-sm font-medium truncate text-purple-700 dark:text-purple-300 pl-1">
+                  {e.tag}
+                </span>
+                <span className="text-xs text-purple-400 dark:text-purple-500 ml-2 flex-shrink-0">
+                  {e.wordCount} 字
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bubble Chart */}
       {filteredTags.length > 0 ? (

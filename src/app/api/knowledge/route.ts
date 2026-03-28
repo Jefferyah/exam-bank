@@ -97,10 +97,20 @@ export async function GET() {
       }
     }
 
+    // Standalone knowledge entries (user-created, no matching question tag)
+    const customEntries = entries
+      .filter((e) => !tagCounts.has(e.tag) && e.content.trim().length > 0)
+      .map((e) => ({
+        tag: e.tag,
+        wordCount: e.content.length,
+        updatedAt: e.updatedAt.toISOString(),
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
     // Parse wiki-links [[tag]] from all entries to build link graph
     const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
     const links: { source: string; target: string }[] = [];
-    const allTagNames = new Set(tagCounts.keys());
+    const allTagNames = new Set([...tagCounts.keys(), ...customEntries.map((e) => e.tag)]);
 
     for (const entry of entries) {
       let match: RegExpExecArray | null;
@@ -130,7 +140,7 @@ export async function GET() {
       })
       .sort((a, b) => b.questionCount - a.questionCount);
 
-    return NextResponse.json({ tags, links });
+    return NextResponse.json({ tags, links, customEntries });
   } catch (error) {
     console.error("GET /api/knowledge error:", error);
     return NextResponse.json(
