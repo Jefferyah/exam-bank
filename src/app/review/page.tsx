@@ -1368,37 +1368,28 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
         </div>
       )}
 
-      {/* Overall score + category rings */}
-      <div className="flex flex-col sm:flex-row items-center gap-5">
-        {/* Overall ring */}
-        <div className="flex flex-col items-center">
-          <ProgressRing score={data.overallScore} size={100} strokeWidth={8} label="總成功率" />
-          <p className="text-xs text-gray-400 mt-1">{data.categories.length} 個分類</p>
-        </div>
-
-        {/* Category mini rings */}
-        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full">
-          {data.categories.map((cat) => (
-            <button
-              key={cat.category}
-              onClick={() => setExpandedCat(expandedCat === cat.category ? null : cat.category)}
-              className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center",
-                expandedCat === cat.category
-                  ? "bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700"
-                  : "bg-gray-50 dark:bg-gray-750 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"
-              )}
-            >
-              <ProgressRing score={cat.score} size={48} strokeWidth={4} showLabel={true} />
-              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full">
-                {cat.category}
-              </span>
-              <span className="text-[10px] text-gray-400">
-                {cat.questionsAttempted}/{cat.totalQuestions} 題
-              </span>
-            </button>
-          ))}
-        </div>
+      {/* Category rings */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {data.categories.map((cat) => (
+          <button
+            key={cat.category}
+            onClick={() => setExpandedCat(expandedCat === cat.category ? null : cat.category)}
+            className={cn(
+              "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center",
+              expandedCat === cat.category
+                ? "bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700"
+                : "bg-gray-50 dark:bg-gray-750 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"
+            )}
+          >
+            <ProgressRing score={cat.score} size={56} strokeWidth={5} showLabel={true} />
+            <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full">
+              {cat.category}
+            </span>
+            <span className="text-[10px] text-gray-400">
+              {cat.questionsAttempted}/{cat.totalQuestions} 題
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Expanded category detail */}
