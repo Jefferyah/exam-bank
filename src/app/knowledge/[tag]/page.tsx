@@ -571,10 +571,13 @@ export default function KnowledgeEntryPage() {
             const num = parseInt(indentedNumMatch![2]) + 1;
             insert = "\n" + indentedNumMatch![1] + num + ". ";
           }
-          // Use execCommand like MDEditor does — modifies textarea directly,
-          // triggers native input event, so MDEditor's onChange picks it up naturally
-          ta.focus();
-          document.execCommand("insertText", false, insert);
+          // Update via React state — acQuery stale bug is now fixed so this is safe
+          const newValue = value.substring(0, selectionStart) + insert + value.substring(selectionStart);
+          const newPos = selectionStart + insert.length;
+          handleChangeRef.current(newValue);
+          requestAnimationFrame(() => {
+            ta.selectionStart = ta.selectionEnd = newPos;
+          });
         }
       }
     };
