@@ -85,6 +85,8 @@ export default function AdminStatsPage() {
   const [successRateData, setSuccessRateData] = useState<SuccessRateData | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
   const [showScoreExplain, setShowScoreExplain] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<UserStat | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
@@ -140,6 +142,33 @@ export default function AdminStatsPage() {
       console.error(err);
     } finally {
       setLoadingRate(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: deleteTarget.id }),
+      });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+        if (expandedUserId === deleteTarget.id) {
+          setExpandedUserId(null);
+          setSuccessRateData(null);
+        }
+        setDeleteTarget(null);
+      } else {
+        const data = await res.json();
+        alert(data.error || "刪除失敗");
+      }
+    } catch {
+      alert("刪除失敗，請稍後重試");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -515,6 +544,18 @@ export default function AdminStatsPage() {
                             </div>
                           </div>
                         ) : null}
+
+                        {/* Delete user button */}
+                        {user.id !== session?.user?.id && (
+                          <div className="mt-5 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeleteTarget(user); }}
+                              className="px-4 py-1.5 text-xs font-medium text-red-500 hover:text-white hover:bg-red-500 border border-red-200 dark:border-red-800 rounded-full transition-all"
+                            >
+                              刪除此使用者
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}
@@ -531,6 +572,54 @@ export default function AdminStatsPage() {
           </table>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">確認刪除使用者</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">此操作無法復原</p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 space-y-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{deleteTarget.name || "未命名"}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{deleteTarget.email}</p>
+              <p className="text-xs text-gray-400">
+                {ROLE_LABELS[deleteTarget.role] || deleteTarget.role} · 做題 {deleteTarget.totalAnswered} · 測驗 {deleteTarget.totalExams} 次
+              </p>
+            </div>
+
+            <p className="text-sm text-red-600 dark:text-red-400">
+              將永久刪除此使用者及其所有資料，包括測驗記錄、錯題、筆記、收藏、複習卡片等。
+            </p>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleDeleteUser}
+                disabled={deleting}
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                {deleting ? "刪除中..." : "確認刪除"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
