@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "@/components/icons";
 import { groupBanksByCategory } from "@/lib/group-banks";
+import CategorySelect from "@/components/category-select";
 
 const SAMPLE_FORMAT_A = `[
   {
@@ -360,12 +361,11 @@ export default function ImportPage() {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 題庫分類（選填）
               </label>
-              <input
-                type="text"
+              <CategorySelect
                 value={bankCategory}
-                onChange={(e) => setBankCategory(e.target.value)}
-                placeholder="例如：資安證照、語言檢定、雲端技術"
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={setBankCategory}
+                canCreate={true}
+                placeholder="選擇分類（選填）"
               />
             </div>
 

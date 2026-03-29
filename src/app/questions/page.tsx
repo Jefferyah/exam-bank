@@ -8,6 +8,7 @@ import { DIFFICULTY_LABELS, cn } from "@/lib/utils";
 import { groupBanksByCategory } from "@/lib/group-banks";
 import { DifficultyStars } from "@/components/icons";
 import { setQuestionNavList } from "@/lib/question-nav";
+import CategorySelect from "@/components/category-select";
 
 interface QuestionBank {
   id: string;
@@ -423,14 +424,13 @@ function QuestionsPageInner() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                       <label className="text-xs text-gray-500 w-10 flex-shrink-0">分類</label>
-                                      <input
-                                        type="text"
-                                        value={editingCategory}
-                                        onChange={(e) => setEditingCategory(e.target.value)}
-                                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameBank(bank.id); if (e.key === "Escape") { setEditingBankId(null); setEditingName(""); setEditingCategory(""); } }}
-                                        placeholder="例如：CCSP、CISSP"
-                                        className="flex-1 px-3 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      />
+                                      <div className="flex-1">
+                                        <CategorySelect
+                                          value={editingCategory}
+                                          onChange={setEditingCategory}
+                                          canCreate={currentUserRole === "ADMIN" || currentUserRole === "TEACHER"}
+                                        />
+                                      </div>
                                     </div>
                                     <div className="flex items-center gap-2 ml-12">
                                       <button

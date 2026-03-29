@@ -6,6 +6,7 @@ import Link from "next/link";
 import { DIFFICULTY_LABELS } from "@/lib/utils";
 import { ArrowLeft } from "@/components/icons";
 import { groupBanksByCategory } from "@/lib/group-banks";
+import CategorySelect from "@/components/category-select";
 
 interface Option {
   label: string;
@@ -322,12 +323,11 @@ function CreateQuestionContent() {
                     placeholder="題庫描述（選填）"
                     className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <input
-                    type="text"
+                  <CategorySelect
                     value={newBankCategory}
-                    onChange={(e) => setNewBankCategory(e.target.value)}
-                    placeholder="分類（選填，例如：CCSP、CISSP）"
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={setNewBankCategory}
+                    canCreate={true}
+                    placeholder="分類（選填）"
                   />
                   <div>
                     <p className="mb-2 text-sm font-medium text-gray-600">分享設定</p>
