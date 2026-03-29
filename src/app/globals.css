@@ -509,9 +509,15 @@ body {
 .wmde-markdown ul ul ul {
   list-style-type: square !important;
 }
-.wmde-markdown ul li::marker,
+.wmde-markdown ul li::marker {
+  color: #6b7280 !important;
+}
 .wmde-markdown ol li::marker {
-  color: #e11d48 !important;
+  color: #6b7280 !important;
+}
+[data-color-mode="dark"] .wmde-markdown ul li::marker,
+[data-color-mode="dark"] .wmde-markdown ol li::marker {
+  color: #94a3b8 !important;
 }
 
 /* ── Dark mode — base text color + background fix ── */

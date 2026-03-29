@@ -522,6 +522,37 @@ export default function KnowledgeEntryPage() {
           });
         }
       }
+
+      // Enter on indented list — MDEditor only handles unindented lists
+      if (e.key === "Enter" && !e.shiftKey) {
+        const ta = target as HTMLTextAreaElement;
+        const { selectionStart, value } = ta;
+        const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+        const currentLine = value.substring(lineStart, selectionStart);
+        const indentedMatch = currentLine.match(/^(\s+)([-*+])\s/);
+        const indentedNumMatch = currentLine.match(/^(\s+)(\d+)\.\s/);
+        // Also handle unindented checkbox lists: - [ ] or - [x]
+        const checkboxMatch = currentLine.match(/^(\s*)([-*+])\s\[[ xX]\]\s/);
+        if (indentedMatch || indentedNumMatch || checkboxMatch) {
+          e.preventDefault();
+          e.stopPropagation();
+          let insert: string;
+          if (checkboxMatch) {
+            insert = "\n" + checkboxMatch[1] + checkboxMatch[2] + " [ ] ";
+          } else if (indentedMatch) {
+            insert = "\n" + indentedMatch[1] + indentedMatch[2] + " ";
+          } else {
+            const num = parseInt(indentedNumMatch![2]) + 1;
+            insert = "\n" + indentedNumMatch![1] + num + ". ";
+          }
+          const newValue = value.substring(0, selectionStart) + insert + value.substring(selectionStart);
+          const newPos = selectionStart + insert.length;
+          handleChangeRef.current(newValue);
+          requestAnimationFrame(() => {
+            ta.selectionStart = ta.selectionEnd = newPos;
+          });
+        }
+      }
     };
 
     const onKeyUp = () => setTimeout(() => handleAutocompleteInputRef.current(), 0);
