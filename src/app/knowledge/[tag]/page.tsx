@@ -584,28 +584,32 @@ export default function KnowledgeEntryPage() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {saving && (
-              <span className="text-xs text-gray-400 animate-pulse">儲存中...</span>
-            )}
-            {!saving && lastSaved && (
-              <span className="text-xs text-emerald-500 font-medium">已儲存</span>
-            )}
+          <div className="flex items-center gap-2">
+            {saving ? (
+              <span className="text-xs text-gray-400 dark:text-gray-500 animate-pulse">儲存中...</span>
+            ) : lastSaved ? (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-500 dark:text-emerald-400 font-medium">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                已儲存
+              </span>
+            ) : null}
             {!renaming && (
-              <>
+              <div className="flex items-center gap-1 ml-1">
                 <button
                   onClick={() => { setRenameDraft(tag); setRenaming(true); }}
-                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   改名
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors"
+                  className="px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                 >
                   刪除
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -647,7 +651,7 @@ export default function KnowledgeEntryPage() {
             const urls = getAiWebUrls(buildKnowledgeAiPrompt(tag, content, customKnowledgePrompt));
             return (
               <>
-                <span className="text-[11px] text-gray-300 dark:text-gray-600 mr-0.5">AI 整理</span>
+                <span className="text-[11px] text-gray-400 dark:text-gray-500 mr-0.5">AI 整理</span>
                 <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-[#10a37f] text-gray-400 dark:text-gray-500 hover:text-white border border-gray-100 dark:border-gray-600 hover:border-transparent rounded-full text-[11px] font-medium transition-all">
                   ChatGPT
