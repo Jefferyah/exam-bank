@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 /**
  * Circular progress ring with gradient color based on score.
  * 0-40% red, 40-70% yellow, 70-100% green — smooth HSL transition.
@@ -27,7 +29,7 @@ function scoreToColor(score: number): string {
   return `hsl(${hue}, 75%, 50%)`;
 }
 
-function scoreToTrackColor(score: number): string {
+function scoreToTrackColor(score: number, isDark: boolean): string {
   let hue: number;
   if (score <= 40) {
     hue = (score / 40) * 45;
@@ -36,7 +38,19 @@ function scoreToTrackColor(score: number): string {
   } else {
     hue = 100 + ((score - 70) / 30) * 45;
   }
-  return `hsl(${hue}, 20%, 90%)`;
+  return isDark ? `hsl(${hue}, 15%, 25%)` : `hsl(${hue}, 20%, 90%)`;
+}
+
+function useIsDark(): boolean {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.dataset.theme === "dark");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
 }
 
 export default function ProgressRing({
@@ -47,11 +61,12 @@ export default function ProgressRing({
   label,
   className = "",
 }: ProgressRingProps) {
+  const isDark = useIsDark();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (Math.min(score, 100) / 100) * circumference;
   const color = scoreToColor(score);
-  const trackColor = scoreToTrackColor(score);
+  const trackColor = scoreToTrackColor(score, isDark);
 
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
