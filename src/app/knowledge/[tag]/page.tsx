@@ -401,7 +401,7 @@ export default function KnowledgeEntryPage() {
     const textarea = getTextarea();
     if (!textarea) return;
     const pos = textarea.selectionStart;
-    if (pos === 0 && textarea.value.length > 0) return; // cursor reset by React re-render, skip
+    if (pos === 0 && textarea.value.length > 0) { setAcQuery(null); return; } // cursor reset by React re-render, clear stale autocomplete
     acCursorRef.current = pos;
     acTextRef.current = textarea.value;
     const textBefore = textarea.value.substring(0, pos);
