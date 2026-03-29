@@ -409,7 +409,10 @@ body {
   line-height: 1.6 !important;
 }
 
-/* List bullet — per-level colors applied via JS (HackMD-style, entire line) */
+/* List bullet — HackMD-style colored marker */
+.w-md-editor-text-pre .token.list.punctuation {
+  color: #c0392b !important;
+}
 
 /* Blockquote lines — color the entire line */
 .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
@@ -531,7 +534,10 @@ body {
   line-height: 1.6 !important;
 }
 
-/* Dark: List bullet — per-level colors applied via JS (HackMD-style, entire line) */
+/* Dark: List bullet */
+[data-color-mode="dark"] .w-md-editor-text-pre .token.list.punctuation {
+  color: #f76e79 !important;
+}
 
 /* Dark: Blockquote lines */
 [data-color-mode="dark"] .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {

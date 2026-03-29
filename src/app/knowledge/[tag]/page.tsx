@@ -602,39 +602,7 @@ export default function KnowledgeEntryPage() {
     };
   }, [loading]); // re-run when loading flips to false so editorRef.current is available
 
-  // Colorize entire list lines by indent depth (HackMD-style)
-  // Runs after content changes with debounce + rAF to avoid cursor/flicker issues.
-  useEffect(() => {
-    const DARK_COLORS = ["#6699cc", "#f76e79", "#98c379"]; // blue, pink, green
-    const LIGHT_COLORS = ["#1e40af", "#c0392b", "#16804a"]; // blue, red, green
-
-    const colorize = () => {
-      const isDark = document.documentElement.getAttribute("data-color-mode") === "dark";
-      const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
-
-      document.querySelectorAll(
-        ".w-md-editor-text-pre .token.list.punctuation"
-      ).forEach((token) => {
-        const line = token.closest(".code-line") as HTMLElement | null;
-        if (!line) return;
-        let indent = 0;
-        for (const child of Array.from(line.childNodes)) {
-          if (child === token) break;
-          if (child.nodeType === 3) {
-            const spaces = (child.textContent || "").match(/^(\s*)/);
-            if (spaces) indent += spaces[1].length;
-          }
-        }
-        const level = Math.floor(indent / 2);
-        const c = colors[level % colors.length];
-        line.style.setProperty("color", c, "important");
-      });
-    };
-
-    // Wait for MDEditor to finish DOM rebuild, then colorize in next frame
-    const timer = setTimeout(() => requestAnimationFrame(colorize), 30);
-    return () => clearTimeout(timer);
-  }, [content]);
+  // List bullet colors are handled purely via CSS (no JS DOM manipulation).
 
   // Cleanup timer
   useEffect(() => {
