@@ -165,6 +165,8 @@ export default function KnowledgeEntryPage() {
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showToolbar, setShowToolbar] = useState(false); // MDEditor toolbar hidden on mobile by default
+  const [isMobile, setIsMobile] = useState(false);
   const [acQuery, setAcQuery] = useState<string | null>(null); // autocomplete query, null = hidden
   const [acIndex, setAcIndex] = useState(0);
   const [acPos, setAcPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -174,6 +176,14 @@ export default function KnowledgeEntryPage() {
   const acTextRef = useRef<string>(""); // store text content when [[ detected
   const acInteractingRef = useRef(false); // track if user is interacting with dropdown
   const acInputRef = useRef<() => void>(() => {}); // ref to autocomplete handler to avoid circular deps
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Load editor preview preference & nav context
   useEffect(() => {
@@ -643,11 +653,11 @@ export default function KnowledgeEntryPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm relative">
-        <div className="flex items-center gap-3">
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 shadow-sm relative">
+        <div className="flex items-start sm:items-center gap-2 sm:gap-3">
           <button
             onClick={() => router.push("/knowledge")}
-            className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors mt-0.5 sm:mt-0"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -661,17 +671,17 @@ export default function KnowledgeEntryPage() {
                   value={renameDraft}
                   onChange={(e) => setRenameDraft(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
-                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-purple-400 outline-none w-full"
+                  className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-purple-400 outline-none w-full"
                 />
                 <button onClick={handleRename} className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap">確定</button>
                 <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600 whitespace-nowrap">取消</button>
               </div>
             ) : (
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
                 {tag}
               </h1>
             )}
-            <div className="flex items-center gap-3 mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
               <Link
                 href={`/questions?tags=${encodeURIComponent(tag)}`}
                 className="text-xs text-blue-500 hover:text-blue-600 transition-colors"
@@ -679,14 +689,13 @@ export default function KnowledgeEntryPage() {
                 查看相關題目 →
               </Link>
               {lastSaved && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  上次儲存：
+                <span className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">
                   {new Date(lastSaved).toLocaleString("zh-TW")}
                 </span>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {saving ? (
               <span className="text-xs text-gray-400 dark:text-gray-500 animate-pulse">儲存中...</span>
             ) : lastSaved ? (
@@ -694,20 +703,20 @@ export default function KnowledgeEntryPage() {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                已儲存
+                <span className="hidden sm:inline">已儲存</span>
               </span>
             ) : null}
             {!renaming && (
-              <div className="flex items-center gap-1 ml-1">
+              <div className="flex items-center gap-0.5 sm:gap-1">
                 <button
                   onClick={() => { setRenameDraft(tag); setRenaming(true); }}
-                  className="px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="px-2 sm:px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   改名
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  className="px-2 sm:px-2.5 py-1 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                 >
                   刪除
                 </button>
@@ -728,8 +737,8 @@ export default function KnowledgeEntryPage() {
       </div>
 
       {/* Editor mode toggle + AI tools */}
-      <div className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-3 py-2 shadow-sm">
-        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-750 rounded-lg p-0.5">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-750 rounded-lg p-0.5 self-start">
           {([
             { key: "edit" as const, label: "編輯" },
             { key: "live" as const, label: "分割" },
@@ -776,16 +785,26 @@ export default function KnowledgeEntryPage() {
       <div
         ref={editorRef}
         data-color-mode={theme === "dark" ? "dark" : "light"}
-        className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm relative"
+        className={`rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm relative ${showToolbar ? "" : "hide-md-toolbar"}`}
         onPaste={handlePaste}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
       >
+        {/* Mobile toolbar toggle */}
+        <button
+          onClick={() => setShowToolbar((v) => !v)}
+          className="sm:hidden flex items-center gap-1.5 w-full px-3 py-2 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d={showToolbar ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
+          </svg>
+          {showToolbar ? "收起工具列" : "展開工具列"}
+        </button>
         <MDEditor
           value={content}
           onChange={handleChange}
-          height={550}
-          preview={previewMode}
+          height={isMobile ? 400 : 550}
+          preview={isMobile && previewMode === "live" ? "edit" : previewMode}
           visibleDragbar={false}
           defaultTabEnable
           commands={[

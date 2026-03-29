@@ -348,6 +348,13 @@ body {
   box-shadow: none !important;
 }
 
+/* Mobile: hide toolbar when toggle is off */
+@media (max-width: 639px) {
+  .hide-md-toolbar .w-md-editor-toolbar {
+    display: none !important;
+  }
+}
+
 /* Toolbar — soft, transparent, blending with the page */
 .w-md-editor-toolbar {
   background-color: #f8fafc !important;
