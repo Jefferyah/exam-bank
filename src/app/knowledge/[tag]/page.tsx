@@ -577,6 +577,39 @@ export default function KnowledgeEntryPage() {
     };
   }, [loading]); // re-run when loading flips to false so editorRef.current is available
 
+  // Colorize list markers by indent depth (HackMD-style)
+  // Prism gives all `-` the same token class; we post-process to add per-level colors.
+  // Colorize list markers by indent depth (HackMD-style)
+  // MDEditor rebuilds the <pre> DOM on each edit, wiping inline styles.
+  // We poll via setInterval to catch new uncolored tokens after each rebuild.
+  useEffect(() => {
+    const LIST_COLORS = ["#6699cc", "#f76e79", "#98c379"]; // blue, pink, green — cycles
+
+    const colorize = () => {
+      const tokens = document.querySelectorAll(
+        ".w-md-editor-text-pre .token.list.punctuation:not([data-lc])"
+      );
+      tokens.forEach((token) => {
+        const line = token.closest(".code-line");
+        if (!line) return;
+        let indent = 0;
+        for (const child of Array.from(line.childNodes)) {
+          if (child === token) break;
+          if (child.nodeType === 3) {
+            const spaces = (child.textContent || "").match(/^(\s*)/);
+            if (spaces) indent += spaces[1].length;
+          }
+        }
+        const level = Math.floor(indent / 2);
+        (token as HTMLElement).style.setProperty("color", LIST_COLORS[level % LIST_COLORS.length], "important");
+        (token as HTMLElement).setAttribute("data-lc", "1");
+      });
+    };
+
+    const id = setInterval(colorize, 100);
+    return () => clearInterval(id);
+  }, []);
+
   // Cleanup timer
   useEffect(() => {
     return () => {

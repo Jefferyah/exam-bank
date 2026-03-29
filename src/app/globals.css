@@ -418,13 +418,13 @@ body {
   color: #9ca3af !important;
 }
 
-/* Headings — entire line including # and text */
+/* Headings — HackMD-style orange */
 .w-md-editor-text-pre .token.title.important {
-  color: #b45309 !important;
+  color: #c2792b !important;
   font-weight: 700 !important;
 }
 .w-md-editor-text-pre .token.title.important > .token.punctuation {
-  color: #d97706 !important;
+  color: #d98c3c !important;
 }
 
 /* Bold — ** and content */
@@ -467,10 +467,7 @@ body {
   color: #2563eb !important;
 }
 
-/* List bullet */
-.w-md-editor-text-pre .token.list.punctuation {
-  color: #e11d48 !important;
-}
+/* List bullet — per-level colors applied via JS (HackMD-style) */
 
 /* Blockquote > */
 .w-md-editor-text-pre .token.blockquote.punctuation {
@@ -633,13 +630,13 @@ body {
   color: #64748b !important;
 }
 
-/* Dark: Headings */
+/* Dark: Headings — HackMD-style orange */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.title.important {
-  color: #fbbf24 !important;
+  color: #eda35e !important;
   font-weight: 700 !important;
 }
 [data-color-mode="dark"] .w-md-editor-text-pre .token.title.important > .token.punctuation {
-  color: #f59e0b !important;
+  color: #eda35e !important;
 }
 
 /* Dark: Bold */
@@ -679,10 +676,7 @@ body {
   color: #60a5fa !important;
 }
 
-/* Dark: List bullet */
-[data-color-mode="dark"] .w-md-editor-text-pre .token.list.punctuation {
-  color: #fb7185 !important;
-}
+/* Dark: List bullet — per-level colors applied via JS (HackMD-style) */
 
 /* Dark: Blockquote */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.blockquote.punctuation {
