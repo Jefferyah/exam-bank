@@ -62,32 +62,34 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Logo isDark={isDark} />
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => {
-              const isActive =
-                pathname === link.href ||
-                (link.href !== "/" && pathname.startsWith(link.href));
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? isDark
-                        ? "bg-[#38bdf8] text-[#161720] font-semibold"
-                        : "bg-gray-100 text-gray-900 font-semibold"
-                      : isDark
-                        ? "text-[#7a8599] hover:text-[#f1f5f9]"
-                        : "text-gray-500 hover:text-gray-900"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Desktop nav — only show when logged in */}
+          {session?.user && (
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => {
+                const isActive =
+                  pathname === link.href ||
+                  (link.href !== "/" && pathname.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? isDark
+                          ? "bg-[#38bdf8] text-[#161720] font-semibold"
+                          : "bg-gray-100 text-gray-900 font-semibold"
+                        : isDark
+                          ? "text-[#7a8599] hover:text-[#f1f5f9]"
+                          : "text-gray-500 hover:text-gray-900"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {/* Right section */}
           <div className="hidden md:flex items-center space-x-3">
@@ -172,7 +174,7 @@ export function Navbar() {
           "px-4 pt-2 pb-4 space-y-1 border-t",
           isDark ? "border-[rgba(255,255,255,0.08)] bg-[rgba(22,23,32,0.98)]" : "border-gray-100 bg-white"
         )}>
-          {navLinks.map((link) => {
+          {session?.user && navLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
             return (
               <Link
