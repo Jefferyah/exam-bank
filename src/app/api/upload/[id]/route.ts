@@ -29,7 +29,7 @@ export async function GET(
       headers["Content-Disposition"] = `attachment; filename="${image.filename}"; filename*=UTF-8''${encodedFilename}`;
     }
 
-    return new NextResponse(body, { headers });
+    return new NextResponse(Buffer.from(body), { headers });
   } catch (err) {
     console.error("File fetch error:", err);
     return NextResponse.json(
