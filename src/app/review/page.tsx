@@ -1320,9 +1320,9 @@ const INDICATOR_WEIGHTS: Record<string, number> = {
 
 const INDICATOR_DESCRIPTIONS: Record<string, string> = {
   coverage: "題目覆蓋率：做過的題目佔該分類總題數的比例。做 1 次得 50%、2 次 85%、3 次以上 100%。",
-  mastery: "精熟度：第 2 次以上作答的正確率，反映真正理解程度。正確率 85% 以上才能滿分。",
+  mastery: "精熟度：第 2 次以上作答的正確率 × 題目覆蓋率，反映理解程度與廣度。正確率 85% 以上且覆蓋全部題目才能滿分。",
   time: "投入時間：實際花費時間與目標時間（每題 4 分鐘）的比例。時間投入越接近目標分數越高。",
-  correction: "訂正率：答錯的題目後來有答對的比例。全部訂正為滿分，從未答錯也算滿分。",
+  correction: "訂正率：答錯的題目後來有答對的比例。全部訂正為滿分，從未答錯也算滿分。未做過任何題目則為 0 分。",
   trend: "近期趨勢：過去 15 天的練習頻率。最近 5 天權重最高，持續練習分數越高。",
 };
 
@@ -1382,7 +1382,7 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
           const rv = cat.rawValues;
           const RAW_DETAILS: Record<string, string> = {
             coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
-            mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
+            mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}% × 覆蓋 ${cat.questionsAttempted}/${cat.totalQuestions} 題` : "",
             time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
             correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
             trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",

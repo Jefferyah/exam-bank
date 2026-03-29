@@ -289,8 +289,8 @@ export default function AdminStatsPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">2. 精熟度（30%）</p>
-              <p>只看第 2 次以上作答的正確率，反映真正理解程度。</p>
-              <p>分段線性：正確率 &lt;40% → 0~15 分、40~60% → 15~40 分、60~85% → 40~100 分、≥85% → 滿分。</p>
+              <p>第 2 次以上作答的正確率 × 題目覆蓋率，反映理解程度與廣度。</p>
+              <p>分段線性：正確率 &lt;40% → 0~15 分、40~60% → 15~40 分、60~85% → 40~100 分、≥85% → 滿分。再乘以（已做題數 ÷ 總題數）。</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">3. 投入時間（15%）</p>
@@ -299,7 +299,7 @@ export default function AdminStatsPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">4. 訂正率（15%）</p>
-              <p>答錯過的題目後來有答對的比例。全部訂正 = 滿分，從未答錯也算滿分。</p>
+              <p>答錯過的題目後來有答對的比例。全部訂正 = 滿分，從未答錯也算滿分。未做過任何題目則為 0 分。</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">5. 近期趨勢（15%）</p>
@@ -529,7 +529,7 @@ export default function AdminStatsPage() {
                                     const rv = cat.rawValues;
                                     const RAW_DETAILS: Record<string, string> = {
                                       coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
-                                      mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
+                                      mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}% × 覆蓋 ${cat.questionsAttempted}/${cat.totalQuestions} 題` : "",
                                       time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
                                       correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
                                       trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
