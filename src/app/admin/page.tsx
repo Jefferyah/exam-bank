@@ -681,9 +681,9 @@ export default function AdminPage() {
                             <span className="text-blue-500 ml-1">（不限）</span>
                           )}
                         </div>
-                        {ic.usedBy && ic.usedBy.length > 0 && (
+                        {ic.usedBy && (
                           <div className="text-gray-400">
-                            使用者：{ic.usedBy.map((u: { name?: string; email?: string }) => u.name || u.email).join("、")}
+                            使用者：{ic.usedBy.name || ic.usedBy.email || "匿名"}
                           </div>
                         )}
                       </div>
