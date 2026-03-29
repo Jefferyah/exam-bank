@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { DifficultyStars } from "@/components/icons";
+import ProgressRing, { scoreToColor } from "@/components/progress-ring";
 import { CopyQuestionButton } from "@/components/copy-question-button";
 import { setQuestionNavList } from "@/lib/question-nav";
 
@@ -106,6 +107,26 @@ interface DailyActivity {
   questions: number;
 }
 
+interface CategoryScore {
+  category: string;
+  bankNames: string[];
+  totalQuestions: number;
+  questionsAttempted: number;
+  indicators: {
+    coverage: number;
+    mastery: number;
+    time: number;
+    correction: number;
+    trend: number;
+  };
+  score: number;
+}
+
+interface SuccessRateData {
+  categories: CategoryScore[];
+  overallScore: number;
+}
+
 interface AnalyticsData {
   totalExams: number;
   completedExams: number;
@@ -140,6 +161,7 @@ export default function ReviewPage() {
   const [srsStats, setSrsStats] = useState<{ totalCards: number; dueToday: number; byStatus: Record<string, number>; masteryRate: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [successRate, setSuccessRate] = useState<SuccessRateData | null>(null);
 
   // Wrong tab state
   const [wrongSort, setWrongSort] = useState<"count" | "recent" | "difficulty">("count");
@@ -163,11 +185,12 @@ export default function ReviewPage() {
 
     async function fetchData() {
       try {
-        const [analyticsRes, favRes, notesRes, srsRes] = await Promise.all([
+        const [analyticsRes, favRes, notesRes, srsRes, successRateRes] = await Promise.all([
           fetch("/api/analytics"),
           fetch("/api/favorites?limit=500"),
           fetch("/api/notes?limit=500"),
           fetch("/api/review-cards?stats=true"),
+          fetch("/api/success-rate"),
         ]);
 
         if (analyticsRes.ok) {
@@ -188,6 +211,10 @@ export default function ReviewPage() {
         if (srsRes.ok) {
           const data = await srsRes.json();
           setSrsStats(data.stats || null);
+        }
+        if (successRateRes.ok) {
+          const data = await successRateRes.json();
+          setSuccessRate(data);
         }
       } catch (err) {
         console.error(err);
@@ -391,6 +418,7 @@ export default function ReviewPage() {
           handleSaveGoal={handleSaveGoal}
           mastered={mastered}
           handlePracticeBank={handlePracticeBank}
+          successRate={successRate}
         />
       ) : tab === "srs" ? (
         <SrsTab stats={srsStats} />
@@ -441,6 +469,7 @@ function DashboardTab({
   handleSaveGoal,
   mastered,
   handlePracticeBank,
+  successRate,
 }: {
   analytics: AnalyticsData | null;
   dailyGoal: number | null;
@@ -452,6 +481,7 @@ function DashboardTab({
   handleSaveGoal: () => void;
   mastered: Set<string>;
   handlePracticeBank: (bankId: string, bankName: string) => void;
+  successRate: SuccessRateData | null;
 }) {
   if (!analytics) {
     return <div className="text-center py-12 text-gray-400">尚無分析資料，完成一次考試後即可查看</div>;
@@ -600,6 +630,11 @@ function DashboardTab({
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Success Rate ── */}
+      {successRate && successRate.categories.length > 0 && (
+        <SuccessRateSection data={successRate} />
       )}
 
       {/* ── Score Trend Chart ── */}
@@ -1253,6 +1288,167 @@ const CARD_COLORS = {
   orange:  { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
   red:     { bar: "from-gray-300 to-gray-400", bg: "bg-gray-50/60 dark:bg-gray-800/60", text: "text-gray-700 dark:text-gray-300", sub: "text-gray-500/70 dark:text-gray-400/60" },
 } as const;
+
+/* ════════════════════════════════════════
+   Success Rate Section — Circular Progress Rings
+   ════════════════════════════════════════ */
+
+const INDICATOR_LABELS: Record<string, string> = {
+  coverage: "覆蓋率",
+  mastery: "精熟度",
+  time: "投入時間",
+  correction: "訂正率",
+  trend: "近期趨勢",
+};
+
+const INDICATOR_WEIGHTS: Record<string, number> = {
+  coverage: 25,
+  mastery: 30,
+  time: 15,
+  correction: 15,
+  trend: 15,
+};
+
+const INDICATOR_DESCRIPTIONS: Record<string, string> = {
+  coverage: "題目覆蓋率：做過的題目佔該分類總題數的比例。做 1 次得 50%、2 次 85%、3 次以上 100%。",
+  mastery: "精熟度：第 2 次以上作答的正確率，反映真正理解程度。正確率 85% 以上才能滿分。",
+  time: "投入時間：實際花費時間與目標時間（每題 4 分鐘）的比例。時間投入越接近目標分數越高。",
+  correction: "訂正率：答錯的題目後來有答對的比例。全部訂正為滿分，從未答錯也算滿分。",
+  trend: "近期趨勢：過去 15 天的練習頻率。最近 5 天權重最高，持續練習分數越高。",
+};
+
+function SuccessRateSection({ data }: { data: SuccessRateData }) {
+  const [showExplain, setShowExplain] = useState(false);
+  const [expandedCat, setExpandedCat] = useState<string | null>(null);
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">學習成功率</h2>
+        <button
+          onClick={() => setShowExplain(!showExplain)}
+          className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        >
+          {showExplain ? "收起說明" : "計分說明"}
+        </button>
+      </div>
+
+      {/* Explanation panel */}
+      {showExplain && (
+        <div className="bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3 text-xs text-gray-600 dark:text-gray-400">
+          <p className="font-medium text-gray-700 dark:text-gray-300">成功率是綜合評估你在各分類題庫的學習表現，包含以下 5 項指標：</p>
+          <div className="space-y-2">
+            {Object.entries(INDICATOR_LABELS).map(([key, label]) => (
+              <div key={key} className="flex gap-2">
+                <span className="flex-shrink-0 font-semibold text-gray-700 dark:text-gray-300 w-20">
+                  {label}（{INDICATOR_WEIGHTS[key]}%）
+                </span>
+                <span>{INDICATOR_DESCRIPTIONS[key]}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-gray-500 dark:text-gray-500 pt-1 border-t border-gray-200 dark:border-gray-600">
+            總分 = 各指標加權平均，多個分類再依題數加權。只計算你做過的題庫分類。
+          </p>
+          <div className="flex items-center gap-4 pt-1">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(85) }} />
+              <span>70%+ 優秀</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(55) }} />
+              <span>40-70% 待加強</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(20) }} />
+              <span>0-40% 需努力</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Overall score + category rings */}
+      <div className="flex flex-col sm:flex-row items-center gap-5">
+        {/* Overall ring */}
+        <div className="flex flex-col items-center">
+          <ProgressRing score={data.overallScore} size={100} strokeWidth={8} label="總成功率" />
+          <p className="text-xs text-gray-400 mt-1">{data.categories.length} 個分類</p>
+        </div>
+
+        {/* Category mini rings */}
+        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 w-full">
+          {data.categories.map((cat) => (
+            <button
+              key={cat.category}
+              onClick={() => setExpandedCat(expandedCat === cat.category ? null : cat.category)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center",
+                expandedCat === cat.category
+                  ? "bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700"
+                  : "bg-gray-50 dark:bg-gray-750 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"
+              )}
+            >
+              <ProgressRing score={cat.score} size={48} strokeWidth={4} showLabel={true} />
+              <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full">
+                {cat.category}
+              </span>
+              <span className="text-[10px] text-gray-400">
+                {cat.questionsAttempted}/{cat.totalQuestions} 題
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Expanded category detail */}
+      {expandedCat && (() => {
+        const cat = data.categories.find((c) => c.category === expandedCat);
+        if (!cat) return null;
+        return (
+          <div className="bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{cat.category}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{cat.bankNames.join("、")}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-bold" style={{ color: scoreToColor(cat.score) }}>
+                  {cat.score}%
+                </span>
+                <p className="text-[10px] text-gray-400">已做 {cat.questionsAttempted} / {cat.totalQuestions} 題</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
+                <div key={key} className="space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-600 dark:text-gray-400">
+                      {INDICATOR_LABELS[key]}
+                      <span className="text-gray-400 dark:text-gray-500 ml-1">（{INDICATOR_WEIGHTS[key]}%）</span>
+                    </span>
+                    <span className="text-[11px] tabular-nums font-medium" style={{ color: scoreToColor(value) }}>
+                      {value}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${value}%`,
+                        backgroundColor: scoreToColor(value),
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
 
 function SummaryCard({ label, value, unit, color, detail }: {
   label: string; value: string; unit: string;
