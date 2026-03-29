@@ -215,7 +215,7 @@ export default function AdminStatsPage() {
     <button
       onClick={() => handleSort(field)}
       className={cn(
-        "flex items-center gap-1 text-xs font-medium uppercase tracking-wider transition-colors",
+        "flex items-center justify-center gap-1 text-xs font-medium uppercase tracking-wider transition-colors w-full",
         sortKey === field ? "text-purple-600 dark:text-purple-400" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
       )}
     >
@@ -388,16 +388,16 @@ export default function AdminStatsPage() {
                   <SortHeader label="學員" field="name" />
                 </th>
                 <th className="text-center px-3 py-3 hidden sm:table-cell">角色</th>
-                <th className="text-right px-3 py-3">
+                <th className="text-center px-3 py-3">
                   <SortHeader label="做題數" field="totalAnswered" />
                 </th>
-                <th className="text-right px-3 py-3">
+                <th className="text-center px-3 py-3">
                   <SortHeader label="考試數" field="totalExams" />
                 </th>
-                <th className="text-right px-3 py-3">
+                <th className="text-center px-3 py-3">
                   <SortHeader label="答對率" field="accuracy" />
                 </th>
-                <th className="text-right px-3 py-3">
+                <th className="text-center px-3 py-3">
                   <SortHeader label="練習時數" field="practiceMinutes" />
                 </th>
                 <th className="text-center px-3 py-3">
@@ -436,13 +436,13 @@ export default function AdminStatsPage() {
                         {ROLE_LABELS[user.role] || user.role}
                       </span>
                     </td>
-                    <td className="text-right px-3 py-3 tabular-nums text-gray-900 dark:text-gray-100 font-medium">
+                    <td className="text-center px-3 py-3 tabular-nums text-gray-900 dark:text-gray-100 font-medium">
                       {user.totalAnswered.toLocaleString()}
                     </td>
-                    <td className="text-right px-3 py-3 tabular-nums text-gray-600 dark:text-gray-400">
+                    <td className="text-center px-3 py-3 tabular-nums text-gray-600 dark:text-gray-400">
                       {user.totalExams}
                     </td>
-                    <td className="text-right px-3 py-3">
+                    <td className="text-center px-3 py-3">
                       <span
                         className={cn(
                           "tabular-nums font-medium",
@@ -458,7 +458,7 @@ export default function AdminStatsPage() {
                         {user.totalAnswered > 0 ? `${user.accuracy}%` : "—"}
                       </span>
                     </td>
-                    <td className="text-right px-3 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
+                    <td className="text-center px-3 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
                       {user.practiceMinutes > 0 ? formatMinutes(user.practiceMinutes) : "—"}
                     </td>
                     <td className="text-center px-3 py-3">
