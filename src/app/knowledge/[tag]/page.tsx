@@ -449,109 +449,102 @@ export default function KnowledgeEntryPage() {
   const handleAutocompleteInputRef = useRef(handleAutocompleteInput);
   handleAutocompleteInputRef.current = handleAutocompleteInput;
 
-  // Attach input/keydown listeners to the textarea — wait for MDEditor to render
+  // Attach listeners on the editorRef container using CAPTURE phase
+  // so our handler fires before MDEditor's internal handler.
+  // Using the container div (editorRef) avoids the timing issue with textarea.
   useEffect(() => {
-    let cancelled = false;
-    let cleanupFns: (() => void)[] = [];
+    const container = editorRef.current;
+    if (!container) return;
 
-    function attach() {
-      const textarea = getTextarea();
-      if (!textarea) {
-        // MDEditor not rendered yet, retry
-        if (!cancelled) setTimeout(attach, 100);
-        return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Only handle events from the textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName !== "TEXTAREA") return;
+
+      const q = acQueryRef.current;
+      const total = acTotalItemsRef.current;
+      const filtered = acFilteredRef.current;
+      const idx = acIndexRef.current;
+
+      // Autocomplete navigation
+      if (q !== null && total > 0) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          e.stopPropagation();
+          setAcIndex((i) => Math.min(i + 1, total - 1));
+          return;
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          e.stopPropagation();
+          setAcIndex((i) => Math.max(i - 1, 0));
+          return;
+        } else if (e.key === "Enter" || e.key === "Tab") {
+          e.preventDefault();
+          e.stopPropagation();
+          const selected = idx < filtered.length ? filtered[idx] : q.trim();
+          insertWikiLinkRef.current(selected);
+          return;
+        } else if (e.key === "Escape") {
+          setAcQuery(null);
+          return;
+        }
       }
 
-      const onKeyDown = (e: KeyboardEvent) => {
-        const q = acQueryRef.current;
-        const total = acTotalItemsRef.current;
-        const filtered = acFilteredRef.current;
-        const idx = acIndexRef.current;
-
-        // Autocomplete navigation
-        if (q !== null && total > 0) {
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            setAcIndex((i) => Math.min(i + 1, total - 1));
-            return;
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            setAcIndex((i) => Math.max(i - 1, 0));
-            return;
-          } else if (e.key === "Enter" || e.key === "Tab") {
-            e.preventDefault();
-            const selected = idx < filtered.length ? filtered[idx] : q.trim();
-            insertWikiLinkRef.current(selected);
-            return;
-          } else if (e.key === "Escape") {
-            setAcQuery(null);
-            return;
+      // Tab / Shift+Tab list indentation
+      if (e.key === "Tab") {
+        const ta = target as HTMLTextAreaElement;
+        const { selectionStart, selectionEnd, value } = ta;
+        const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+        const lineEnd = value.indexOf("\n", selectionStart);
+        const line = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
+        const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s/);
+        if (listMatch) {
+          e.preventDefault();
+          e.stopPropagation();
+          let newValue: string;
+          let newStart: number;
+          let newEnd: number;
+          if (e.shiftKey) {
+            const removeCount = Math.min(2, listMatch[1].length);
+            if (removeCount === 0) return;
+            newValue = value.substring(0, lineStart) + value.substring(lineStart + removeCount);
+            newStart = Math.max(lineStart, selectionStart - removeCount);
+            newEnd = Math.max(lineStart, selectionEnd - removeCount);
+          } else {
+            newValue = value.substring(0, lineStart) + "  " + value.substring(lineStart);
+            newStart = selectionStart + 2;
+            newEnd = selectionEnd + 2;
           }
+          handleChangeRef.current(newValue);
+          requestAnimationFrame(() => {
+            ta.selectionStart = newStart;
+            ta.selectionEnd = newEnd;
+          });
         }
-
-        // Tab / Shift+Tab list indentation
-        if (e.key === "Tab") {
-          const ta = e.target as HTMLTextAreaElement;
-          const { selectionStart, selectionEnd, value } = ta;
-          const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
-          const lineEnd = value.indexOf("\n", selectionStart);
-          const line = value.substring(lineStart, lineEnd === -1 ? value.length : lineEnd);
-          const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s/);
-          if (listMatch) {
-            e.preventDefault();
-            let newValue: string;
-            let newStart: number;
-            let newEnd: number;
-            if (e.shiftKey) {
-              const removeCount = Math.min(2, listMatch[1].length);
-              if (removeCount === 0) return;
-              newValue = value.substring(0, lineStart) + value.substring(lineStart + removeCount);
-              newStart = Math.max(lineStart, selectionStart - removeCount);
-              newEnd = Math.max(lineStart, selectionEnd - removeCount);
-            } else {
-              newValue = value.substring(0, lineStart) + "  " + value.substring(lineStart);
-              newStart = selectionStart + 2;
-              newEnd = selectionEnd + 2;
-            }
-            handleChangeRef.current(newValue);
-            requestAnimationFrame(() => {
-              ta.selectionStart = newStart;
-              ta.selectionEnd = newEnd;
-            });
-          }
-        }
-      };
-
-      const onBlur = () => {
-        setTimeout(() => {
-          if (!acInteractingRef.current) {
-            setAcQuery(null);
-          }
-        }, 150);
-      };
-
-      const onKeyUp = () => setTimeout(() => handleAutocompleteInputRef.current(), 0);
-      const onClick = () => setTimeout(() => handleAutocompleteInputRef.current(), 0);
-
-      textarea.addEventListener("keyup", onKeyUp);
-      textarea.addEventListener("click", onClick);
-      textarea.addEventListener("keydown", onKeyDown);
-      textarea.addEventListener("blur", onBlur);
-
-      cleanupFns = [
-        () => textarea.removeEventListener("keyup", onKeyUp),
-        () => textarea.removeEventListener("click", onClick),
-        () => textarea.removeEventListener("keydown", onKeyDown),
-        () => textarea.removeEventListener("blur", onBlur),
-      ];
-    }
-
-    attach();
-    return () => {
-      cancelled = true;
-      cleanupFns.forEach((fn) => fn());
+      }
     };
-  }, [getTextarea]); // stable dep — only re-run if editorRef changes
+
+    const onKeyUp = () => setTimeout(() => handleAutocompleteInputRef.current(), 0);
+    const onClick = () => setTimeout(() => handleAutocompleteInputRef.current(), 0);
+    const onBlur = (e: FocusEvent) => {
+      if ((e.target as HTMLElement).tagName !== "TEXTAREA") return;
+      setTimeout(() => {
+        if (!acInteractingRef.current) setAcQuery(null);
+      }, 150);
+    };
+
+    // Use capture phase (3rd arg = true) so we fire BEFORE MDEditor's handlers
+    container.addEventListener("keydown", onKeyDown, true);
+    container.addEventListener("keyup", onKeyUp, true);
+    container.addEventListener("click", onClick, true);
+    container.addEventListener("blur", onBlur, true);
+    return () => {
+      container.removeEventListener("keydown", onKeyDown, true);
+      container.removeEventListener("keyup", onKeyUp, true);
+      container.removeEventListener("click", onClick, true);
+      container.removeEventListener("blur", onBlur, true);
+    };
+  }, []); // editorRef is a ref — stable across renders
 
   // Cleanup timer
   useEffect(() => {
