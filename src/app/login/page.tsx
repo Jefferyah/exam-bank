@@ -6,9 +6,12 @@ import { useState } from "react";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isNewUser = inviteCode.trim().length > 0;
 
   async function handleCredentialLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -18,6 +21,10 @@ export default function LoginPage() {
     }
     if (!password) {
       setError("請輸入密碼");
+      return;
+    }
+    if (isNewUser && password !== confirmPassword) {
+      setError("兩次密碼輸入不一致，請重新確認");
       return;
     }
 
@@ -92,11 +99,41 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="輸入密碼"
+                placeholder={isNewUser ? "設定您的密碼" : "輸入密碼"}
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
+              {isNewUser && (
+                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                  ⚠ 此密碼將作為您日後的登入密碼，請妥善記住
+                </p>
+              )}
             </div>
+
+            {/* Confirm password — only shown for new users */}
+            {isNewUser && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  確認密碼
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="再次輸入密碼"
+                  className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    confirmPassword && password !== confirmPassword
+                      ? "border-red-400 dark:border-red-500"
+                      : "border-gray-200 dark:border-gray-600"
+                  }`}
+                  disabled={loading}
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="mt-1 text-xs text-red-500">密碼不一致</p>
+                )}
+              </div>
+            )}
 
             <div>
               <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-1">
@@ -122,10 +159,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isNewUser && password !== confirmPassword)}
               className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full text-white font-medium shadow-sm transition-colors"
             >
-              {loading ? "登入中..." : "登入 / 註冊"}
+              {loading ? "登入中..." : isNewUser ? "註冊" : "登入"}
             </button>
           </form>
         </div>
