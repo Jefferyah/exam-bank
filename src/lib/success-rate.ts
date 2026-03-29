@@ -71,19 +71,35 @@ export interface SuccessRateResult {
 /**
  * Calculate per-category success rate for a given user.
  * Only categories the user has touched are included.
+ * @param excludeBankIds - Bank IDs to exclude (e.g. hidden banks)
  */
-export async function calculateSuccessRate(userId: string): Promise<SuccessRateResult> {
-  // Get all question banks grouped by category that user has touched
-  const touchedBanks = await prisma.$queryRaw<
-    { questionBankId: string; category: string; bankName: string }[]
-  >`
-    SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
-    FROM "ExamAnswer" ea
-    JOIN "Exam" e ON ea."examId" = e.id
-    JOIN "Question" q ON ea."questionId" = q.id
-    JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
-    WHERE e."userId" = ${userId}
-  `;
+export async function calculateSuccessRate(
+  userId: string,
+  excludeBankIds: string[] = [],
+): Promise<SuccessRateResult> {
+  // Get all question banks grouped by category that user has touched (excluding hidden banks)
+  const touchedBanks = excludeBankIds.length > 0
+    ? await prisma.$queryRaw<
+        { questionBankId: string; category: string; bankName: string }[]
+      >`
+        SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+        FROM "ExamAnswer" ea
+        JOIN "Exam" e ON ea."examId" = e.id
+        JOIN "Question" q ON ea."questionId" = q.id
+        JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+        WHERE e."userId" = ${userId}
+          AND qb.id != ALL(${excludeBankIds})
+      `
+    : await prisma.$queryRaw<
+        { questionBankId: string; category: string; bankName: string }[]
+      >`
+        SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+        FROM "ExamAnswer" ea
+        JOIN "Exam" e ON ea."examId" = e.id
+        JOIN "Question" q ON ea."questionId" = q.id
+        JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+        WHERE e."userId" = ${userId}
+      `;
 
   if (touchedBanks.length === 0) {
     return { categories: [], overallScore: 0 };
