@@ -29,6 +29,7 @@ export default function ExamSetupPage() {
   const [untriedOnly, setUntriedOnly] = useState(false);
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleOptions, setShuffleOptions] = useState(false);
+  const [note, setNote] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [loadingBanks, setLoadingBanks] = useState(true);
@@ -141,6 +142,7 @@ export default function ExamSetupPage() {
     try {
       const body = {
         title: `${mode === "PRACTICE" ? "練習" : "模擬考"} - ${new Date().toLocaleDateString("zh-TW")}`,
+        note: note.trim() || undefined,
         questionBankIds: selectedBankIds.length > 0 ? selectedBankIds : undefined,
         difficulty: difficultyRange.length > 0 && difficultyRange.length < 5 ? difficultyRange : undefined,
         count,
@@ -447,6 +449,19 @@ export default function ExamSetupPage() {
           <p className="text-red-500">{error}</p>
         </div>
       )}
+
+      {/* Note */}
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">備註</h2>
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="例：CCSP Domain 1、內控第三章..."
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10"
+        />
+        <p className="text-[11px] text-gray-400 mt-1.5">可選填，方便日後辨識這次練習的內容</p>
+      </div>
 
       {/* Start button */}
       <button

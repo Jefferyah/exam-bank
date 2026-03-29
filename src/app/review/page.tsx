@@ -51,6 +51,7 @@ interface NotedQuestion {
 interface RecentExam {
   id: string;
   title: string;
+  note?: string | null;
   score: number | null;
   finishedAt: string;
   startedAt: string;

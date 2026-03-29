@@ -139,6 +139,7 @@ model Exam {
   id        String   @id @default(cuid())
   userId    String
   title     String
+  note      String?  // 使用者自訂備註，如「CCSP Domain 1」
   mode      String   // PRACTICE, MOCK
   config    String   // JSON
   status    String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABANDONED

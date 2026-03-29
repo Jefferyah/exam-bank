@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       title,
+      note,
       questionBankIds,
       difficulty,
       count = 20,
@@ -356,6 +357,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: session.user.id,
         title,
+        note: note || null,
         mode,
         config: JSON.stringify(config),
         timeLimit: timeLimit || null,

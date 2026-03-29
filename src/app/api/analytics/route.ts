@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
         select: {
           id: true,
           title: true,
+          note: true,
           score: true,
           config: true,
           finishedAt: true,
@@ -194,6 +195,7 @@ export async function GET(req: NextRequest) {
       return {
         id: e.id,
         title: e.title,
+        note: e.note,
         score: e.score,
         finishedAt: e.finishedAt,
         startedAt: e.startedAt,

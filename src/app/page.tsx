@@ -12,7 +12,7 @@ interface AnalyticsData {
   completedExams: number;
   avgScore: number;
   bankAccuracy: { questionBankId: string; questionBankName: string; total: number; correct: number; accuracy: number }[];
-  recentTrend: { id: string; title: string; score: number | null; finishedAt: string; startedAt: string; questionBankNames?: string[] }[];
+  recentTrend: { id: string; title: string; note?: string | null; score: number | null; finishedAt: string; startedAt: string; questionBankNames?: string[] }[];
   mostWrongQuestions: { questionId: string; stem: string; questionBankName: string; difficulty: number; wrongCount: number; lastWrongAt: string }[];
   totalWrongCount: number;
   todayQuestions: number;
@@ -177,13 +177,13 @@ export default function HomePage() {
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">最近測驗</h2>
-          <Link href="/review" className="text-sm text-blue-500 hover:text-blue-600">
+          <Link href="/exams/history" className="text-sm text-blue-500 hover:text-blue-600">
             查看全部
           </Link>
         </div>
         {analytics?.recentTrend && analytics.recentTrend.length > 0 ? (
           <div className="space-y-4">
-            {analytics.recentTrend.map((exam) => {
+            {analytics.recentTrend.slice(0, 7).map((exam) => {
               const pct = exam.score ?? 0;
               const barColor =
                 pct >= 80 ? "from-emerald-300 to-emerald-400 dark:from-emerald-400/40 dark:to-emerald-500/40"
@@ -206,7 +206,12 @@ export default function HomePage() {
                       <p className="font-medium text-gray-900 text-sm truncate">
                         {exam.title || "測驗"}
                       </p>
-                      {exam.questionBankNames && exam.questionBankNames.length > 0 && (
+                      {exam.note && (
+                        <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded-full truncate max-w-[160px] flex-shrink-0">
+                          {exam.note}
+                        </span>
+                      )}
+                      {!exam.note && exam.questionBankNames && exam.questionBankNames.length > 0 && (
                         <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full truncate max-w-[160px] flex-shrink-0">
                           {exam.questionBankNames.join(", ")}
                         </span>
