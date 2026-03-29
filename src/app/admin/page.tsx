@@ -509,7 +509,14 @@ export default function AdminPage() {
           </div>
 
           {/* Quick links */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link
+              href="/admin/stats"
+              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
+            >
+              <h3 className="font-semibold text-purple-500">學員總覽</h3>
+              <p className="text-sm text-gray-600 mt-1">練習時數、做題數、答對率</p>
+            </Link>
             <Link
               href="/admin/users"
               className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
