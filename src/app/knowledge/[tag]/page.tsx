@@ -603,8 +603,7 @@ export default function KnowledgeEntryPage() {
   }, [loading]); // re-run when loading flips to false so editorRef.current is available
 
   // Colorize entire list lines by indent depth (HackMD-style)
-  // MDEditor rebuilds the <pre> DOM on each edit, wiping inline styles.
-  // We poll via setInterval to catch new uncolored tokens after each rebuild.
+  // Runs after content changes with debounce + rAF to avoid cursor/flicker issues.
   useEffect(() => {
     const DARK_COLORS = ["#6699cc", "#f76e79", "#98c379"]; // blue, pink, green
     const LIGHT_COLORS = ["#1e40af", "#c0392b", "#16804a"]; // blue, red, green
@@ -613,10 +612,9 @@ export default function KnowledgeEntryPage() {
       const isDark = document.documentElement.getAttribute("data-color-mode") === "dark";
       const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
 
-      const tokens = document.querySelectorAll(
-        ".w-md-editor-text-pre .token.list.punctuation:not([data-lc])"
-      );
-      tokens.forEach((token) => {
+      document.querySelectorAll(
+        ".w-md-editor-text-pre .token.list.punctuation"
+      ).forEach((token) => {
         const line = token.closest(".code-line") as HTMLElement | null;
         if (!line) return;
         let indent = 0;
@@ -629,16 +627,14 @@ export default function KnowledgeEntryPage() {
         }
         const level = Math.floor(indent / 2);
         const c = colors[level % colors.length];
-        // Color the entire line + the bullet marker
         line.style.setProperty("color", c, "important");
-        (token as HTMLElement).style.setProperty("color", c, "important");
-        (token as HTMLElement).setAttribute("data-lc", "1");
       });
     };
 
-    const id = setInterval(colorize, 100);
-    return () => clearInterval(id);
-  }, []);
+    // Wait for MDEditor to finish DOM rebuild, then colorize in next frame
+    const timer = setTimeout(() => requestAnimationFrame(colorize), 30);
+    return () => clearTimeout(timer);
+  }, [content]);
 
   // Cleanup timer
   useEffect(() => {
