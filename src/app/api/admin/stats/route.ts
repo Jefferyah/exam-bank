@@ -89,7 +89,7 @@ export async function GET() {
     const globalTotalExams = examStats.reduce((s, e) => s + e._count.id, 0);
 
     // Calculate success rate for users who have answered questions
-    const activeUserIds = answerAgg.map((a) => a.userId);
+    const activeUserIds = answerAgg.filter((a) => a.totalAnswered > 0).map((a) => a.userId);
     const successRateResults = await Promise.all(
       activeUserIds.map(async (uid) => {
         try {
