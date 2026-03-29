@@ -710,6 +710,7 @@ export default function KnowledgeEntryPage() {
           height={550}
           preview={previewMode}
           visibleDragbar={false}
+          defaultTabEnable
           previewOptions={{
             rehypeRewrite: rehypeWikiLinks,
           }}
