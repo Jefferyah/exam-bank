@@ -55,8 +55,6 @@ export default function AdminPage() {
   const [knowledgePromptMessage, setKnowledgePromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [customMaxUses, setCustomMaxUses] = useState("");
   const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
-  const [migratingTasks, setMigratingTasks] = useState(false);
-  const [migrateMessage, setMigrateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) {
@@ -482,7 +480,7 @@ export default function AdminPage() {
           <select
             value={resetBankId}
             onChange={(e) => setResetBankId(e.target.value)}
-            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
+            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-auto"
           >
             <option value="">全部題庫</option>
             {groupBanksByCategory(questionBanks).map((group) => (
@@ -591,12 +589,12 @@ export default function AdminPage() {
           {/* Invite Codes Management */}
           <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-lg font-semibold text-gray-900">邀請碼管理</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">邀請碼管理</h2>
               <div className="flex items-center gap-2">
                 <select
                   value={generateCount}
                   onChange={(e) => setGenerateCount(parseInt(e.target.value))}
-                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {[1, 3, 5, 10].map((n) => (
                     <option key={n} value={n}>{n} 組</option>
@@ -605,7 +603,7 @@ export default function AdminPage() {
                 <select
                   value={generateMaxUses}
                   onChange={(e) => setGenerateMaxUses(parseInt(e.target.value))}
-                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={0}>不限次數</option>
                   <option value={1}>限用 1 次</option>
@@ -625,13 +623,13 @@ export default function AdminPage() {
                     value={customMaxUses}
                     onChange={(e) => setCustomMaxUses(e.target.value)}
                     placeholder="次數"
-                    className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
                 <button
                   onClick={handleGenerateCodes}
                   disabled={generating}
-                  className="px-5 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
+                  className="px-5 py-2 bg-gray-900 dark:bg-blue-600 hover:bg-gray-800 dark:hover:bg-blue-500 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-full text-sm font-medium transition-all"
                 >
                   {generating ? "產生中..." : "產生邀請碼"}
                 </button>
@@ -659,26 +657,26 @@ export default function AdminPage() {
                     className={cn(
                       "flex items-center justify-between p-3 rounded-xl border",
                       (ic.maxUses > 0 && ic.usedCount >= ic.maxUses)
-                        ? "bg-gray-50 border-gray-200"
-                        : "bg-blue-50/50 border-blue-200"
+                        ? "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600"
+                        : "bg-blue-50/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50"
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <code className={cn(
                         "font-mono text-sm font-bold px-2.5 py-1 rounded-lg",
                         (ic.maxUses > 0 && ic.usedCount >= ic.maxUses)
-                          ? "bg-gray-100 text-gray-400 line-through"
-                          : "bg-white text-blue-600 border border-blue-200"
+                          ? "bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500 line-through"
+                          : "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700"
                       )}>
                         {ic.code}
                       </code>
-                      <div className="text-xs text-gray-600 space-y-0.5">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
                         <div>
-                          已使用 <span className="font-medium text-gray-700">{ic.usedCount}</span> 次
+                          已使用 <span className="font-medium text-gray-700 dark:text-gray-300">{ic.usedCount}</span> 次
                           {ic.maxUses > 0 ? (
                             <span> / {ic.maxUses} 次</span>
                           ) : (
-                            <span className="text-blue-500 ml-1">（不限）</span>
+                            <span className="text-blue-500 dark:text-blue-400 ml-1">（不限）</span>
                           )}
                         </div>
                         {ic.usedBy && (
@@ -711,53 +709,6 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* SRS Migration */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">間隔複習 (SRS) 資料遷移</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                將所有使用者的錯題記錄和歷史作答資料轉換為 SRS 複習卡片（只需執行一次）
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={async () => {
-                  setMigratingTasks(true);
-                  setMigrateMessage(null);
-                  try {
-                    const res = await fetch("/api/admin/migrate-srs", { method: "POST" });
-                    if (res.ok) {
-                      const data = await res.json();
-                      setMigrateMessage({
-                        type: "success",
-                        text: `遷移完成！錯題 ${data.migratedFromWrong} 張 + 歷史作答 ${data.migratedFromExams} 張 = 共 ${data.total} 張卡片`,
-                      });
-                    } else {
-                      const data = await res.json();
-                      setMigrateMessage({ type: "error", text: data.error || "遷移失敗" });
-                    }
-                  } catch {
-                    setMigrateMessage({ type: "error", text: "遷移失敗，請稍後再試" });
-                  } finally {
-                    setMigratingTasks(false);
-                  }
-                }}
-                disabled={migratingTasks}
-                className="px-5 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-full text-sm font-medium transition-all"
-              >
-                {migratingTasks ? "遷移中..." : "執行遷移"}
-              </button>
-              {migrateMessage && (
-                <p className={cn(
-                  "text-sm",
-                  migrateMessage.type === "success" ? "text-emerald-600" : "text-red-600"
-                )}>
-                  {migrateMessage.text}
-                </p>
-              )}
-            </div>
           </div>
 
           {/* AI Prompt Settings */}
