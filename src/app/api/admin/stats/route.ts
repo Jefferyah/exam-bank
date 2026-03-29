@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { calculateSuccessRate } from "@/lib/success-rate";
 
 /**
  * GET /api/admin/stats
@@ -87,6 +88,20 @@ export async function GET() {
     const globalTotalTime = answerAgg.reduce((s, a) => s + a.totalTimeSpent, 0);
     const globalTotalExams = examStats.reduce((s, e) => s + e._count.id, 0);
 
+    // Calculate success rate for users who have answered questions
+    const activeUserIds = answerAgg.map((a) => a.userId);
+    const successRateResults = await Promise.all(
+      activeUserIds.map(async (uid) => {
+        try {
+          const result = await calculateSuccessRate(uid);
+          return { userId: uid, score: result.overallScore };
+        } catch {
+          return { userId: uid, score: null };
+        }
+      })
+    );
+    const successRateMap = new Map(successRateResults.map((r) => [r.userId, r.score]));
+
     const userStats = users.map((user) => {
       const exam = examMap.get(user.id);
       const answer = answerMap.get(user.id);
@@ -109,6 +124,7 @@ export async function GET() {
         accuracy,
         practiceMinutes: Math.round(totalTimeSpent / 60),
         activeToday: activeTodaySet.has(user.id),
+        successRate: successRateMap.get(user.id) ?? null,
       };
     });
 

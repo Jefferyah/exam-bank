@@ -18,6 +18,7 @@ interface UserStat {
   accuracy: number;
   practiceMinutes: number;
   activeToday: boolean;
+  successRate: number | null;
 }
 
 interface Summary {
@@ -320,7 +321,16 @@ export default function AdminStatsPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm table-fixed">
+            <colgroup>
+              <col className="w-[28%]" />
+              <col className="w-[10%] hidden sm:table-column" />
+              <col className="w-[12%]" />
+              <col className="w-[10%]" />
+              <col className="w-[10%]" />
+              <col className="w-[14%]" />
+              <col className="w-[16%]" />
+            </colgroup>
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-750">
                 <th className="text-left px-5 py-3">
@@ -336,8 +346,11 @@ export default function AdminStatsPage() {
                 <th className="text-right px-3 py-3">
                   <SortHeader label="答對率" field="accuracy" />
                 </th>
-                <th className="text-right px-5 py-3">
+                <th className="text-right px-3 py-3">
                   <SortHeader label="練習時數" field="practiceMinutes" />
+                </th>
+                <th className="text-center px-3 py-3">
+                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500">成功率</span>
                 </th>
               </tr>
             </thead>
@@ -392,15 +405,27 @@ export default function AdminStatsPage() {
                         {user.totalAnswered > 0 ? `${user.accuracy}%` : "—"}
                       </span>
                     </td>
-                    <td className="text-right px-5 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
+                    <td className="text-right px-3 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
                       {user.practiceMinutes > 0 ? formatMinutes(user.practiceMinutes) : "—"}
+                    </td>
+                    <td className="text-center px-3 py-3">
+                      {user.successRate !== null ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <ProgressRing score={user.successRate} size={32} strokeWidth={3} showLabel={false} />
+                          <span className="text-xs tabular-nums font-medium" style={{ color: scoreToColor(user.successRate) }}>
+                            {user.successRate}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
+                      )}
                     </td>
                   </tr>
 
                   {/* Expanded success rate row */}
                   {expandedUserId === user.id && (
                     <tr>
-                      <td colSpan={6} className="bg-gray-50/50 dark:bg-gray-800/50 px-5 py-5">
+                      <td colSpan={7} className="bg-gray-50/50 dark:bg-gray-800/50 px-5 py-5">
                         {loadingRate ? (
                           <div className="text-center text-gray-400 py-6">載入成功率分析中...</div>
                         ) : successRateData && successRateData.categories.length === 0 ? (
@@ -497,7 +522,7 @@ export default function AdminStatsPage() {
               ))}
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
+                  <td colSpan={7} className="text-center py-12 text-gray-400">
                     沒有符合條件的用戶
                   </td>
                 </tr>
