@@ -544,7 +544,7 @@ export default function KnowledgeEntryPage() {
       container.removeEventListener("click", onClick, true);
       container.removeEventListener("blur", onBlur, true);
     };
-  }, []); // editorRef is a ref — stable across renders
+  }, [loading]); // re-run when loading flips to false so editorRef.current is available
 
   // Cleanup timer
   useEffect(() => {

@@ -451,7 +451,7 @@ export default function KnowledgePage() {
           <button
             onClick={handleCreateEntry}
             disabled={!newTag.trim()}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-gradient-to-r from-purple-500 to-violet-500 dark:from-purple-600 dark:to-violet-600 text-white hover:from-purple-600 hover:to-violet-600 dark:hover:from-purple-500 dark:hover:to-violet-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="px-4 py-2 rounded-xl text-sm font-semibold tracking-wide transition-all bg-gradient-to-r from-purple-500 to-violet-500 dark:from-purple-500 dark:to-violet-500 text-white hover:from-purple-600 hover:to-violet-600 dark:hover:from-purple-400 dark:hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             建立
           </button>
