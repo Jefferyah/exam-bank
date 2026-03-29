@@ -33,7 +33,7 @@ export async function GET() {
     // Get per-user exam stats in parallel
     const userIds = users.map((u) => u.id);
 
-    const [examStats, answerStats, activeToday] = await Promise.all([
+    const [examStats, activeToday] = await Promise.all([
       // Exam-level aggregation per user
       prisma.exam.groupBy({
         by: ["userId"],
@@ -44,12 +44,6 @@ export async function GET() {
         _count: { id: true },
         _sum: { score: true },
       }),
-
-      // Answer-level aggregation per user (total answers, correct, time)
-      prisma.examAnswer.groupBy({
-        by: ["exam"],
-        // Can't group by nested relation in groupBy, so use raw query approach
-      }).catch(() => null),
 
       // Users active today
       prisma.exam.findMany({
