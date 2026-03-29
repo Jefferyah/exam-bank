@@ -525,6 +525,11 @@ function DashboardTab({
   return (
     <div className="space-y-6">
 
+      {/* ── Success Rate ── */}
+      {successRate && successRate.categories.length > 0 && (
+        <SuccessRateSection data={successRate} />
+      )}
+
       {/* ── Daily Goal ── */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-3">
@@ -638,11 +643,6 @@ function DashboardTab({
             )}
           </div>
         </div>
-      )}
-
-      {/* ── Success Rate ── */}
-      {successRate && successRate.categories.length > 0 && (
-        <SuccessRateSection data={successRate} />
       )}
 
       {/* ── Score Trend Chart ── */}
