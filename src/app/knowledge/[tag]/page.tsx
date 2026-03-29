@@ -12,8 +12,73 @@ import type { Element, Root, RootContent } from "hast";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
-/** rehypeRewrite — transform [[tag]] wiki links and ==highlight== in preview */
+/** File type icon SVG paths for preview rendering */
+const FILE_ICONS: Record<string, { color: string; label: string }> = {
+  pdf: { color: "#e74c3c", label: "PDF" },
+  doc: { color: "#2b579a", label: "DOC" },
+  docx: { color: "#2b579a", label: "DOCX" },
+  xls: { color: "#217346", label: "XLS" },
+  xlsx: { color: "#217346", label: "XLSX" },
+  ppt: { color: "#d24726", label: "PPT" },
+  pptx: { color: "#d24726", label: "PPTX" },
+  zip: { color: "#f0ad4e", label: "ZIP" },
+  txt: { color: "#6c757d", label: "TXT" },
+  csv: { color: "#217346", label: "CSV" },
+};
+
+function getFileExt(filename: string): string {
+  return filename.split(".").pop()?.toLowerCase() || "";
+}
+
+/** rehypeRewrite — transform [[tag]] wiki links, ==highlight==, and file attachments in preview */
 function rehypeCustomSyntax(node: Root | RootContent, _index?: number, parent?: Root | Element) {
+  // Transform <a> elements pointing to /api/upload/ into styled file attachment cards
+  if (node.type === "element" && node.tagName === "a" && parent && "children" in parent) {
+    const href = String(node.properties?.href || "");
+    if (href.startsWith("/api/upload/") && node.children.length > 0) {
+      const textChild = node.children.find((c): c is { type: "text"; value: string } => c.type === "text");
+      const filename = textChild?.value || "file";
+      // Skip if it looks like an image (![...](url) renders as <img>, not <a>)
+      if (filename === "image") return;
+      const ext = getFileExt(filename);
+      const icon = FILE_ICONS[ext] || { color: "#6c757d", label: ext.toUpperCase() || "FILE" };
+
+      // Replace <a> with a styled file card
+      node.properties = {
+        ...node.properties,
+        className: "file-attachment",
+        style: `display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;text-decoration:none;color:#334155;font-size:13px;margin:2px 0;`,
+        target: "_blank",
+      };
+      node.children = [
+        // File type badge
+        {
+          type: "element",
+          tagName: "span",
+          properties: {
+            style: `display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;background:${icon.color}15;color:${icon.color};font-size:10px;font-weight:700;flex-shrink:0;`,
+          },
+          children: [{ type: "text", value: icon.label }],
+        },
+        // Filename
+        {
+          type: "element",
+          tagName: "span",
+          properties: { style: "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" },
+          children: [{ type: "text", value: filename }],
+        },
+        // Download arrow icon
+        {
+          type: "element",
+          tagName: "span",
+          properties: { style: `color:#94a3b8;font-size:14px;flex-shrink:0;margin-left:auto;` },
+          children: [{ type: "text", value: "↓" }],
+        },
+      ] as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    }
+    return;
+  }
+
   if (node.type !== "text" || !parent || !("children" in parent)) return;
 
   // Combined regex: ==highlight== and [[wiki-link]]
