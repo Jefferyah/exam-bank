@@ -101,15 +101,17 @@ export async function deleteFromR2(key: string): Promise<void> {
 
 export async function getFromR2(
   key: string
-): Promise<{ body: ReadableStream; contentType: string }> {
+): Promise<{ body: Uint8Array; contentType: string }> {
   const response = await s3Client.send(
     new GetObjectCommand({
       Bucket: R2_BUCKET_NAME,
       Key: key,
     })
   );
+  // AWS SDK v3 Body is a SdkStreamMixin — convert to Uint8Array for NextResponse
+  const bytes = await response.Body!.transformToByteArray();
   return {
-    body: response.Body as unknown as ReadableStream,
+    body: bytes,
     contentType: response.ContentType || "application/octet-stream",
   };
 }

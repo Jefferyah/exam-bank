@@ -19,6 +19,7 @@ export async function GET(
 
     const headers: Record<string, string> = {
       "Content-Type": contentType,
+      "Content-Length": String(body.byteLength),
       "Cache-Control": "public, max-age=31536000, immutable",
     };
 

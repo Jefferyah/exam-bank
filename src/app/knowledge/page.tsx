@@ -64,10 +64,11 @@ export default function KnowledgePage() {
       .finally(() => setLoading(false));
   }, [status]);
 
-  const getMasteryLevel = (accuracy: number | null): string => {
-    if (accuracy === null) return "none";
-    if (accuracy < 60) return "low";
-    if (accuracy < 85) return "mid";
+  const getMasteryLevel = (t: TagData): string => {
+    if (t.hasEntry && t.questionCount === 0) return "custom";
+    if (t.accuracy === null) return "none";
+    if (t.accuracy < 60) return "low";
+    if (t.accuracy < 85) return "mid";
     return "high";
   };
 
@@ -86,7 +87,7 @@ export default function KnowledgePage() {
 
   const filteredTags = allTagData.filter((t) => {
     if (!t.tag.toLowerCase().includes(search.toLowerCase())) return false;
-    if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
+    if (masteryFilter && getMasteryLevel(t) !== masteryFilter) return false;
     // 依題數: only show tags user has actually attempted (accuracy !== null)
     if (sizeMetric === "questionCount" && t.accuracy === null) return false;
     // 依筆記字數: hide tags with no notes unless toggle is on
@@ -130,8 +131,13 @@ export default function KnowledgePage() {
     router.push(`/knowledge/${encodeURIComponent(trimmed)}`);
   };
 
-  // Accuracy → color mapping (grey=no data, red→yellow→green)
-  const getAccuracyColor = useCallback((accuracy: number | null, alpha: number) => {
+  // Accuracy → color mapping (grey=no data, red→yellow→green, purple=custom entry)
+  const getAccuracyColor = useCallback((accuracy: number | null, alpha: number, isCustomOnly?: boolean) => {
+    // Custom-only entries (user-created, no question bank association) → purple
+    if (isCustomOnly) {
+      const l = alpha < 0.3 ? 60 : 45;
+      return `hsla(270, 70%, ${l}%, ${alpha})`;
+    }
     if (accuracy === null) return `rgba(156, 163, 175, ${alpha})`;
     // Red (0%) → Orange (50%) → Green (100%)
     const h = (accuracy / 100) * 120; // 0=red, 60=yellow, 120=green
@@ -306,26 +312,27 @@ export default function KnowledgePage() {
       .attr("fill", "var(--bubble-bg, white)")
       .attr("stroke", "none");
 
-    // Circles — color by accuracy
+    // Circles — color by accuracy (purple for custom-only entries)
+    const isCustomOnly = (d: NodeType) => d.hasEntry && d.questionCount === 0;
     nodeGroup
       .append("circle")
       .attr("r", (d) => d.r)
-      .attr("fill", (d) => getAccuracyColor(d.accuracy, 0.15))
-      .attr("stroke", (d) => getAccuracyColor(d.accuracy, 0.5))
+      .attr("fill", (d) => getAccuracyColor(d.accuracy, 0.15, isCustomOnly(d)))
+      .attr("stroke", (d) => getAccuracyColor(d.accuracy, 0.5, isCustomOnly(d)))
       .attr("stroke-width", 1.5)
       .on("mouseenter", function (_event, d) {
         d3.select(this)
           .transition()
           .duration(150)
-          .attr("fill", getAccuracyColor(d.accuracy, 0.3))
-          .attr("stroke", getAccuracyColor(d.accuracy, 0.7));
+          .attr("fill", getAccuracyColor(d.accuracy, 0.3, isCustomOnly(d)))
+          .attr("stroke", getAccuracyColor(d.accuracy, 0.7, isCustomOnly(d)));
       })
       .on("mouseleave", function (_event, d) {
         d3.select(this)
           .transition()
           .duration(150)
-          .attr("fill", getAccuracyColor(d.accuracy, 0.15))
-          .attr("stroke", getAccuracyColor(d.accuracy, 0.5));
+          .attr("fill", getAccuracyColor(d.accuracy, 0.15, isCustomOnly(d)))
+          .attr("stroke", getAccuracyColor(d.accuracy, 0.5, isCustomOnly(d)));
       });
 
     // Tag name
@@ -361,19 +368,19 @@ export default function KnowledgePage() {
       .text((d) => `${d.accuracy}%`)
       .attr("text-anchor", "middle")
       .attr("dy", "2.4em")
-      .attr("fill", (d) => getAccuracyColor(d.accuracy, 0.8))
+      .attr("fill", (d) => getAccuracyColor(d.accuracy, 0.8, isCustomOnly(d)))
       .style("font-size", (d) => `${Math.max(8, Math.min(10, d.r / 4.5))}px`)
       .style("font-weight", "600")
       .style("pointer-events", "none");
 
-    // Has entry indicator
+    // Has entry indicator (blue dot for question-bank tags with notes, purple for custom-only)
     nodeGroup
       .filter((d) => d.hasEntry)
       .append("circle")
       .attr("cx", (d) => d.r * 0.6)
       .attr("cy", (d) => -d.r * 0.6)
       .attr("r", 4)
-      .attr("fill", "#3b82f6");
+      .attr("fill", (d) => isCustomOnly(d) ? "#8b5cf6" : "#3b82f6");
 
     simulation.on("tick", () => {
       // Draw lines from circle edge (not center) by offsetting by radius along the line direction
@@ -518,6 +525,7 @@ export default function KnowledgePage() {
             { key: "mid", color: "hsla(60, 70%, 55%, 0.4)", label: "中掌握" },
             { key: "high", color: "hsla(120, 70%, 55%, 0.4)", label: "高掌握" },
             { key: "none", color: "rgba(156, 163, 175, 0.3)", label: "無作答" },
+            { key: "custom", color: "hsla(270, 70%, 60%, 0.4)", label: "自訂" },
           ] as const).map((item) => (
             <button
               key={item.key}
