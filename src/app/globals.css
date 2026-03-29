@@ -409,10 +409,7 @@ body {
   line-height: 1.6 !important;
 }
 
-/* List bullet — only the - marker, text stays default color */
-.w-md-editor-text-pre .token.list.punctuation {
-  color: #6699cc !important;
-}
+/* List bullet — per-level colors applied via JS (HackMD-style, entire line) */
 
 /* Blockquote lines — color the entire line */
 .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
@@ -534,10 +531,7 @@ body {
   line-height: 1.6 !important;
 }
 
-/* Dark: List bullet — only the - marker */
-[data-color-mode="dark"] .w-md-editor-text-pre .token.list.punctuation {
-  color: #6699cc !important;
-}
+/* Dark: List bullet — per-level colors applied via JS (HackMD-style, entire line) */
 
 /* Dark: Blockquote lines */
 [data-color-mode="dark"] .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
