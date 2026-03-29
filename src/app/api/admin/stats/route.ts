@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { calculateSuccessRate } from "@/lib/success-rate";
@@ -7,7 +7,7 @@ import { calculateSuccessRate } from "@/lib/success-rate";
  * GET /api/admin/stats
  * God-view stats for admins: per-user practice hours, question counts, accuracy
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -18,6 +18,8 @@ export async function GET() {
     if (role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+
+    const categoryFilter = req.nextUrl.searchParams.get("category") || null;
 
     // Get all users
     const users = await prisma.user.findMany({
@@ -88,13 +90,26 @@ export async function GET() {
     const globalTotalTime = answerAgg.reduce((s, a) => s + a.totalTimeSpent, 0);
     const globalTotalExams = examStats.reduce((s, e) => s + e._count.id, 0);
 
+    // Fetch distinct categories from QuestionBank
+    const allCategories = await prisma.questionBank.findMany({
+      select: { category: true },
+      distinct: ["category"],
+    });
+    const categories = [...new Set(allCategories.map((c) => c.category || "未分類"))].sort();
+
     // Calculate success rate for users who have answered questions
     const activeUserIds = answerAgg.filter((a) => a.totalAnswered > 0).map((a) => a.userId);
     const successRateResults = await Promise.all(
       activeUserIds.map(async (uid) => {
         try {
           const result = await calculateSuccessRate(uid);
-          return { userId: uid, score: result.overallScore };
+          // If category filter is set, find that category's score
+          let score = result.overallScore;
+          if (categoryFilter) {
+            const cat = result.categories.find((c) => c.category === categoryFilter);
+            score = cat ? cat.score : 0;
+          }
+          return { userId: uid, score };
         } catch {
           return { userId: uid, score: null };
         }
@@ -130,6 +145,7 @@ export async function GET() {
 
     return NextResponse.json({
       users: userStats,
+      categories,
       summary: {
         totalUsers: users.length,
         activeToday: activeTodaySet.size,

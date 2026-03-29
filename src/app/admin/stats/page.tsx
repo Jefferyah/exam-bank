@@ -87,22 +87,27 @@ export default function AdminStatsPage() {
   const [showScoreExplain, setShowScoreExplain] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<UserStat | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [filterCategory, setFilterCategory] = useState<string>("ALL");
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
   useEffect(() => {
     if (status !== "authenticated" || role !== "ADMIN") return;
-    fetch("/api/admin/stats")
+    const params = filterCategory !== "ALL" ? `?category=${encodeURIComponent(filterCategory)}` : "";
+    setLoading(true);
+    fetch(`/api/admin/stats${params}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {
           setUsers(data.users);
           setSummary(data.summary);
+          if (data.categories) setCategories(data.categories);
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [status, role]);
+  }, [status, role, filterCategory]);
 
   if (status === "loading" || loading) {
     return (
@@ -327,9 +332,9 @@ export default function AdminStatsPage() {
       {/* Filter + Table */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">篩選：</span>
+            <span className="text-sm text-gray-500">角色：</span>
             {["ALL", "STUDENT", "TEACHER", "ADMIN"].map((r) => (
               <button
                 key={r}
@@ -345,20 +350,37 @@ export default function AdminStatsPage() {
               </button>
             ))}
           </div>
-          <span className="text-xs text-gray-400">{sorted.length} 人</span>
+          <div className="flex items-center gap-2">
+            {categories.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">分類：</span>
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-0 rounded-full px-3 py-1 focus:ring-2 focus:ring-purple-400 outline-none cursor-pointer"
+                >
+                  <option value="ALL">總成功率</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <span className="text-xs text-gray-400">{sorted.length} 人</span>
+          </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col className="w-[28%]" />
-              <col className="w-[10%] hidden sm:table-column" />
-              <col className="w-[12%]" />
-              <col className="w-[10%]" />
-              <col className="w-[10%]" />
+              <col className="w-[24%]" />
+              <col className="w-[9%] hidden sm:table-column" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
               <col className="w-[14%]" />
-              <col className="w-[16%]" />
+              <col className="w-[20%]" />
             </colgroup>
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-750">
@@ -379,7 +401,9 @@ export default function AdminStatsPage() {
                   <SortHeader label="練習時數" field="practiceMinutes" />
                 </th>
                 <th className="text-center px-3 py-3">
-                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500">成功率</span>
+                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    {filterCategory === "ALL" ? "成功率" : filterCategory}
+                  </span>
                 </th>
               </tr>
             </thead>
