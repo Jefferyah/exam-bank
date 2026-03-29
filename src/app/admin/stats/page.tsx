@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import ProgressRing, { scoreToColor } from "@/components/progress-ring";
 
 interface UserStat {
   id: string;
@@ -41,6 +42,26 @@ const ROLE_COLORS: Record<string, string> = {
   STUDENT: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
 };
 
+interface CategoryScore {
+  category: string;
+  bankNames: string[];
+  totalQuestions: number;
+  questionsAttempted: number;
+  indicators: {
+    coverage: number;
+    mastery: number;
+    time: number;
+    correction: number;
+    trend: number;
+  };
+  score: number;
+}
+
+interface SuccessRateData {
+  categories: CategoryScore[];
+  overallScore: number;
+}
+
 type SortKey = "name" | "totalAnswered" | "accuracy" | "practiceMinutes" | "totalExams";
 
 export default function AdminStatsPage() {
@@ -51,6 +72,9 @@ export default function AdminStatsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("totalAnswered");
   const [sortAsc, setSortAsc] = useState(false);
   const [filterRole, setFilterRole] = useState<string>("ALL");
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [successRateData, setSuccessRateData] = useState<SuccessRateData | null>(null);
+  const [loadingRate, setLoadingRate] = useState(false);
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
@@ -86,6 +110,36 @@ export default function AdminStatsPage() {
       </div>
     );
   }
+
+  const handleExpandUser = async (userId: string) => {
+    if (expandedUserId === userId) {
+      setExpandedUserId(null);
+      setSuccessRateData(null);
+      return;
+    }
+    setExpandedUserId(userId);
+    setSuccessRateData(null);
+    setLoadingRate(true);
+    try {
+      const res = await fetch(`/api/admin/stats/success-rate?userId=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSuccessRateData(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingRate(false);
+    }
+  };
+
+  const INDICATOR_LABELS: Record<string, string> = {
+    coverage: "覆蓋率",
+    mastery: "精熟度",
+    time: "投入時間",
+    correction: "訂正率",
+    trend: "近期趨勢",
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -216,52 +270,140 @@ export default function AdminStatsPage() {
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
               {sorted.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-                >
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      {user.activeToday && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="今日活躍" />
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                <React.Fragment key={user.id}>
+                  <tr
+                    onClick={() => handleExpandUser(user.id)}
+                    className={cn(
+                      "hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors cursor-pointer",
+                      expandedUserId === user.id && "bg-purple-50/50 dark:bg-purple-900/10"
+                    )}
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        {user.activeToday && (
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="今日活躍" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{user.name}</p>
+                          <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                        </div>
+                        <span className="text-[10px] text-gray-300 dark:text-gray-600 ml-auto flex-shrink-0">
+                          {expandedUserId === user.id ? "▲" : "▼"}
+                        </span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="text-center px-3 py-3 hidden sm:table-cell">
-                    <span className={cn("inline-block px-2 py-0.5 text-[10px] font-medium rounded-full", ROLE_COLORS[user.role] || "bg-gray-100 text-gray-500")}>
-                      {ROLE_LABELS[user.role] || user.role}
-                    </span>
-                  </td>
-                  <td className="text-right px-3 py-3 tabular-nums text-gray-900 dark:text-gray-100 font-medium">
-                    {user.totalAnswered.toLocaleString()}
-                  </td>
-                  <td className="text-right px-3 py-3 tabular-nums text-gray-600 dark:text-gray-400">
-                    {user.totalExams}
-                  </td>
-                  <td className="text-right px-3 py-3">
-                    <span
-                      className={cn(
-                        "tabular-nums font-medium",
-                        user.totalAnswered === 0
-                          ? "text-gray-300 dark:text-gray-600"
-                          : user.accuracy >= 80
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : user.accuracy >= 60
-                          ? "text-amber-600 dark:text-amber-400"
-                          : "text-red-500 dark:text-red-400"
-                      )}
-                    >
-                      {user.totalAnswered > 0 ? `${user.accuracy}%` : "—"}
-                    </span>
-                  </td>
-                  <td className="text-right px-5 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
-                    {user.practiceMinutes > 0 ? formatMinutes(user.practiceMinutes) : "—"}
-                  </td>
-                </tr>
+                    </td>
+                    <td className="text-center px-3 py-3 hidden sm:table-cell">
+                      <span className={cn("inline-block px-2 py-0.5 text-[10px] font-medium rounded-full", ROLE_COLORS[user.role] || "bg-gray-100 text-gray-500")}>
+                        {ROLE_LABELS[user.role] || user.role}
+                      </span>
+                    </td>
+                    <td className="text-right px-3 py-3 tabular-nums text-gray-900 dark:text-gray-100 font-medium">
+                      {user.totalAnswered.toLocaleString()}
+                    </td>
+                    <td className="text-right px-3 py-3 tabular-nums text-gray-600 dark:text-gray-400">
+                      {user.totalExams}
+                    </td>
+                    <td className="text-right px-3 py-3">
+                      <span
+                        className={cn(
+                          "tabular-nums font-medium",
+                          user.totalAnswered === 0
+                            ? "text-gray-300 dark:text-gray-600"
+                            : user.accuracy >= 80
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : user.accuracy >= 60
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-red-500 dark:text-red-400"
+                        )}
+                      >
+                        {user.totalAnswered > 0 ? `${user.accuracy}%` : "—"}
+                      </span>
+                    </td>
+                    <td className="text-right px-5 py-3 text-gray-600 dark:text-gray-400 tabular-nums">
+                      {user.practiceMinutes > 0 ? formatMinutes(user.practiceMinutes) : "—"}
+                    </td>
+                  </tr>
+
+                  {/* Expanded success rate row */}
+                  {expandedUserId === user.id && (
+                    <tr>
+                      <td colSpan={6} className="bg-gray-50/50 dark:bg-gray-800/50 px-5 py-5">
+                        {loadingRate ? (
+                          <div className="text-center text-gray-400 py-6">載入成功率分析中...</div>
+                        ) : successRateData && successRateData.categories.length === 0 ? (
+                          <div className="text-center text-gray-400 py-6">此學員尚未作答任何題目</div>
+                        ) : successRateData ? (
+                          <div className="space-y-5">
+                            {/* Overall score */}
+                            <div className="flex items-center gap-5">
+                              <ProgressRing score={successRateData.overallScore} size={90} strokeWidth={7} label="總成功率" />
+                              <div>
+                                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                  成功率總分：
+                                  <span style={{ color: scoreToColor(successRateData.overallScore) }}>
+                                    {successRateData.overallScore}%
+                                  </span>
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  涵蓋 {successRateData.categories.length} 個題庫分類 · 依題數加權平均
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Per-category breakdown */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {successRateData.categories.map((cat) => (
+                                <div
+                                  key={cat.category}
+                                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3"
+                                >
+                                  {/* Category header */}
+                                  <div className="flex items-center gap-3">
+                                    <ProgressRing score={cat.score} size={52} strokeWidth={5} showLabel={true} className="flex-shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+                                        {cat.category}
+                                      </p>
+                                      <p className="text-[10px] text-gray-400 truncate">
+                                        {cat.bankNames.join("、")}
+                                      </p>
+                                      <p className="text-[10px] text-gray-400">
+                                        已做 {cat.questionsAttempted} / {cat.totalQuestions} 題
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* 5 indicator bars */}
+                                  <div className="space-y-1.5">
+                                    {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
+                                      <div key={key} className="flex items-center gap-2">
+                                        <span className="text-[10px] text-gray-500 dark:text-gray-400 w-14 text-right flex-shrink-0">
+                                          {INDICATOR_LABELS[key]}
+                                        </span>
+                                        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                          <div
+                                            className="h-full rounded-full transition-all duration-500"
+                                            style={{
+                                              width: `${value}%`,
+                                              backgroundColor: scoreToColor(value),
+                                            }}
+                                          />
+                                        </div>
+                                        <span className="text-[10px] tabular-nums w-8 text-right" style={{ color: scoreToColor(value) }}>
+                                          {value}%
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
               {sorted.length === 0 && (
                 <tr>
