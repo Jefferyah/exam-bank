@@ -12,10 +12,12 @@ import type { Element, Root, RootContent } from "hast";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
-/** Phase 1: rehypeRewrite — transform [[tag]] text into clickable links */
-function rehypeWikiLinks(node: Root | RootContent, _index?: number, parent?: Root | Element) {
+/** rehypeRewrite — transform [[tag]] wiki links and ==highlight== in preview */
+function rehypeCustomSyntax(node: Root | RootContent, _index?: number, parent?: Root | Element) {
   if (node.type !== "text" || !parent || !("children" in parent)) return;
-  const regex = /\[\[([^\]]+)\]\]/g;
+
+  // Combined regex: ==highlight== and [[wiki-link]]
+  const regex = /==([^=]+)==|\[\[([^\]]+)\]\]/g;
   if (!regex.test(node.value)) return;
   regex.lastIndex = 0;
 
@@ -27,17 +29,30 @@ function rehypeWikiLinks(node: Root | RootContent, _index?: number, parent?: Roo
     if (match.index > lastIndex) {
       children.push({ type: "text", value: node.value.slice(lastIndex, match.index) });
     }
-    const linkedTag = match[1].trim();
-    children.push({
-      type: "element",
-      tagName: "a",
-      properties: {
-        href: `/knowledge/${encodeURIComponent(linkedTag)}`,
-        className: "wiki-link",
-        "data-wiki-tag": linkedTag,
-      },
-      children: [{ type: "text", value: linkedTag }],
-    } as unknown as RootContent);
+
+    if (match[1] !== undefined) {
+      // ==highlight== → <mark>
+      children.push({
+        type: "element",
+        tagName: "mark",
+        properties: { className: "md-highlight" },
+        children: [{ type: "text", value: match[1] }],
+      } as unknown as RootContent);
+    } else if (match[2] !== undefined) {
+      // [[wiki-link]]
+      const linkedTag = match[2].trim();
+      children.push({
+        type: "element",
+        tagName: "a",
+        properties: {
+          href: `/knowledge/${encodeURIComponent(linkedTag)}`,
+          className: "wiki-link",
+          "data-wiki-tag": linkedTag,
+        },
+        children: [{ type: "text", value: linkedTag }],
+      } as unknown as RootContent);
+    }
+
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < node.value.length) {
@@ -578,8 +593,6 @@ export default function KnowledgeEntryPage() {
   }, [loading]); // re-run when loading flips to false so editorRef.current is available
 
   // Colorize list markers by indent depth (HackMD-style)
-  // Prism gives all `-` the same token class; we post-process to add per-level colors.
-  // Colorize list markers by indent depth (HackMD-style)
   // MDEditor rebuilds the <pre> DOM on each edit, wiping inline styles.
   // We poll via setInterval to catch new uncolored tokens after each rebuild.
   useEffect(() => {
@@ -775,8 +788,42 @@ export default function KnowledgeEntryPage() {
           preview={previewMode}
           visibleDragbar={false}
           defaultTabEnable
+          commands={[
+            ...(typeof window !== "undefined"
+              ? (() => {
+                  // eslint-disable-next-line @typescript-eslint/no-require-imports
+                  const cmds = require("@uiw/react-md-editor").commands;
+                  return [
+                    cmds.bold, cmds.italic, cmds.strikethrough,
+                    // Highlight command
+                    {
+                      name: "highlight",
+                      keyCommand: "highlight",
+                      shortcuts: "ctrl+shift+h",
+                      buttonProps: { "aria-label": "Add highlight (ctrl + shift + h)", title: "Add highlight (ctrl + shift + h)" },
+                      icon: (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                      ),
+                      execute: (state: { selectedText: string }, api: { replaceSelection: (t: string) => void }) => {
+                        const text = state.selectedText || "高亮文字";
+                        api.replaceSelection(`==${text}==`);
+                      },
+                    },
+                    cmds.divider,
+                    cmds.hr, cmds.title, cmds.divider,
+                    cmds.link, cmds.quote, cmds.code, cmds.codeBlock, cmds.comment,
+                    cmds.image, cmds.table, cmds.divider,
+                    cmds.unorderedListCommand, cmds.orderedListCommand, cmds.checkedListCommand,
+                    cmds.divider, cmds.help,
+                  ];
+                })()
+              : []),
+          ]}
           previewOptions={{
-            rehypeRewrite: rehypeWikiLinks,
+            rehypeRewrite: rehypeCustomSyntax,
           }}
         />
         {uploading && (

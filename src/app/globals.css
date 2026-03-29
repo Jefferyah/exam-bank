@@ -721,3 +721,18 @@ body {
   background: rgba(192, 132, 252, 0.22);
   color: #ddd6fe !important;
 }
+
+/* ══════════════════════════════════════════
+   ==Highlight== styles (preview <mark>)
+   ══════════════════════════════════════════ */
+.md-highlight {
+  background: #fef08a !important;
+  color: #92400e !important;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+[data-color-mode="dark"] .md-highlight {
+  background: rgba(250, 204, 21, 0.25) !important;
+  color: #fde68a !important;
+}
