@@ -399,13 +399,11 @@ body {
   border-left: 1px solid #f1f5f9 !important;
 }
 
-/* Base editor text — color + larger font (no bold to avoid cursor misalignment) */
+/* Base editor text — color only, keep MDEditor default font metrics for cursor alignment */
 .w-md-editor-text-pre,
 .w-md-editor-text-input,
 .w-md-editor-text > .w-md-editor-text-pre > code {
   color: #334155 !important;
-  font-size: 18px !important;
-  line-height: 1.6 !important;
 }
 
 /* List bullet — HackMD-style colored marker */
@@ -520,8 +518,6 @@ body {
 [data-color-mode="dark"] .w-md-editor-text-input,
 [data-color-mode="dark"] .w-md-editor-text > .w-md-editor-text-pre > code {
   color: #cbd5e1 !important;
-  font-size: 18px !important;
-  line-height: 1.6 !important;
 }
 
 /* Dark: List bullet */

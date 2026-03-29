@@ -573,9 +573,10 @@ export default function KnowledgeEntryPage() {
           const newValue = value.substring(0, selectionStart) + insert + value.substring(selectionStart);
           const newPos = selectionStart + insert.length;
           handleChangeRef.current(newValue);
-          requestAnimationFrame(() => {
+          // Use setTimeout to set cursor AFTER React re-render completes
+          setTimeout(() => {
             ta.selectionStart = ta.selectionEnd = newPos;
-          });
+          }, 0);
         }
       }
     };
