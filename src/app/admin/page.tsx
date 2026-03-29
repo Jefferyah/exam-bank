@@ -53,6 +53,8 @@ export default function AdminPage() {
   const [knowledgePromptDraft, setKnowledgePromptDraft] = useState("");
   const [customKnowledgePrompt, setCustomKnowledgePrompt] = useState<string | null>(null);
   const [knowledgePromptMessage, setKnowledgePromptMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [customMaxUses, setCustomMaxUses] = useState("");
+  const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
   const [migratingTasks, setMigratingTasks] = useState(false);
   const [migrateMessage, setMigrateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -123,7 +125,7 @@ export default function AdminPage() {
       const res = await fetch("/api/invite-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count: generateCount, maxUses: generateMaxUses }),
+        body: JSON.stringify({ count: generateCount, maxUses: getEffectiveMaxUses() }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -141,6 +143,52 @@ export default function AdminPage() {
     navigator.clipboard.writeText(shareText);
     setCopied(code);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function handleDeleteCode(id: string) {
+    setDeletingCodeId(id);
+    try {
+      const res = await fetch("/api/invite-codes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setInviteCodes((prev) => prev.filter((c) => c.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingCodeId(null);
+    }
+  }
+
+  async function handleDeleteUsedCodes() {
+    if (!confirm("確定要刪除所有已用完的邀請碼嗎？")) return;
+    try {
+      const res = await fetch("/api/invite-codes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bulkUsed: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.deleted > 0) {
+          setInviteCodes((prev) => prev.filter((c) => c.maxUses === 0 || c.usedCount < c.maxUses));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Resolve maxUses: if "custom", use customMaxUses; otherwise use generateMaxUses number
+  function getEffectiveMaxUses() {
+    if (generateMaxUses === -1) {
+      const parsed = parseInt(customMaxUses);
+      return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+    }
+    return generateMaxUses;
   }
 
   async function handleReset() {
@@ -561,11 +609,25 @@ export default function AdminPage() {
                 >
                   <option value={0}>不限次數</option>
                   <option value={1}>限用 1 次</option>
+                  <option value={2}>限用 2 次</option>
+                  <option value={3}>限用 3 次</option>
                   <option value={5}>限用 5 次</option>
                   <option value={10}>限用 10 次</option>
+                  <option value={20}>限用 20 次</option>
                   <option value={50}>限用 50 次</option>
                   <option value={100}>限用 100 次</option>
+                  <option value={-1}>自訂...</option>
                 </select>
+                {generateMaxUses === -1 && (
+                  <input
+                    type="number"
+                    min={1}
+                    value={customMaxUses}
+                    onChange={(e) => setCustomMaxUses(e.target.value)}
+                    placeholder="次數"
+                    className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )}
                 <button
                   onClick={handleGenerateCodes}
                   disabled={generating}
@@ -575,6 +637,17 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
+
+            {usedCodes.length > 0 && (
+              <div className="flex items-center justify-end">
+                <button
+                  onClick={handleDeleteUsedCodes}
+                  className="text-xs text-red-500 hover:text-red-600 transition-colors"
+                >
+                  清除已用完的邀請碼 ({usedCodes.length})
+                </button>
+              </div>
+            )}
 
             {inviteCodes.length === 0 ? (
               <p className="text-gray-400 text-center py-8">尚無邀請碼，點擊上方按鈕產生</p>
@@ -608,6 +681,11 @@ export default function AdminPage() {
                             <span className="text-blue-500 ml-1">（不限）</span>
                           )}
                         </div>
+                        {ic.usedBy && ic.usedBy.length > 0 && (
+                          <div className="text-gray-400">
+                            使用者：{ic.usedBy.map((u: { name?: string; email?: string }) => u.name || u.email).join("、")}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -619,6 +697,14 @@ export default function AdminPage() {
                         className="px-3 py-1 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-full text-xs text-gray-600 transition-colors"
                       >
                         {copied === ic.code ? "已複製!" : "分享"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCode(ic.id)}
+                        disabled={deletingCodeId === ic.id}
+                        className="px-2 py-1 text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                        title="刪除此邀請碼"
+                      >
+                        {deletingCodeId === ic.id ? "..." : "✕"}
                       </button>
                     </div>
                   </div>

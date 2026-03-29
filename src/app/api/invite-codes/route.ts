@@ -98,3 +98,60 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = (session.user as { role?: string }).role;
+    if (role !== "ADMIN" && role !== "TEACHER") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id, bulkUsed } = await req.json().catch(() => ({}));
+
+    if (bulkUsed) {
+      // Delete all fully-used codes
+      const where = role === "ADMIN"
+        ? { maxUses: { gt: 0 } }
+        : { maxUses: { gt: 0 }, createdById: session.user.id };
+
+      // Find codes where usedCount >= maxUses
+      const usedCodes = await prisma.inviteCode.findMany({ where });
+      const idsToDelete = usedCodes
+        .filter((c) => c.usedCount >= c.maxUses)
+        .map((c) => c.id);
+
+      if (idsToDelete.length > 0) {
+        await prisma.inviteCode.deleteMany({ where: { id: { in: idsToDelete } } });
+      }
+
+      return NextResponse.json({ deleted: idsToDelete.length });
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    }
+
+    // Check ownership (ADMIN can delete any, TEACHER only own)
+    const code = await prisma.inviteCode.findUnique({ where: { id } });
+    if (!code) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    if (role !== "ADMIN" && code.createdById !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await prisma.inviteCode.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("DELETE /api/invite-codes error:", error);
+    return NextResponse.json(
+      { error: "刪除失敗，請稍後重試" },
+      { status: 500 }
+    );
+  }
+}
