@@ -254,7 +254,12 @@ export default function HomePage() {
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">各題庫正確率</h2>
           <div className="space-y-3">
-            {analytics.bankAccuracy.map((d) => (
+            {[...analytics.bankAccuracy].sort((a, b) => {
+              // 有做過的排前面，再按正確率降序
+              if (a.total === 0 && b.total > 0) return 1;
+              if (a.total > 0 && b.total === 0) return -1;
+              return b.accuracy - a.accuracy;
+            }).map((d) => (
               <div key={d.questionBankId}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-700 truncate mr-2">
