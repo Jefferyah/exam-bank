@@ -105,15 +105,39 @@ export async function calculateSuccessRate(
     return { categories: [], overallScore: 0 };
   }
 
-  // Group bank IDs by category
+  // Get touched category names
+  const touchedCategories = [...new Set(touchedBanks.map((tb) => tb.category))];
+
+  // Expand: find ALL banks in those categories (not just the ones the user touched)
+  const hasUncategorized = touchedCategories.includes("未分類");
+  const namedCategories = touchedCategories.filter((c) => c !== "未分類");
+
+  const categoryFilter: object[] = [];
+  if (namedCategories.length > 0) {
+    categoryFilter.push({ category: { in: namedCategories } });
+  }
+  if (hasUncategorized) {
+    categoryFilter.push({ category: null });
+  }
+
+  const allBanksInCategories = await prisma.questionBank.findMany({
+    where: {
+      OR: categoryFilter,
+      ...(excludeBankIds.length > 0 ? { id: { notIn: excludeBankIds } } : {}),
+    },
+    select: { id: true, name: true, category: true },
+  });
+
+  // Group ALL bank IDs by category
   const categoryMap = new Map<string, { bankIds: string[]; bankNames: string[] }>();
-  for (const tb of touchedBanks) {
-    const existing = categoryMap.get(tb.category) || { bankIds: [], bankNames: [] };
-    if (!existing.bankIds.includes(tb.questionBankId)) {
-      existing.bankIds.push(tb.questionBankId);
-      existing.bankNames.push(tb.bankName);
+  for (const bank of allBanksInCategories) {
+    const cat = bank.category || "未分類";
+    const existing = categoryMap.get(cat) || { bankIds: [], bankNames: [] };
+    if (!existing.bankIds.includes(bank.id)) {
+      existing.bankIds.push(bank.id);
+      existing.bankNames.push(bank.name);
     }
-    categoryMap.set(tb.category, existing);
+    categoryMap.set(cat, existing);
   }
 
   const now = new Date();
