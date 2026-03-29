@@ -485,6 +485,8 @@ export default function KnowledgeEntryPage() {
       // Only handle events from the textarea
       const target = e.target as HTMLElement;
       if (target.tagName !== "TEXTAREA") return;
+      // Skip IME composition events (e.g. Chinese input confirming with Enter)
+      if (e.isComposing || e.keyCode === 229) return;
 
       const q = acQueryRef.current;
       const total = acTotalItemsRef.current;
