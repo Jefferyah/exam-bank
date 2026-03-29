@@ -40,6 +40,7 @@ export default function KnowledgePage() {
   const [newTag, setNewTag] = useState("");
   const [sizeMetric, setSizeMetric] = useState<SizeMetric>("wordCount");
   const [masteryFilter, setMasteryFilter] = useState<string | null>(null);
+  const [showAllTags, setShowAllTags] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -582,40 +583,58 @@ export default function KnowledgePage() {
           <h2 className="text-sm font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
             所有知識點
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {[...filteredTags].sort((a, b) =>
+          {(() => {
+            const sorted = [...filteredTags].sort((a, b) =>
               sizeMetric === "wordCount"
                 ? b.wordCount - a.wordCount
                 : b.questionCount - a.questionCount
-            ).map((t) => (
-              <button
-                key={t.tag}
-                onClick={() =>
-                  router.push(`/knowledge/${encodeURIComponent(t.tag)}`)
-                }
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all hover:shadow-sm ${
-                  t.hasEntry
-                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                    : "bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-gray-200"
-                }`}
-              >
-                <span
-                  className={`text-sm font-medium truncate ${
-                    t.hasEntry
-                      ? "text-blue-700 dark:text-blue-300"
-                      : "text-gray-600 dark:text-gray-400"
-                  }`}
-                >
-                  {t.tag}
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500 ml-2 flex-shrink-0">
-                  {sizeMetric === "wordCount"
-                    ? (t.wordCount > 0 ? `${t.wordCount} 字` : "")
-                    : t.questionCount}
-                </span>
-              </button>
-            ))}
-          </div>
+            );
+            const MAX_VISIBLE = 24; // 4 cols × 6 rows
+            const visible = showAllTags ? sorted : sorted.slice(0, MAX_VISIBLE);
+            const hasMore = sorted.length > MAX_VISIBLE;
+            return (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {visible.map((t) => (
+                    <button
+                      key={t.tag}
+                      onClick={() =>
+                        router.push(`/knowledge/${encodeURIComponent(t.tag)}`)
+                      }
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all hover:shadow-sm ${
+                        t.hasEntry
+                          ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                          : "bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-gray-200"
+                      }`}
+                    >
+                      <span
+                        className={`text-sm font-medium truncate ${
+                          t.hasEntry
+                            ? "text-blue-700 dark:text-blue-300"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`}
+                      >
+                        {t.tag}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-2 flex-shrink-0">
+                        {sizeMetric === "wordCount"
+                          ? (t.wordCount > 0 ? `${t.wordCount} 字` : "")
+                          : t.questionCount}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                {hasMore && (
+                  <button
+                    onClick={() => setShowAllTags(!showAllTags)}
+                    className="mt-2 w-full py-2 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    {showAllTags ? "收合" : `顯示全部 (${sorted.length})`}
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
