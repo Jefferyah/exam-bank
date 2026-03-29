@@ -496,6 +496,24 @@ body {
   color: #d1d5db !important;
 }
 
+/* ── Preview list markers (Tailwind preflight resets list-style) ── */
+.wmde-markdown ul {
+  list-style-type: disc !important;
+}
+.wmde-markdown ol {
+  list-style-type: decimal !important;
+}
+.wmde-markdown ul ul {
+  list-style-type: circle !important;
+}
+.wmde-markdown ul ul ul {
+  list-style-type: square !important;
+}
+.wmde-markdown ul li::marker,
+.wmde-markdown ol li::marker {
+  color: #e11d48 !important;
+}
+
 /* ── Dark mode — base text color + background fix ── */
 [data-color-mode="dark"] .w-md-editor-text-pre,
 [data-color-mode="dark"] .w-md-editor-text-input,
