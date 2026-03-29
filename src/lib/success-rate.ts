@@ -217,7 +217,11 @@ export async function calculateSuccessRate(
     // Indicator 4: Correction rate
     const everWrongQuestions = questionAttempts.filter((q) => q.everWrong);
     let indicator4: number;
-    if (everWrongQuestions.length === 0) {
+    if (questionAttempts.length === 0) {
+      // No questions attempted at all → 0%
+      indicator4 = 0;
+    } else if (everWrongQuestions.length === 0) {
+      // Attempted questions but never wrong → 100%
       indicator4 = 100;
     } else {
       const corrected = everWrongQuestions.filter((q) => q.laterCorrect).length;
