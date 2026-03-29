@@ -41,6 +41,7 @@ export default function KnowledgePage() {
   const [sizeMetric, setSizeMetric] = useState<SizeMetric>("wordCount");
   const [masteryFilter, setMasteryFilter] = useState<string | null>(null);
   const [showAllTags, setShowAllTags] = useState(false);
+  const [showNoNotes, setShowNoNotes] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -86,9 +87,10 @@ export default function KnowledgePage() {
   const filteredTags = allTagData.filter((t) => {
     if (!t.tag.toLowerCase().includes(search.toLowerCase())) return false;
     if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
-    // Hide zero-value bubbles based on current metric
-    if (sizeMetric === "wordCount" && t.wordCount === 0) return false;
-    if (sizeMetric === "questionCount" && t.questionCount === 0) return false;
+    // 依題數: only show tags user has actually attempted (accuracy !== null)
+    if (sizeMetric === "questionCount" && t.accuracy === null) return false;
+    // 依筆記字數: hide tags with no notes unless toggle is on
+    if (sizeMetric === "wordCount" && t.wordCount === 0 && !showNoNotes) return false;
     return true;
   });
 
@@ -532,6 +534,22 @@ export default function KnowledgePage() {
               {item.label}
             </button>
           ))}
+          {sizeMetric === "wordCount" && (
+            <>
+              <span className="mx-1 text-gray-300 dark:text-gray-600">|</span>
+              <button
+                onClick={() => setShowNoNotes(!showNoNotes)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all ${
+                  showNoNotes
+                    ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                }`}
+              >
+                <span className="inline-block w-3 h-3 rounded-full flex-shrink-0" style={{ background: "rgba(156, 163, 175, 0.15)", border: "1px dashed rgba(156, 163, 175, 0.4)" }} />
+                無筆記
+              </button>
+            </>
+          )}
         </div>
       </div>
 
