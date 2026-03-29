@@ -85,6 +85,9 @@ export default function KnowledgePage() {
   const filteredTags = allTagData.filter((t) => {
     if (!t.tag.toLowerCase().includes(search.toLowerCase())) return false;
     if (masteryFilter && getMasteryLevel(t.accuracy) !== masteryFilter) return false;
+    // Hide zero-value bubbles based on current metric
+    if (sizeMetric === "wordCount" && t.wordCount === 0) return false;
+    if (sizeMetric === "questionCount" && t.questionCount === 0) return false;
     return true;
   });
 
