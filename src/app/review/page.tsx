@@ -1327,7 +1327,6 @@ const INDICATOR_DESCRIPTIONS: Record<string, string> = {
 
 function SuccessRateSection({ data }: { data: SuccessRateData }) {
   const [showExplain, setShowExplain] = useState(false);
-  const [expandedCat, setExpandedCat] = useState<string | null>(null);
 
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-4">
@@ -1376,86 +1375,67 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
         </div>
       )}
 
-      {/* Category rings */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {data.categories.map((cat) => (
-          <button
-            key={cat.category}
-            onClick={() => setExpandedCat(expandedCat === cat.category ? null : cat.category)}
-            className={cn(
-              "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center",
-              expandedCat === cat.category
-                ? "bg-purple-50/50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-700"
-                : "bg-gray-50 dark:bg-gray-750 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600"
-            )}
-          >
-            <ProgressRing score={cat.score} size={56} strokeWidth={5} showLabel={true} />
-            <span className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate w-full">
-              {cat.category}
-            </span>
-            <span className="text-[10px] text-gray-400">
-              {cat.questionsAttempted}/{cat.totalQuestions} 題
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Expanded category detail */}
-      {expandedCat && (() => {
-        const cat = data.categories.find((c) => c.category === expandedCat);
-        if (!cat) return null;
-        const rv = cat.rawValues;
-        const RAW_DETAILS: Record<string, string> = {
-          coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
-          mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
-          time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
-          correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
-          trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
-        };
-        return (
-          <div className="bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{cat.category}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{cat.bankNames.join("、")}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-lg font-bold" style={{ color: scoreToColor(cat.score) }}>
-                  {cat.score}%
-                </span>
-                <p className="text-[10px] text-gray-400">已做 {cat.questionsAttempted} / {cat.totalQuestions} 題</p>
-              </div>
-            </div>
-            <div className="space-y-2.5">
-              {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
-                <div key={key} className="space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-gray-600 dark:text-gray-400">
-                      {INDICATOR_LABELS[key]}
-                      <span className="text-gray-400 dark:text-gray-500 ml-1">（{INDICATOR_WEIGHTS[key]}%）</span>
-                    </span>
-                    <span className="text-[11px] tabular-nums font-medium" style={{ color: scoreToColor(value) }}>
-                      {value}%
-                    </span>
-                  </div>
-                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${value}%`,
-                        backgroundColor: scoreToColor(value),
-                      }}
-                    />
-                  </div>
-                  {RAW_DETAILS[key] && (
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">{RAW_DETAILS[key]}</p>
-                  )}
+      {/* Category cards — ring left, indicators right */}
+      <div className="space-y-3">
+        {data.categories.map((cat) => {
+          const rv = cat.rawValues;
+          const RAW_DETAILS: Record<string, string> = {
+            coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
+            mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
+            time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
+            correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
+            trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
+          };
+          return (
+            <div
+              key={cat.category}
+              className="bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700 rounded-xl p-4"
+            >
+              <div className="flex gap-4">
+                {/* Left: ring */}
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <ProgressRing score={cat.score} size={64} strokeWidth={5} showLabel={true} />
+                  <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 mt-1.5 text-center">
+                    {cat.category}
+                  </p>
+                  <p className="text-[10px] text-gray-400 text-center">
+                    {cat.questionsAttempted}/{cat.totalQuestions} 題
+                  </p>
                 </div>
-              ))}
+
+                {/* Right: indicator bars */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <p className="text-[10px] text-gray-400 truncate">{cat.bankNames.join("、")}</p>
+                  {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
+                    <div key={key}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 w-14 text-right flex-shrink-0">
+                          {INDICATOR_LABELS[key]}
+                        </span>
+                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${value}%`,
+                              backgroundColor: scoreToColor(value),
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] tabular-nums w-8 text-right" style={{ color: scoreToColor(value) }}>
+                          {value}%
+                        </span>
+                      </div>
+                      {RAW_DETAILS[key] && (
+                        <p className="text-[9px] text-gray-400 dark:text-gray-500 ml-16 mt-0.5">{RAW_DETAILS[key]}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })}
+      </div>
     </div>
   );
 }
