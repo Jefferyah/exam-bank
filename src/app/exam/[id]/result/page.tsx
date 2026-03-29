@@ -147,16 +147,21 @@ export default function ExamResultPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Score display */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-8 shadow-sm text-center">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 mb-2 break-words">{exam.title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-2 break-words">{exam.title}</h1>
         <div className={cn(
           "text-6xl md:text-8xl font-bold",
           score >= 70 ? "text-emerald-500" : score >= 50 ? "text-amber-500" : "text-red-500"
         )}>
-          {score.toFixed(1)}%
+          {Math.round(score)} <span className="text-3xl md:text-4xl">分</span>
         </div>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
           {correctCount} / {totalCount} 答對
         </p>
+        {score >= 70 ? (
+          <span className="inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">✓ 及格</span>
+        ) : (
+          <span className="inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400">✗ 未及格</span>
+        )}
         {exam.finishedAt && exam.startedAt && (
           <p className="text-sm text-gray-400 mt-1">
             用時 {Math.round((new Date(exam.finishedAt).getTime() - new Date(exam.startedAt).getTime()) / 60000)} 分鐘

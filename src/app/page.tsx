@@ -156,7 +156,7 @@ export default function HomePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="題庫總數" value={totalQuestions} />
         <StatCard label="已完成測驗" value={analytics?.completedExams || 0} />
-        <StatCard label="平均分數" value={`${(analytics?.avgScore || 0).toFixed(1)}%`} />
+        <StatCard label="平均分數" value={`${Math.round(analytics?.avgScore || 0)} 分`} />
         <StatCard label="錯題次數" value={wrongCount} />
       </div>
 
@@ -223,7 +223,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <span className={cn("text-sm font-bold tabular-nums flex-shrink-0 ml-3", textColor)}>
-                      {exam.score != null ? `${exam.score.toFixed(1)}%` : "--"}
+                      {exam.score != null ? `${Math.round(exam.score)} 分` : "--"}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">

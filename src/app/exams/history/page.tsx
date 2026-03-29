@@ -180,7 +180,7 @@ export default function ExamHistoryPage() {
                     </div>
                   </div>
                   <span className={cn("text-lg font-bold tabular-nums flex-shrink-0", scoreColor)}>
-                    {exam.score != null ? `${exam.score.toFixed(1)}%` : "--"}
+                    {exam.score != null ? `${Math.round(exam.score)} 分` : "--"}
                   </span>
                 </div>
                 <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">

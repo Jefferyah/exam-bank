@@ -200,7 +200,7 @@ export default function AnalyticsPage() {
                     key={exam.id}
                     className="flex-1 flex flex-col items-center justify-end gap-1"
                   >
-                    <span className="text-xs text-gray-600">{score.toFixed(0)}%</span>
+                    <span className="text-xs text-gray-600">{Math.round(score)}分</span>
                     <div
                       className={cn(
                         "w-full rounded-t transition-all min-h-[4px]",
