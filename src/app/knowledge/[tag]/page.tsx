@@ -156,6 +156,8 @@ export default function KnowledgeEntryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLabel, setUploadingLabel] = useState("上傳中...");
+  const [fileCount, setFileCount] = useState(0);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"edit" | "live" | "preview">("live");
   const [navTags, setNavTags] = useState<string[]>([]);
@@ -172,6 +174,7 @@ export default function KnowledgeEntryPage() {
   const [acPos, setAcPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const acCursorRef = useRef<number>(0); // store cursor position for autocomplete
   const acTextRef = useRef<string>(""); // store text content when [[ detected
   const acInteractingRef = useRef(false); // track if user is interacting with dropdown
@@ -261,7 +264,21 @@ export default function KnowledgeEntryPage() {
     setBacklinks([]);
     setLoading(true);
     setAcQuery(null);
+    setFileCount(0);
   }, [tag]);
+
+  // Fetch file count for current tag
+  const fetchFileCount = useCallback(() => {
+    fetch(`/api/upload?countTag=${encodeURIComponent(tag)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data?.count !== undefined) setFileCount(data.count); })
+      .catch(() => {});
+  }, [tag]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetchFileCount();
+  }, [status, tag, fetchFileCount]);
 
   // Load existing content
   useEffect(() => {
@@ -314,40 +331,51 @@ export default function KnowledgeEntryPage() {
     [saveContent]
   );
 
-  // Upload image and return markdown string
-  const uploadImage = useCallback(async (file: File): Promise<string | null> => {
+  // Upload file (image or document) and return markdown string
+  const uploadFile = useCallback(async (file: File): Promise<string | null> => {
+    const isImage = file.type.startsWith("image/");
     setUploading(true);
+    setUploadingLabel(isImage ? "上傳圖片中..." : "上傳檔案中...");
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const url = `/api/upload?tag=${encodeURIComponent(tag)}`;
+      const res = await fetch(url, { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "圖片上傳失敗");
+        alert(data.error || "上傳失敗");
         return null;
       }
-      const { url } = await res.json();
-      return `![image](${url})`;
+      const result = await res.json();
+      if (!isImage) {
+        fetchFileCount();
+      }
+      if (result.type === "file") {
+        return `[${result.filename}](${result.url})`;
+      }
+      return `![image](${result.url})`;
     } catch {
-      alert("圖片上傳失敗");
+      alert("上傳失敗");
       return null;
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [tag, fetchFileCount]);
 
-  // Handle paste event — intercept images from clipboard
+  // Handle paste event — intercept images and files from clipboard
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
 
       for (const item of Array.from(items)) {
-        if (item.type.startsWith("image/")) {
-          e.preventDefault();
+        if (item.type.startsWith("image/") || item.kind === "file") {
           const file = item.getAsFile();
           if (!file) continue;
-          const md = await uploadImage(file);
+          // Only intercept images and supported file types
+          if (!file.type.startsWith("image/") && !file.type) continue;
+          e.preventDefault();
+          const md = await uploadFile(file);
           if (md) {
             // Insert at cursor position
             const textarea = document.querySelector(
@@ -364,23 +392,23 @@ export default function KnowledgeEntryPage() {
               handleChange(content + "\n" + md + "\n");
             }
           }
-          return; // only handle first image
+          return; // only handle first file
         }
       }
     },
-    [content, handleChange, uploadImage]
+    [content, handleChange, uploadFile]
   );
 
-  // Handle drop event — intercept dropped image files
+  // Handle drop event — intercept dropped image and file types
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       const files = e.dataTransfer?.files;
       if (!files) return;
 
       for (const file of Array.from(files)) {
-        if (file.type.startsWith("image/")) {
+        if (file.type) {
           e.preventDefault();
-          const md = await uploadImage(file);
+          const md = await uploadFile(file);
           if (md) {
             handleChange(content + "\n" + md + "\n");
           }
@@ -388,7 +416,7 @@ export default function KnowledgeEntryPage() {
         }
       }
     },
-    [content, handleChange, uploadImage]
+    [content, handleChange, uploadFile]
   );
 
   // Phase 2: Autocomplete — detect [[ and show suggestions
@@ -772,8 +800,50 @@ export default function KnowledgeEntryPage() {
               </button>
             </div>
           )}
-          {/* AI tools */}
+          {/* File upload + AI tools */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* File upload button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 border border-gray-100 dark:border-gray-600 hover:border-purple-200 dark:hover:border-purple-700 rounded-full text-[11px] font-medium transition-all"
+              title="上傳檔案"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              <span className="hidden sm:inline">附件</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*,.pdf,.docx,.xlsx,.pptx,.zip,.txt,.csv"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const md = await uploadFile(file);
+                if (md) {
+                  const textarea = document.querySelector(".w-md-editor-text-input") as HTMLTextAreaElement | null;
+                  if (textarea) {
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const before = content.substring(0, start);
+                    const after = content.substring(end);
+                    handleChange(before + md + "\n" + after);
+                  } else {
+                    handleChange(content + "\n" + md + "\n");
+                  }
+                }
+                e.target.value = "";
+              }}
+            />
+            {fileCount > 0 && (
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
+                {fileCount}/20 檔案
+              </span>
+            )}
+            <span className="text-gray-200 dark:text-gray-600">|</span>
             {(() => {
               const urls = getAiWebUrls(buildKnowledgeAiPrompt(tag, content, customKnowledgePrompt));
               return (
@@ -869,7 +939,7 @@ export default function KnowledgeEntryPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              上傳圖片中...
+              {uploadingLabel}
             </div>
           </div>
         )}

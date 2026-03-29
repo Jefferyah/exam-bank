@@ -30,6 +30,21 @@ export const ALLOWED_IMAGE_TYPES = [
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
+// Allowed file types (non-image)
+export const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // xlsx
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // pptx
+  "application/zip",
+  "application/x-zip-compressed",
+  "text/plain",
+  "text/csv",
+];
+
+export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+export const MAX_FILES_PER_TAG = 20;
+
 export function validateImage(
   size: number,
   mimeType: string
@@ -41,6 +56,23 @@ export function validateImage(
     return `圖片大小超過 5MB 限制`;
   }
   return null;
+}
+
+export function validateFile(
+  size: number,
+  mimeType: string
+): string | null {
+  if (!ALLOWED_FILE_TYPES.includes(mimeType)) {
+    return `不支援的檔案類型：${mimeType}`;
+  }
+  if (size > MAX_FILE_SIZE) {
+    return `檔案大小超過 20MB 限制`;
+  }
+  return null;
+}
+
+export function isImageMimeType(mimeType: string): boolean {
+  return ALLOWED_IMAGE_TYPES.includes(mimeType);
 }
 
 export async function uploadToR2(

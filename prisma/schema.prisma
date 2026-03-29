@@ -291,9 +291,13 @@ model UploadedImage {
   size      Int
   mimeType  String
   userId    String
+  tag       String?
+  isImage   Boolean  @default(true)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tag, isImage])
 }
 
 // ── Knowledge Base ──
