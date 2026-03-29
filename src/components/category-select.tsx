@@ -6,6 +6,7 @@ interface CategorySelectProps {
   value: string;
   onChange: (value: string) => void;
   canCreate?: boolean; // ADMIN/TEACHER can create new categories
+  type?: "bank" | "question"; // which category pool to use
   className?: string;
   placeholder?: string;
 }
@@ -14,6 +15,7 @@ export default function CategorySelect({
   value,
   onChange,
   canCreate = false,
+  type = "bank",
   className = "",
   placeholder = "選擇分類",
 }: CategorySelectProps) {
@@ -22,13 +24,13 @@ export default function CategorySelect({
   const [newCategory, setNewCategory] = useState("");
 
   useEffect(() => {
-    fetch("/api/categories")
+    fetch(`/api/categories?type=${type}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.categories) setCategories(data.categories);
       })
       .catch(() => {});
-  }, []);
+  }, [type]);
 
   const handleAddNew = () => {
     const trimmed = newCategory.trim();

@@ -379,12 +379,12 @@ function CreateQuestionContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">分類</label>
-              <input
-                type="text"
+              <CategorySelect
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="例如: 網路安全、資料庫管理"
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onChange={setCategory}
+                type="question"
+                canCreate={true}
+                placeholder="選擇分類（選填）"
               />
             </div>
             <div>
