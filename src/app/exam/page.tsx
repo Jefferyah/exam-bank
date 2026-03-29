@@ -21,8 +21,8 @@ export default function ExamSetupPage() {
   const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
   const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
   const [difficultyRange, setDifficultyRange] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [count, setCount] = useState(20);
-  const [timeLimit, setTimeLimit] = useState(60);
+  const [count, setCount] = useState("20");
+  const [timeLimit, setTimeLimit] = useState("60");
   const [wrongOnly, setWrongOnly] = useState(false);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [notedOnly, setNotedOnly] = useState(false);
@@ -145,9 +145,9 @@ export default function ExamSetupPage() {
         note: note.trim() || undefined,
         questionBankIds: selectedBankIds.length > 0 ? selectedBankIds : undefined,
         difficulty: difficultyRange.length > 0 && difficultyRange.length < 5 ? difficultyRange : undefined,
-        count,
+        count: parseInt(count) || 20,
         mode,
-        timeLimit: mode === "MOCK" ? timeLimit * 60 : undefined,
+        timeLimit: mode === "MOCK" ? (parseInt(timeLimit) || 60) * 60 : undefined,
         wrongOnly,
         favoriteOnly,
         notedOnly,
@@ -342,7 +342,8 @@ export default function ExamSetupPage() {
               min={1}
               max={200}
               value={count}
-              onChange={(e) => setCount(parseInt(e.target.value) || 20)}
+              onChange={(e) => setCount(e.target.value)}
+              onBlur={() => { const n = parseInt(count); setCount(String(n > 0 ? Math.min(n, 200) : 20)); }}
               className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
           </div>
@@ -354,7 +355,8 @@ export default function ExamSetupPage() {
                 min={1}
                 max={360}
                 value={timeLimit}
-                onChange={(e) => setTimeLimit(parseInt(e.target.value) || 60)}
+                onChange={(e) => setTimeLimit(e.target.value)}
+                onBlur={() => { const n = parseInt(timeLimit); setTimeLimit(String(n > 0 ? Math.min(n, 360) : 60)); }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
             </div>
