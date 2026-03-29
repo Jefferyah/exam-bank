@@ -67,7 +67,7 @@ export async function GET() {
     >`
       SELECT
         e."userId",
-        COUNT(ea.id)::int AS "totalAnswered",
+        COUNT(CASE WHEN ea."isCorrect" IS NOT NULL THEN 1 END)::int AS "totalAnswered",
         COUNT(CASE WHEN ea."isCorrect" = true THEN 1 END)::int AS "totalCorrect",
         COALESCE(SUM(ea."timeSpent"), 0)::int AS "totalTimeSpent"
       FROM "ExamAnswer" ea

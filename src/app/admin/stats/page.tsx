@@ -54,6 +54,14 @@ interface CategoryScore {
     correction: number;
     trend: number;
   };
+  rawValues: {
+    masteryAccuracy: number;
+    timeMinutes: number;
+    targetMinutes: number;
+    activeDays: number;
+    correctedCount: number;
+    wrongCount: number;
+  };
   score: number;
 }
 
@@ -439,27 +447,44 @@ export default function AdminStatsPage() {
                                   </div>
 
                                   {/* 5 indicator bars */}
-                                  <div className="space-y-1.5">
-                                    {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
-                                      <div key={key} className="flex items-center gap-2">
-                                        <span className="text-[10px] text-gray-500 dark:text-gray-400 w-14 text-right flex-shrink-0">
-                                          {INDICATOR_LABELS[key]}
-                                        </span>
-                                        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                                          <div
-                                            className="h-full rounded-full transition-all duration-500"
-                                            style={{
-                                              width: `${value}%`,
-                                              backgroundColor: scoreToColor(value),
-                                            }}
-                                          />
-                                        </div>
-                                        <span className="text-[10px] tabular-nums w-8 text-right" style={{ color: scoreToColor(value) }}>
-                                          {value}%
-                                        </span>
+                                  {(() => {
+                                    const rv = cat.rawValues;
+                                    const RAW_DETAILS: Record<string, string> = {
+                                      coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
+                                      mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
+                                      time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
+                                      correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
+                                      trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
+                                    };
+                                    return (
+                                      <div className="space-y-2">
+                                        {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
+                                          <div key={key}>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-[10px] text-gray-500 dark:text-gray-400 w-14 text-right flex-shrink-0">
+                                                {INDICATOR_LABELS[key]}
+                                              </span>
+                                              <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                                <div
+                                                  className="h-full rounded-full transition-all duration-500"
+                                                  style={{
+                                                    width: `${value}%`,
+                                                    backgroundColor: scoreToColor(value),
+                                                  }}
+                                                />
+                                              </div>
+                                              <span className="text-[10px] tabular-nums w-8 text-right" style={{ color: scoreToColor(value) }}>
+                                                {value}%
+                                              </span>
+                                            </div>
+                                            {RAW_DETAILS[key] && (
+                                              <p className="text-[9px] text-gray-400 dark:text-gray-500 ml-16 mt-0.5">{RAW_DETAILS[key]}</p>
+                                            )}
+                                          </div>
+                                        ))}
                                       </div>
-                                    ))}
-                                  </div>
+                                    );
+                                  })()}
                                 </div>
                               ))}
                             </div>

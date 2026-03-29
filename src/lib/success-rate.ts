@@ -169,8 +169,8 @@ export async function calculateSuccessRate(
           ea."questionId",
           ea."isCorrect",
           ea."timeSpent",
-          ea."createdAt",
-          ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY ea."createdAt") AS rn
+          e."startedAt" AS "examStartedAt",
+          ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY e."startedAt", ea."createdAt") AS rn
         FROM "ExamAnswer" ea
         JOIN "Exam" e ON ea."examId" = e.id
         JOIN "Question" q ON ea."questionId" = q.id
@@ -185,8 +185,8 @@ export async function calculateSuccessRate(
         COUNT(CASE WHEN rn >= 2 THEN 1 END)::int AS "secondPlusTotal",
         BOOL_OR("isCorrect" = false) AS "everWrong",
         BOOL_OR(
-          "isCorrect" = true AND "createdAt" > (
-            SELECT MIN(n2."createdAt") FROM numbered n2
+          "isCorrect" = true AND "examStartedAt" > (
+            SELECT MIN(n2."examStartedAt") FROM numbered n2
             WHERE n2."questionId" = numbered."questionId" AND n2."isCorrect" = false
           )
         ) AS "laterCorrect",

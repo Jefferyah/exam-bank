@@ -119,6 +119,14 @@ interface CategoryScore {
     correction: number;
     trend: number;
   };
+  rawValues: {
+    masteryAccuracy: number;
+    timeMinutes: number;
+    targetMinutes: number;
+    activeDays: number;
+    correctedCount: number;
+    wrongCount: number;
+  };
   score: number;
 }
 
@@ -1396,6 +1404,14 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
       {expandedCat && (() => {
         const cat = data.categories.find((c) => c.category === expandedCat);
         if (!cat) return null;
+        const rv = cat.rawValues;
+        const RAW_DETAILS: Record<string, string> = {
+          coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
+          mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}%` : "",
+          time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
+          correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
+          trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
+        };
         return (
           <div className="bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -1410,7 +1426,7 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
                 <p className="text-[10px] text-gray-400">已做 {cat.questionsAttempted} / {cat.totalQuestions} 題</p>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {(Object.entries(cat.indicators) as [string, number][]).map(([key, value]) => (
                 <div key={key} className="space-y-0.5">
                   <div className="flex items-center justify-between">
@@ -1431,6 +1447,9 @@ function SuccessRateSection({ data }: { data: SuccessRateData }) {
                       }}
                     />
                   </div>
+                  {RAW_DETAILS[key] && (
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500">{RAW_DETAILS[key]}</p>
+                  )}
                 </div>
               ))}
             </div>
