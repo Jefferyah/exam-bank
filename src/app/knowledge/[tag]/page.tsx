@@ -549,6 +549,7 @@ export default function KnowledgeEntryPage() {
       }
 
       // Enter on indented list — MDEditor only handles unindented lists
+      // Use same insertTextAtPosition as MDEditor to avoid React state conflicts
       if (e.key === "Enter" && !e.shiftKey) {
         const ta = target as HTMLTextAreaElement;
         const { selectionStart, value } = ta;
@@ -570,13 +571,10 @@ export default function KnowledgeEntryPage() {
             const num = parseInt(indentedNumMatch![2]) + 1;
             insert = "\n" + indentedNumMatch![1] + num + ". ";
           }
-          const newValue = value.substring(0, selectionStart) + insert + value.substring(selectionStart);
-          const newPos = selectionStart + insert.length;
-          handleChangeRef.current(newValue);
-          // Use setTimeout to set cursor AFTER React re-render completes
-          setTimeout(() => {
-            ta.selectionStart = ta.selectionEnd = newPos;
-          }, 0);
+          // Use execCommand like MDEditor does — modifies textarea directly,
+          // triggers native input event, so MDEditor's onChange picks it up naturally
+          ta.focus();
+          document.execCommand("insertText", false, insert);
         }
       }
     };
