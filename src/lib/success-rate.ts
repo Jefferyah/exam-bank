@@ -202,11 +202,15 @@ export async function calculateSuccessRate(
     }
     const indicator1 = (coverageSum / totalQuestions) * 100;
 
-    // Indicator 2: Mastery
+    // Indicator 2: Mastery — scaled by coverage ratio
+    // Raw mastery = 2nd+ attempt accuracy, but scaled by how many questions
+    // the student has attempted out of total. This prevents gaming by only
+    // doing a few questions well while ignoring the rest.
     const totalSecondPlus = questionAttempts.reduce((s, q) => s + q.secondPlusTotal, 0);
     const correctSecondPlus = questionAttempts.reduce((s, q) => s + q.secondPlusCorrect, 0);
     const rawMastery = totalSecondPlus > 0 ? (correctSecondPlus / totalSecondPlus) * 100 : 0;
-    const indicator2 = masteryScore(rawMastery);
+    const coverageRatio = questionAttempts.length / totalQuestions; // 0~1
+    const indicator2 = masteryScore(rawMastery) * coverageRatio;
 
     // Indicator 3: Time
     const totalTimeSeconds = questionAttempts.reduce((s, q) => s + q.totalTimeSpent, 0);
