@@ -541,87 +541,77 @@ export default function KnowledgeEntryPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 relative">
-        <button
-          onClick={() => router.push("/knowledge")}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-800 transition-colors"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm relative">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/knowledge")}
+            className="p-1.5 rounded-lg text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <div className="flex-1 min-w-0">
-          {renaming ? (
-            <div className="flex items-center gap-2">
-              <input
-                autoFocus
-                value={renameDraft}
-                onChange={(e) => setRenameDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
-                className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-purple-400 outline-none w-full"
-              />
-              <button onClick={handleRename} className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap">確定</button>
-              <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600 whitespace-nowrap">取消</button>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="flex-1 min-w-0">
+            {renaming ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={renameDraft}
+                  onChange={(e) => setRenameDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setRenaming(false); }}
+                  className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent border-b-2 border-purple-400 outline-none w-full"
+                />
+                <button onClick={handleRename} className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap">確定</button>
+                <button onClick={() => setRenaming(false)} className="text-xs text-gray-400 hover:text-gray-600 whitespace-nowrap">取消</button>
+              </div>
+            ) : (
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                {tag}
+              </h1>
+            )}
+            <div className="flex items-center gap-3 mt-0.5">
+              <Link
+                href={`/questions?tags=${encodeURIComponent(tag)}`}
+                className="text-xs text-blue-500 hover:text-blue-600 transition-colors"
+              >
+                查看相關題目 →
+              </Link>
+              {lastSaved && (
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  上次儲存：
+                  {new Date(lastSaved).toLocaleString("zh-TW")}
+                </span>
+              )}
             </div>
-          ) : (
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-              {tag}
-            </h1>
-          )}
-          <div className="flex items-center gap-3 mt-0.5">
-            <Link
-              href={`/questions?tags=${encodeURIComponent(tag)}`}
-              className="text-xs text-blue-500 hover:text-blue-600 transition-colors"
-            >
-              查看相關題目 →
-            </Link>
-            {lastSaved && (
-              <span className="text-xs text-gray-400">
-                上次儲存：
-                {new Date(lastSaved).toLocaleString("zh-TW")}
-              </span>
+          </div>
+          <div className="flex items-center gap-3">
+            {saving && (
+              <span className="text-xs text-gray-400 animate-pulse">儲存中...</span>
+            )}
+            {!saving && lastSaved && (
+              <span className="text-xs text-emerald-500 font-medium">已儲存</span>
+            )}
+            {!renaming && (
+              <>
+                <button
+                  onClick={() => { setRenameDraft(tag); setRenaming(true); }}
+                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  改名
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors"
+                >
+                  刪除
+                </button>
+              </>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {saving && (
-            <span className="text-xs text-gray-400 animate-pulse">
-              儲存中...
-            </span>
-          )}
-          {!saving && lastSaved && (
-            <span className="text-xs text-emerald-500">已儲存</span>
-          )}
-          {!renaming && (
-            <>
-              <button
-                onClick={() => { setRenameDraft(tag); setRenaming(true); }}
-                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                改名
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
-              >
-                刪除
-              </button>
-            </>
-          )}
-        </div>
         {/* Delete confirmation */}
         {showDeleteConfirm && (
-          <div className="absolute top-0 right-0 mt-12 mr-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 z-50">
+          <div className="absolute top-full right-4 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 z-50">
             <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">確定要刪除「{tag}」嗎？此操作無法復原。</p>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200">取消</button>
@@ -631,9 +621,9 @@ export default function KnowledgeEntryPage() {
         )}
       </div>
 
-      {/* Editor mode toggle + tip */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+      {/* Editor mode toggle + AI tools */}
+      <div className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-750 rounded-lg p-0.5">
           {([
             { key: "edit" as const, label: "編輯" },
             { key: "live" as const, label: "分割" },
@@ -642,10 +632,10 @@ export default function KnowledgeEntryPage() {
             <button
               key={m.key}
               onClick={() => handlePreviewChange(m.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
                 previewMode === m.key
                   ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
               }`}
             >
               {m.label}
@@ -657,17 +647,17 @@ export default function KnowledgeEntryPage() {
             const urls = getAiWebUrls(buildKnowledgeAiPrompt(tag, content, customKnowledgePrompt));
             return (
               <>
-                <span className="text-xs text-gray-400 mr-1">AI 整理</span>
+                <span className="text-[11px] text-gray-300 dark:text-gray-600 mr-0.5">AI 整理</span>
                 <a href={urls.chatgpt} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#10a37f] hover:bg-[#0d8c6d] text-white rounded-full text-[11px] font-medium transition-all">
+                  className="inline-flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-[#10a37f] text-gray-400 dark:text-gray-500 hover:text-white border border-gray-100 dark:border-gray-600 hover:border-transparent rounded-full text-[11px] font-medium transition-all">
                   ChatGPT
                 </a>
                 <a href={urls.claude} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#d97706] hover:bg-[#b45309] text-white rounded-full text-[11px] font-medium transition-all">
+                  className="inline-flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-[#d97706] text-gray-400 dark:text-gray-500 hover:text-white border border-gray-100 dark:border-gray-600 hover:border-transparent rounded-full text-[11px] font-medium transition-all">
                   Claude
                 </a>
                 <a href={urls.gemini} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#4285f4] hover:bg-[#3367d6] text-white rounded-full text-[11px] font-medium transition-all">
+                  className="inline-flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-[#4285f4] text-gray-400 dark:text-gray-500 hover:text-white border border-gray-100 dark:border-gray-600 hover:border-transparent rounded-full text-[11px] font-medium transition-all">
                   Gemini
                 </a>
               </>
@@ -680,7 +670,7 @@ export default function KnowledgeEntryPage() {
       <div
         ref={editorRef}
         data-color-mode={theme === "dark" ? "dark" : "light"}
-        className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 relative"
+        className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm relative"
         onPaste={handlePaste}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}

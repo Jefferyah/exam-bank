@@ -342,6 +342,56 @@ body {
 
 /* ── Light mode ── */
 
+/* Editor container — clean borders */
+.w-md-editor {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Toolbar — soft, transparent, blending with the page */
+.w-md-editor-toolbar {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 4px 8px !important;
+  min-height: auto !important;
+}
+
+.w-md-editor-toolbar button,
+.w-md-editor-toolbar svg {
+  color: #94a3b8 !important;
+}
+
+.w-md-editor-toolbar li > button {
+  border-radius: 6px !important;
+  height: 28px !important;
+  width: 28px !important;
+  margin: 0 1px !important;
+}
+
+.w-md-editor-toolbar li > button:hover,
+.w-md-editor-toolbar li > button:active {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+/* Toolbar dividers */
+.w-md-editor-toolbar ul > li[data-name="divider"] {
+  height: 16px !important;
+}
+.w-md-editor-toolbar ul > li[data-name="divider"]::before {
+  background-color: #e2e8f0 !important;
+}
+
+/* Editor content area */
+.w-md-editor .w-md-editor-content {
+  background-color: #ffffff !important;
+}
+
+/* Preview divider line */
+.w-md-editor .w-md-editor-content .w-md-editor-preview {
+  border-left: 1px solid #f1f5f9 !important;
+}
+
 /* Base editor text — default bold + color + larger font */
 .w-md-editor-text-pre,
 .w-md-editor-text-input,
@@ -475,19 +525,30 @@ body {
 }
 
 [data-color-mode="dark"] .w-md-editor-toolbar {
-  background-color: #1e1f24 !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: #1c1d22 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 4px 8px !important;
+  min-height: auto !important;
 }
 
 [data-color-mode="dark"] .w-md-editor-toolbar button,
 [data-color-mode="dark"] .w-md-editor-toolbar svg {
-  color: #94a3b8 !important;
+  color: #64748b !important;
 }
 
 [data-color-mode="dark"] .w-md-editor-toolbar li > button:hover,
 [data-color-mode="dark"] .w-md-editor-toolbar li > button:active {
-  background-color: #2a2b31 !important;
-  color: #e2e8f0 !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #cbd5e1 !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-toolbar ul > li[data-name="divider"]::before {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Dark: preview divider */
+[data-color-mode="dark"] .w-md-editor .w-md-editor-content .w-md-editor-preview {
+  border-left: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
 
 /* Dark: preview pane */
