@@ -210,27 +210,27 @@ export default function KnowledgePage() {
         d3.forceRadial<(typeof nodes)[0]>(
           (d) => {
             const ratio = d.r / maxR;
-            const maxDist = Math.min(width, height) * 0.35;
+            const maxDist = Math.min(width, height) * 0.4;
             // Top 30% of sizes → near center; small ones → pushed to edge
             return maxDist * Math.pow(1 - ratio, 2);
           },
           width / 2,
           height / 2
         ).strength((d) => {
-          if (linkedNodeIndices.has(d.index ?? -1)) return 0.03;
+          if (linkedNodeIndices.has(d.index ?? -1)) return 0.02;
           const ratio = d.r / maxR;
-          // Very strong for large bubbles (up to 1.0), weak for small ones
-          return 0.05 + ratio * ratio * 0.95;
+          // Gentler pull — spread bubbles out more
+          return 0.03 + ratio * ratio * 0.5;
         })
       )
-      // Center pull: largest bubbles get very strong centering
+      // Center pull: softer centering for more spread
       .force("x", d3.forceX<(typeof nodes)[0]>(width / 2).strength((d) => {
         const ratio = d.r / maxR;
-        return 0.005 + Math.pow(ratio, 3) * 0.8;
+        return 0.003 + Math.pow(ratio, 3) * 0.4;
       }))
       .force("y", d3.forceY<(typeof nodes)[0]>(height / 2).strength((d) => {
         const ratio = d.r / maxR;
-        return 0.005 + Math.pow(ratio, 3) * 0.8;
+        return 0.003 + Math.pow(ratio, 3) * 0.4;
       }));
 
     // Add link force if there are connections
@@ -242,9 +242,9 @@ export default function KnowledgePage() {
           .distance((l) => {
             const s = (l as any).source;
             const t = (l as any).target;
-            return ((s?.r ?? 30) + (t?.r ?? 30) + 2);
+            return ((s?.r ?? 30) + (t?.r ?? 30) + 10);
           })
-          .strength(2)
+          .strength(1.2)
           .iterations(4)
       );
     }
@@ -283,7 +283,7 @@ export default function KnowledgePage() {
       .attr("class", "wiki-edge")
       .attr("stroke", (d) => {
         const w = (d as any).weight ?? 1;
-        const opacity = Math.min(0.15 + w * 0.08, 0.45);
+        const opacity = Math.min(0.3 + w * 0.12, 0.7);
         return `rgba(139, 92, 246, ${opacity})`;
       })
       .attr("stroke-width", (d) => {
