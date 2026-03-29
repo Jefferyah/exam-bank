@@ -75,6 +75,7 @@ export default function AdminStatsPage() {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [successRateData, setSuccessRateData] = useState<SuccessRateData | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
+  const [showScoreExplain, setShowScoreExplain] = useState(false);
 
   const role = (session?.user as { role?: string } | undefined)?.role;
 
@@ -218,6 +219,70 @@ export default function AdminStatsPage() {
               <p className="text-xs text-gray-400 mt-0.5">{card.sub}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Score Explanation */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400">點擊學員列可展開成功率分析</p>
+        <button
+          onClick={() => setShowScoreExplain(!showScoreExplain)}
+          className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        >
+          {showScoreExplain ? "收起計分說明 ▲" : "計分說明 ▼"}
+        </button>
+      </div>
+
+      {showScoreExplain && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-3 text-xs text-gray-600 dark:text-gray-400">
+          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">成功率計分邏輯</p>
+          <p>成功率以<strong>單一題庫分類</strong>為計分單位，只計算學員有接觸過的分類。總分 = 各分類依題數加權平均。</p>
+
+          <div className="space-y-2.5">
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">1. 覆蓋率（25%）</p>
+              <p>每題依作答次數給分：0 次 → 0%、1 次 → 50%、2 次 → 85%、3 次以上 → 100%。</p>
+              <p>公式：所有題目得分加總 ÷ 該分類總題數 × 100%。未做過的題計入分母。</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">2. 精熟度（30%）</p>
+              <p>只看第 2 次以上作答的正確率，反映真正理解程度。</p>
+              <p>分段線性：正確率 &lt;40% → 0~15 分、40~60% → 15~40 分、60~85% → 40~100 分、≥85% → 滿分。</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">3. 投入時間（15%）</p>
+              <p>實際花費時間 ÷ 目標時間（每題 4 分鐘）。</p>
+              <p>比例 ≥100% → 滿分、50~100% → 50~100 分、20~50% → 15~50 分、&lt;20% → 0~15 分。</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">4. 訂正率（15%）</p>
+              <p>答錯過的題目後來有答對的比例。全部訂正 = 滿分，從未答錯也算滿分。</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">5. 近期趨勢（15%）</p>
+              <p>過去 15 天的練習頻率，越近期權重越高：</p>
+              <p>最近 5 天每天 1.5 分、6~10 天每天 1.0 分、11~15 天每天 0.5 分，滿分 15 分再換算百分比。</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(85) }} />
+              <span>70%+ 優秀（綠）</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(55) }} />
+              <span>40~70% 待加強（黃）</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scoreToColor(20) }} />
+              <span>0~40% 需努力（紅）</span>
+            </span>
+          </div>
+
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
+            備註：學員隱藏的題庫在學員端不計分，但管理員視角會包含所有題庫。
+          </p>
         </div>
       )}
 
