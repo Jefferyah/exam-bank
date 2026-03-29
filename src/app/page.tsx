@@ -79,7 +79,7 @@ export default function HomePage() {
         {/* Badge */}
         <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 backdrop-blur text-sm text-gray-600">
           <Sparkle className="w-4 h-4 text-amber-400" />
-          <span>多題庫管理・智慧出題・模擬考</span>
+          <span>題庫練習・五維分析・精準備考</span>
         </div>
 
         {/* Hero heading */}
@@ -91,8 +91,8 @@ export default function HomePage() {
         </h1>
 
         <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto leading-relaxed">
-          多題庫管理、智慧出題、模擬考、學習分析<br />
-          全方位備考平台，讓每次練習都有效率
+          模擬考測驗、弱點複習、成功率追蹤<br />
+          用數據掌握學習進度，備考不再盲目
         </p>
 
         <div className="flex items-center justify-center gap-3 pt-2">
