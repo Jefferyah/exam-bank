@@ -416,7 +416,6 @@ body {
 /* Blockquote lines — color the entire line */
 .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
   color: #6b7280 !important;
-  font-style: italic !important;
 }
 
 /* Base punctuation — subtle grey */
@@ -427,7 +426,6 @@ body {
 /* Headings — HackMD-style orange */
 .w-md-editor-text-pre .token.title.important {
   color: #c2792b !important;
-  font-weight: 700 !important;
 }
 .w-md-editor-text-pre .token.title.important > .token.punctuation {
   color: #d98c3c !important;
@@ -436,7 +434,6 @@ body {
 /* Bold — ** and content */
 .w-md-editor-text-pre .token.bold {
   color: #92400e !important;
-  font-weight: 700 !important;
 }
 .w-md-editor-text-pre .token.bold > .token.content {
   color: #92400e !important;
@@ -448,7 +445,6 @@ body {
 /* Italic — * and content */
 .w-md-editor-text-pre .token.italic {
   color: #059669 !important;
-  font-style: italic !important;
 }
 .w-md-editor-text-pre .token.italic > .token.content {
   color: #059669 !important;
@@ -478,15 +474,11 @@ body {
 /* Blockquote > */
 .w-md-editor-text-pre .token.blockquote.punctuation {
   color: #6b7280 !important;
-  font-style: italic !important;
 }
 
 /* Inline code */
 .w-md-editor-text-pre .token.code-snippet {
   color: #7c3aed !important;
-  background: rgba(124, 58, 237, 0.08) !important;
-  border-radius: 3px !important;
-  padding: 1px 4px !important;
 }
 
 /* Table */
@@ -540,7 +532,6 @@ body {
 /* Dark: Blockquote lines */
 [data-color-mode="dark"] .w-md-editor-text-pre .code-line:has(> .token.blockquote.punctuation) {
   color: #7a8599 !important;
-  font-style: italic !important;
 }
 
 [data-color-mode="dark"] .w-md-editor,
@@ -638,7 +629,6 @@ body {
 /* Dark: Headings — HackMD-style orange */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.title.important {
   color: #eda35e !important;
-  font-weight: 700 !important;
 }
 [data-color-mode="dark"] .w-md-editor-text-pre .token.title.important > .token.punctuation {
   color: #eda35e !important;
@@ -647,7 +637,6 @@ body {
 /* Dark: Bold */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.bold {
   color: #fcd34d !important;
-  font-weight: 700 !important;
 }
 [data-color-mode="dark"] .w-md-editor-text-pre .token.bold > .token.content {
   color: #fcd34d !important;
@@ -659,7 +648,6 @@ body {
 /* Dark: Italic */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.italic {
   color: #34d399 !important;
-  font-style: italic !important;
 }
 [data-color-mode="dark"] .w-md-editor-text-pre .token.italic > .token.content {
   color: #34d399 !important;
@@ -686,15 +674,11 @@ body {
 /* Dark: Blockquote */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.blockquote.punctuation {
   color: #7a8599 !important;
-  font-style: italic !important;
 }
 
 /* Dark: Inline code */
 [data-color-mode="dark"] .w-md-editor-text-pre .token.code-snippet {
   color: #c4b5fd !important;
-  background: rgba(192, 132, 252, 0.12) !important;
-  border-radius: 3px !important;
-  padding: 1px 4px !important;
 }
 
 /* Dark: HR */
