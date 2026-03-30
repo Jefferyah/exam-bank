@@ -99,15 +99,20 @@ export default function KnowledgePage() {
     e.tag.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Store nav list whenever filtered tags change
+  // Store nav list whenever filtered tags change — must match what's visible on the page
   useEffect(() => {
     const sorted = [...filteredTags]
-      .filter((t) => t.wordCount > 0)
       .sort((a, b) =>
         sizeMetric === "wordCount" ? b.wordCount - a.wordCount : b.questionCount - a.questionCount
       );
-    setKnowledgeNavList(sorted.map((t) => t.tag));
-  }, [filteredTags, sizeMetric]);
+    const navTags = sorted.map((t) => t.tag);
+    // Append custom entries that aren't already in the list
+    const customNav = customEntries
+      .filter((e) => e.tag.toLowerCase().includes(search.toLowerCase()))
+      .map((e) => e.tag)
+      .filter((t) => !navTags.some((n) => n.toLowerCase() === t.toLowerCase()));
+    setKnowledgeNavList([...navTags, ...customNav]);
+  }, [filteredTags, sizeMetric, customEntries, search]);
 
   const handleCreateEntry = async () => {
     const trimmed = newTag.trim();
