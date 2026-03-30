@@ -63,7 +63,7 @@ export async function GET() {
       entries.map((e) => [e.tag, { content: e.content, updatedAt: e.updatedAt }])
     );
 
-    // Get per-tag accuracy from ALL user's exams (not just completed)
+    // Get per-tag accuracy — respect hidden bank filter
     const tagAccuracy = new Map<string, { total: number; correct: number }>();
     {
       const answers = await prisma.examAnswer.findMany({
@@ -71,6 +71,9 @@ export async function GET() {
           exam: { userId: session.user.id },
           userAnswer: { not: null },
           isCorrect: { not: null },
+          ...(hiddenBankIds.length > 0
+            ? { question: { questionBankId: { notIn: hiddenBankIds } } }
+            : {}),
         },
         select: {
           isCorrect: true,
