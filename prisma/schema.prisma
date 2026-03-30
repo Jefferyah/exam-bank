@@ -19,6 +19,7 @@ model User {
   aiPromptTemplate          String?
   aiKnowledgePromptTemplate String?
   dailyGoal                 Int?      // daily question goal, null = not set
+  statsResetAt              DateTime? // stats only count data after this date
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

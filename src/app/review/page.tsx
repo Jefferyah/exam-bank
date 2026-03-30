@@ -156,6 +156,7 @@ interface AnalyticsData {
   currentStreak: number;
   todayQuestions: number;
   dailyGoal: number | null;
+  statsResetAt: string | null;
 }
 
 /* ── Main ── */
@@ -523,8 +524,64 @@ function DashboardTab({
     ? [...a.difficultyDistribution].sort((x, y) => x.accuracy - y.accuracy)[0]
     : null;
 
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetStats = async () => {
+    if (!confirm("確定要重置統計起始日？重置後統計資料將只計算從現在開始的資料。（舊資料不會刪除，取消重置即可恢復）")) return;
+    setResetting(true);
+    try {
+      await fetch("/api/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statsResetAt: new Date().toISOString() }),
+      });
+      window.location.reload();
+    } catch {
+      alert("重置失敗");
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleClearReset = async () => {
+    setResetting(true);
+    try {
+      await fetch("/api/user-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statsResetAt: null }),
+      });
+      window.location.reload();
+    } catch {
+      alert("操作失敗");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+
+      {/* ── Stats Reset Banner ── */}
+      <div className="flex items-center justify-between text-xs text-gray-400">
+        {a.statsResetAt ? (
+          <span>
+            統計起始日：{new Date(a.statsResetAt).toLocaleDateString("zh-TW")}
+            <button onClick={handleClearReset} disabled={resetting} className="ml-2 text-purple-500 hover:text-purple-700 underline">
+              取消重置
+            </button>
+          </span>
+        ) : (
+          <span />
+        )}
+        <button
+          onClick={handleResetStats}
+          disabled={resetting}
+          className="text-gray-400 hover:text-red-500 transition-colors"
+        >
+          重置統計
+        </button>
+      </div>
 
       {/* ── Success Rate ── */}
       {successRate && successRate.categories.length > 0 && (

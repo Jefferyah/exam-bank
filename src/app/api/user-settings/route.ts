@@ -12,13 +12,14 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true },
+      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true, statsResetAt: true },
     });
 
     return NextResponse.json({
       aiPromptTemplate: user?.aiPromptTemplate || null,
       aiKnowledgePromptTemplate: user?.aiKnowledgePromptTemplate || null,
       dailyGoal: user?.dailyGoal || null,
+      statsResetAt: user?.statsResetAt || null,
     });
   } catch (error) {
     console.error("GET /api/user-settings error:", error);
@@ -74,16 +75,30 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    // Stats reset date
+    if (body.statsResetAt !== undefined) {
+      if (body.statsResetAt === null) {
+        data.statsResetAt = null;
+      } else {
+        const d = new Date(body.statsResetAt);
+        if (isNaN(d.getTime())) {
+          return NextResponse.json({ error: "無效的日期格式" }, { status: 400 });
+        }
+        data.statsResetAt = d;
+      }
+    }
+
     const updated = await prisma.user.update({
       where: { id: session.user.id },
       data,
-      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true },
+      select: { aiPromptTemplate: true, aiKnowledgePromptTemplate: true, dailyGoal: true, statsResetAt: true },
     });
 
     return NextResponse.json({
       aiPromptTemplate: updated.aiPromptTemplate,
       aiKnowledgePromptTemplate: updated.aiKnowledgePromptTemplate,
       dailyGoal: updated.dailyGoal,
+      statsResetAt: updated.statsResetAt,
     });
   } catch (error) {
     console.error("PUT /api/user-settings error:", error);

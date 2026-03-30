@@ -13,6 +13,14 @@ export async function GET(req: NextRequest) {
 
     const userId = session.user.id;
 
+    // Check if user has a stats reset date
+    const userForReset = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { statsResetAt: true },
+    });
+    const statsResetAt = userForReset?.statsResetAt ?? null;
+    const examDateFilter = statsResetAt ? { gte: statsResetAt } : undefined;
+
     // Fetch data in parallel — only completed exams for stats, reduced field selection
     const [
       totalExams,
@@ -21,10 +29,10 @@ export async function GET(req: NextRequest) {
       recentExams,
       wrongRecords,
     ] = await Promise.all([
-      prisma.exam.count({ where: { userId } }),
+      prisma.exam.count({ where: { userId, ...(examDateFilter ? { finishedAt: examDateFilter } : {}) } }),
       // Single query for all completed exams (replaces two overlapping queries)
       prisma.exam.findMany({
-        where: { userId, status: "COMPLETED" },
+        where: { userId, status: "COMPLETED", ...(examDateFilter ? { finishedAt: examDateFilter } : {}) },
         select: {
           id: true,
           title: true,
@@ -38,7 +46,7 @@ export async function GET(req: NextRequest) {
       }),
       // Only fetch answers from completed exams, minimal fields
       prisma.examAnswer.findMany({
-        where: { exam: { userId, status: "COMPLETED" } },
+        where: { exam: { userId, status: "COMPLETED", ...(examDateFilter ? { finishedAt: examDateFilter } : {}) } },
         select: {
           examId: true,
           userAnswer: true,
@@ -55,7 +63,7 @@ export async function GET(req: NextRequest) {
         },
       }),
       prisma.exam.findMany({
-        where: { userId, status: "COMPLETED" },
+        where: { userId, status: "COMPLETED", ...(examDateFilter ? { finishedAt: examDateFilter } : {}) },
         orderBy: { finishedAt: "desc" },
         take: 10,
         select: {
@@ -69,7 +77,7 @@ export async function GET(req: NextRequest) {
         },
       }),
       prisma.wrongRecord.findMany({
-        where: { userId },
+        where: { userId, ...(statsResetAt ? { lastWrongAt: { gte: statsResetAt } } : {}) },
         orderBy: [{ count: "desc" }, { lastWrongAt: "desc" }],
         include: {
           question: {
@@ -417,7 +425,7 @@ export async function GET(req: NextRequest) {
     }
     const todayAnswered = todayCompletedAnswered + todayInProgressAnswered;
 
-    // Fetch user's daily goal
+    // Fetch user's daily goal (statsResetAt already fetched above)
     const userSettings = await prisma.user.findUnique({
       where: { id: userId },
       select: { dailyGoal: true },
@@ -445,6 +453,7 @@ export async function GET(req: NextRequest) {
       currentStreak,
       todayQuestions: todayAnswered,
       dailyGoal: userSettings?.dailyGoal || null,
+      statsResetAt,
     });
   } catch (error) {
     console.error("GET /api/analytics error:", error);
