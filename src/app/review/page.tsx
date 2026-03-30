@@ -1001,36 +1001,15 @@ function DashboardTab({
       )}
 
       {/* ── Tag Accuracy ── */}
-      {a.tagAccuracy && a.tagAccuracy.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">各標籤正確率</h2>
-          <div className="space-y-2">
-            {[...a.tagAccuracy]
-              .filter((t) => t.total > 0)
-              .sort((a, b) => a.accuracy - b.accuracy)
-              .slice(0, 15)
-              .map((t) => (
-              <div key={t.tag} className="flex items-center gap-3 p-2">
-                <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
-                  {t.tag}
-                </span>
-                <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 min-w-0">
-                  <div
-                    className={cn(
-                      "h-2.5 rounded-full transition-all",
-                      t.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : t.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
-                    )}
-                    style={{ width: `${t.accuracy}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-600 flex-shrink-0 w-24 text-right">
-                  {Math.round(t.accuracy)}% ({t.correct}/{t.total})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {a.tagAccuracy && a.tagAccuracy.length > 0 && (() => {
+        const sortedTags = [...a.tagAccuracy]
+          .filter((t) => t.total > 0)
+          .sort((x, y) => x.accuracy - y.accuracy);
+        const TAG_LIMIT = 6;
+        return (
+          <TagAccuracySection sortedTags={sortedTags} limit={TAG_LIMIT} />
+        );
+      })()}
 
       {/* ── Most Wrong Questions Top 5 ── */}
       {a.mostWrongQuestions.length > 0 && (
@@ -1386,6 +1365,46 @@ const INDICATOR_DESCRIPTIONS: Record<string, string> = {
   correction: "訂正率：答錯的題目後來有答對的比例。全部訂正為滿分，從未答錯也算滿分。未做過任何題目則為 0 分。",
   trend: "近期趨勢：過去 15 天的練習頻率。最近 5 天權重最高，持續練習分數越高。",
 };
+
+function TagAccuracySection({ sortedTags, limit }: { sortedTags: TagAccuracy[]; limit: number }) {
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? sortedTags : sortedTags.slice(0, limit);
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">各標籤正確率</h2>
+      <div className="space-y-2">
+        {visible.map((t) => (
+          <div key={t.tag} className="flex items-center gap-3 p-2">
+            <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
+              {t.tag}
+            </span>
+            <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 min-w-0">
+              <div
+                className={cn(
+                  "h-2.5 rounded-full transition-all",
+                  t.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : t.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
+                )}
+                style={{ width: `${t.accuracy}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600 flex-shrink-0 w-24 text-right">
+              {Math.round(t.accuracy)}% ({t.correct}/{t.total})
+            </span>
+          </div>
+        ))}
+      </div>
+      {sortedTags.length > limit && (
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full text-center"
+        >
+          {showAll ? "收起" : `顯示全部 ${sortedTags.length} 個標籤`}
+        </button>
+      )}
+    </div>
+  );
+}
 
 function SuccessRateSection({ data }: { data: SuccessRateData }) {
   const [showExplain, setShowExplain] = useState(false);
