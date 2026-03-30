@@ -423,11 +423,13 @@ export async function GET(req: NextRequest) {
     });
     let todayInProgressAnswered = 0;
     if (inProgressExams.length > 0) {
+      // Use updatedAt for in-progress exams — createdAt is set at exam creation,
+      // not when the user actually answers. This correctly handles cross-midnight sessions.
       todayInProgressAnswered = await prisma.examAnswer.count({
         where: {
           examId: { in: inProgressExams.map((e) => e.id) },
           userAnswer: { not: null },
-          createdAt: { gte: todayStart },
+          updatedAt: { gte: todayStart },
         },
       });
     }

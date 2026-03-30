@@ -602,7 +602,7 @@ function DashboardTab({
 
       {/* ── Success Rate ── */}
       {successRate && successRate.categories.length > 0 && (
-        <SuccessRateSection data={successRate} />
+        <SuccessRateSection data={successRate} cumulative={dateRange !== "all"} />
       )}
 
       {/* ── Daily Goal ── */}
@@ -1433,14 +1433,17 @@ function TagAccuracySection({ sortedTags, limit }: { sortedTags: TagAccuracy[]; 
   );
 }
 
-function SuccessRateSection({ data }: { data: SuccessRateData }) {
+function SuccessRateSection({ data, cumulative }: { data: SuccessRateData; cumulative?: boolean }) {
   const [showExplain, setShowExplain] = useState(false);
 
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">學習成功率</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">學習成功率</h2>
+          {cumulative && <span className="text-[10px] text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">累計</span>}
+        </div>
         <button
           onClick={() => setShowExplain(!showExplain)}
           className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -1592,7 +1595,9 @@ function SrsTab({ stats }: { stats: { totalCards: number; dueToday: number; bySt
       {/* Due today hero card */}
       <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm text-center">
         <div className="text-5xl font-bold text-gray-900 mb-1">{stats.dueToday}</div>
-        <p className="text-gray-500 mb-4">今天需要複習的卡片</p>
+        <p className="text-gray-500 mb-4">
+          今天需要複習的卡片{stats.dueToday > 200 && <span className="text-xs text-gray-400 ml-1">（每次最多 200 張）</span>}
+        </p>
         {stats.dueToday > 0 ? (
           <Link
             href="/exam/review"

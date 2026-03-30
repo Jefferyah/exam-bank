@@ -77,7 +77,7 @@ export async function calculateSuccessRate(
   userId: string,
   excludeBankIds: string[] = [],
 ): Promise<SuccessRateResult> {
-  // Get all question banks grouped by category that user has touched (excluding hidden banks)
+  // Get all question banks grouped by category that user has actually answered (excluding hidden banks)
   const touchedBanks = excludeBankIds.length > 0
     ? await prisma.$queryRaw<
         { questionBankId: string; category: string; bankName: string }[]
@@ -88,6 +88,7 @@ export async function calculateSuccessRate(
         JOIN "Question" q ON ea."questionId" = q.id
         JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
         WHERE e."userId" = ${userId}
+          AND ea."userAnswer" IS NOT NULL
           AND qb.id != ALL(${excludeBankIds})
       `
     : await prisma.$queryRaw<
@@ -99,6 +100,7 @@ export async function calculateSuccessRate(
         JOIN "Question" q ON ea."questionId" = q.id
         JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
         WHERE e."userId" = ${userId}
+          AND ea."userAnswer" IS NOT NULL
       `;
 
   if (touchedBanks.length === 0) {

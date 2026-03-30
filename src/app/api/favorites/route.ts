@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const searchParams = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
+    const limit = Math.min(500, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const questionId = searchParams.get("questionId");
 
     // Exclude hidden banks
