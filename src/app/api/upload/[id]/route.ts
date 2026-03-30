@@ -26,7 +26,7 @@ export async function GET(
     // For non-image files, force download with original filename
     if (!isImageMimeType(image.mimeType)) {
       const encodedFilename = encodeURIComponent(image.filename);
-      headers["Content-Disposition"] = `attachment; filename="${image.filename}"; filename*=UTF-8''${encodedFilename}`;
+      headers["Content-Disposition"] = `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`;
     }
 
     return new NextResponse(Buffer.from(body), { headers });
