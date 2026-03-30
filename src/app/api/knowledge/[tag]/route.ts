@@ -174,10 +174,17 @@ export async function PATCH(
       return NextResponse.json({ error: "該知識點名稱已存在" }, { status: 409 });
     }
 
-    await prisma.knowledgeEntry.update({
-      where: { userId_tag: { userId: session.user.id, tag: decodedTag } },
-      data: { tag: trimmedNew },
-    });
+    // Update entry + migrate attachments in a transaction
+    await prisma.$transaction([
+      prisma.knowledgeEntry.update({
+        where: { userId_tag: { userId: session.user.id, tag: decodedTag } },
+        data: { tag: trimmedNew },
+      }),
+      prisma.uploadedImage.updateMany({
+        where: { userId: session.user.id, tag: decodedTag },
+        data: { tag: trimmedNew },
+      }),
+    ]);
 
     return NextResponse.json({ ok: true, newTag: trimmedNew });
   } catch (error) {
