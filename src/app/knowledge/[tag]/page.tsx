@@ -215,7 +215,10 @@ export default function KnowledgeEntryPage() {
   const router = useRouter();
   const params = useParams();
   const { theme } = useTheme();
-  const tag = decodeURIComponent(params.tag as string);
+  const rawTag = decodeURIComponent(params.tag as string);
+  const [canonicalTag, setCanonicalTag] = useState(rawTag);
+  // Use canonical tag everywhere — falls back to URL param until API responds
+  const tag = canonicalTag;
 
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
@@ -322,15 +325,16 @@ export default function KnowledgeEntryPage() {
       .catch(() => {});
   }, [status]);
 
-  // Reset state when tag changes (prev/next navigation)
+  // Reset state when URL tag changes (prev/next navigation)
   useEffect(() => {
+    setCanonicalTag(rawTag); // reset to URL param until API responds
     setContent("");
     setLastSaved(null);
     setBacklinks([]);
     setLoading(true);
     setAcQuery(null);
     setFileCount(0);
-  }, [tag]);
+  }, [rawTag]);
 
   // Fetch file count for current tag
   const fetchFileCount = useCallback(() => {
@@ -345,13 +349,15 @@ export default function KnowledgeEntryPage() {
     fetchFileCount();
   }, [status, tag, fetchFileCount]);
 
-  // Load existing content
+  // Load existing content — canonicalize tag from API response
   useEffect(() => {
     if (status !== "authenticated") return;
-    fetch(`/api/knowledge/${encodeURIComponent(tag)}`)
+    fetch(`/api/knowledge/${encodeURIComponent(rawTag)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {
+          // Use the canonical tag from the API (preserves stored casing)
+          if (data.tag) setCanonicalTag(data.tag);
           setContent(data.content || "");
           if (data.updatedAt) setLastSaved(data.updatedAt);
           if (data.backlinks) setBacklinks(data.backlinks);
@@ -359,7 +365,7 @@ export default function KnowledgeEntryPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [status, tag]);
+  }, [status, rawTag]);
 
   const saveContent = useCallback(
     async (text: string) => {
@@ -1026,7 +1032,7 @@ export default function KnowledgeEntryPage() {
         let m: RegExpExecArray | null;
         while ((m = re.exec(content)) !== null) {
           const t = m[1].trim();
-          if (t && t !== tag && !outgoing.includes(t)) outgoing.push(t);
+          if (t && t.toLowerCase() !== tag.toLowerCase() && !outgoing.includes(t)) outgoing.push(t);
         }
         return outgoing.length > 0 ? (
           <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm">

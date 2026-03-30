@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const count = await prisma.uploadedImage.count({
       where: {
         userId: session.user.id,
-        tag: countTag,
+        tag: { equals: countTag, mode: "insensitive" },
         isImage: false,
       },
     });
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         const fileCount = await prisma.uploadedImage.count({
           where: {
             userId: session.user.id,
-            tag,
+            tag: { equals: tag, mode: "insensitive" },
             isImage: false,
           },
         });

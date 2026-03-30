@@ -203,21 +203,28 @@ export async function PATCH(
       where: {
         userId: session.user.id,
         tag: { equals: trimmedNew, mode: "insensitive" },
-        NOT: { tag: decodedTag },
+        NOT: { tag: { equals: decodedTag, mode: "insensitive" } },
       },
     });
     if (existing) {
       return NextResponse.json({ error: "該知識點名稱已存在" }, { status: 409 });
     }
 
+    // Resolve actual stored tag (case-insensitive)
+    const source = await prisma.knowledgeEntry.findFirst({
+      where: { userId: session.user.id, tag: { equals: decodedTag, mode: "insensitive" } },
+      select: { tag: true },
+    });
+    const resolvedOldTag = source?.tag || decodedTag;
+
     // Update entry + migrate attachments in a transaction
     await prisma.$transaction([
       prisma.knowledgeEntry.update({
-        where: { userId_tag: { userId: session.user.id, tag: decodedTag } },
+        where: { userId_tag: { userId: session.user.id, tag: resolvedOldTag } },
         data: { tag: trimmedNew },
       }),
       prisma.uploadedImage.updateMany({
-        where: { userId: session.user.id, tag: decodedTag },
+        where: { userId: session.user.id, tag: resolvedOldTag },
         data: { tag: trimmedNew },
       }),
     ]);

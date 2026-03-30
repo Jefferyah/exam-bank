@@ -112,17 +112,21 @@ export async function GET() {
 
     // Parse wiki-links [[tag]] from all entries to build link graph
     const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
-    const allTagNames = new Set([...tagCounts.keys(), ...customEntries.map((e) => e.tag)]);
+    const allTagNames = [...tagCounts.keys(), ...customEntries.map((e) => e.tag)];
+    // Case-insensitive lookup: lowercase → actual stored name
+    const tagNameMap = new Map<string, string>();
+    for (const t of allTagNames) tagNameMap.set(t.toLowerCase(), t);
     const linkWeightMap = new Map<string, number>();
 
     for (const entry of entries) {
       let match: RegExpExecArray | null;
       wikiLinkRegex.lastIndex = 0;
       while ((match = wikiLinkRegex.exec(entry.content)) !== null) {
-        const target = match[1].trim();
-        if (target && target !== entry.tag && allTagNames.has(target)) {
-          // Normalize key so A→B and B→A are the same edge
-          const key = [entry.tag, target].sort().join("\0");
+        const raw = match[1].trim();
+        const resolved = tagNameMap.get(raw.toLowerCase());
+        if (resolved && resolved.toLowerCase() !== entry.tag.toLowerCase()) {
+          // Normalize key so A→B and B→A are the same edge (use canonical names)
+          const key = [entry.tag, resolved].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())).join("\0");
           linkWeightMap.set(key, (linkWeightMap.get(key) || 0) + 1);
         }
       }
