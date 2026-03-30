@@ -799,38 +799,49 @@ function DashboardTab({
       )}
 
       {/* ── Practice vs Mock Comparison ── */}
-      {a.modeComparison.length > 1 && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {a.modeComparison.map((m) => {
-              const label = m.mode === "PRACTICE" ? "練習模式" : "模擬考";
+      {a.modeComparison.length > 0 && (() => {
+        const modes: { mode: string; count: number; avgScore: number; avgDuration: number }[] = [
+          a.modeComparison.find((m) => m.mode === "MOCK") || { mode: "MOCK", count: 0, avgScore: 0, avgDuration: 0 },
+          a.modeComparison.find((m) => m.mode === "PRACTICE") || { mode: "PRACTICE", count: 0, avgScore: 0, avgDuration: 0 },
+        ];
+        return (
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {modes.map((m) => {
+                const label = m.mode === "PRACTICE" ? "練習模式" : "模擬考";
+                const isEmpty = m.count === 0;
 
-              return (
-                <div key={m.mode} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <div className="text-sm font-medium text-gray-900 mb-3">{label}</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">次數</span>
-                      <span className="font-bold text-gray-900">{m.count}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">平均分數</span>
-                      <span className={cn("font-bold", m.avgScore >= 80 ? "text-emerald-600" : m.avgScore >= 60 ? "text-amber-600" : "text-red-600")}>
-                        {m.avgScore.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">平均用時</span>
-                      <span className="font-medium text-gray-900">{formatDuration(m.avgDuration)}</span>
-                    </div>
+                return (
+                  <div key={m.mode} className={cn("bg-gray-50 dark:bg-gray-700 rounded-xl p-4", isEmpty && "opacity-50")}>
+                    <div className="text-sm font-medium text-gray-900 mb-3">{label}</div>
+                    {isEmpty ? (
+                      <div className="text-xs text-gray-400 py-2">尚無資料</div>
+                    ) : (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">次數</span>
+                          <span className="font-bold text-gray-900">{m.count}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">平均分數</span>
+                          <span className={cn("font-bold", m.avgScore >= 80 ? "text-emerald-600" : m.avgScore >= 60 ? "text-amber-600" : "text-red-600")}>
+                            {m.avgScore.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">平均用時</span>
+                          <span className="font-medium text-gray-900">{formatDuration(m.avgDuration)}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Difficulty Accuracy ── */}
       {a.difficultyDistribution.length > 0 && (
