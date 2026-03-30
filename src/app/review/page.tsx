@@ -815,136 +815,128 @@ function DashboardTab({
         </div>
       )}
 
-      {/* ── Practice vs Mock Comparison ── */}
-      {a.modeComparison.length > 0 && (() => {
-        const modes: { mode: string; count: number; avgScore: number; avgDuration: number }[] = [
-          a.modeComparison.find((m) => m.mode === "MOCK") || { mode: "MOCK", count: 0, avgScore: 0, avgDuration: 0 },
-          a.modeComparison.find((m) => m.mode === "PRACTICE") || { mode: "PRACTICE", count: 0, avgScore: 0, avgDuration: 0 },
+      {/* ── 作答統計 (merged: mode comparison + time analysis) ── */}
+      {(a.modeComparison.length > 0 || a.timeAnalysis.timePerDifficulty.length > 0 || a.timeAnalysis.timePerBank.length > 0) && (() => {
+        const mock = a.modeComparison.find((m) => m.mode === "MOCK") || { mode: "MOCK", count: 0, avgScore: 0, avgDuration: 0 };
+        const practice = a.modeComparison.find((m) => m.mode === "PRACTICE") || { mode: "PRACTICE", count: 0, avgScore: 0, avgDuration: 0 };
+        const modes = [
+          { key: "MOCK", label: "模擬考", ...mock },
+          { key: "PRACTICE", label: "練習", ...practice },
         ];
-        return (
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">練習 vs 模擬考</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {modes.map((m) => {
-                const label = m.mode === "PRACTICE" ? "練習模式" : "模擬考";
-                const isEmpty = m.count === 0;
 
-                return (
-                  <div key={m.mode} className={cn("bg-gray-50 dark:bg-gray-700 rounded-xl p-4", isEmpty && "opacity-50")}>
-                    <div className="text-sm font-medium text-gray-900 mb-3">{label}</div>
-                    {isEmpty ? (
-                      <div className="text-xs text-gray-400 py-2">尚無資料</div>
-                    ) : (
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">次數</span>
-                          <span className="font-bold text-gray-900">{m.count}</span>
+        return (
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm space-y-5">
+            <h2 className="text-base font-semibold text-gray-900">作答統計</h2>
+
+            {/* Mode overview — compact table */}
+            {a.modeComparison.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700 text-gray-500 text-xs">
+                      <th className="text-left py-2 px-3 font-medium">模式</th>
+                      <th className="text-center py-2 px-3 font-medium">次數</th>
+                      <th className="text-center py-2 px-3 font-medium">平均分數</th>
+                      <th className="text-center py-2 px-3 font-medium">平均用時</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {modes.map((m) => (
+                      <tr key={m.key} className={cn("border-t border-gray-100 dark:border-gray-700", m.count === 0 && "opacity-40")}>
+                        <td className="py-2.5 px-3 font-medium text-gray-900">{m.label}</td>
+                        <td className="py-2.5 px-3 text-center text-gray-700">{m.count || "—"}</td>
+                        <td className={cn("py-2.5 px-3 text-center font-semibold", m.count === 0 ? "text-gray-400" : m.avgScore >= 80 ? "text-emerald-600" : m.avgScore >= 60 ? "text-amber-600" : "text-red-600")}>
+                          {m.count > 0 ? m.avgScore.toFixed(1) : "—"}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-gray-700">{m.count > 0 ? formatDuration(m.avgDuration) : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Average time badge */}
+            {a.timeAnalysis.avgTimePerQuestion > 0 && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">{a.timeAnalysis.avgTimePerQuestion}s</span>
+                <span className="text-sm text-gray-500">平均每題作答時間<span className="text-xs text-gray-400 ml-1">（模擬考）</span></span>
+              </div>
+            )}
+
+            {/* Time per difficulty — bar chart */}
+            {a.timeAnalysis.timePerDifficulty.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
+                {a.timeAnalysis.timePerDifficulty.length >= 2 ? (
+                  <div className="flex items-end justify-center gap-3 h-32">
+                    {a.timeAnalysis.timePerDifficulty.map((d) => {
+                      const maxTime = Math.max(...a.timeAnalysis.timePerDifficulty.map((x) => x.avgTime));
+                      const pct = maxTime > 0 ? (d.avgTime / maxTime) * 100 : 0;
+                      return (
+                        <div key={d.difficulty} className="flex flex-col items-center gap-1" style={{ width: `${Math.min(100 / Math.max(a.timeAnalysis.timePerDifficulty.length, 3), 33)}%` }}>
+                          <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{d.avgTime}s</span>
+                          <div className="w-full rounded-t-lg bg-gradient-to-t from-purple-300 to-purple-200 dark:from-purple-400/40 dark:to-purple-300/30 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
+                          <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
+                          <span className="text-[10px] text-gray-400">{d.count}題</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">平均分數</span>
-                          <span className={cn("font-bold", m.avgScore >= 80 ? "text-emerald-600" : m.avgScore >= 60 ? "text-amber-600" : "text-red-600")}>
-                            {m.avgScore.toFixed(1)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">平均用時</span>
-                          <span className="font-medium text-gray-900">{formatDuration(m.avgDuration)}</span>
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+                ) : (
+                  <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少涵蓋 2 種難度</p>
+                )}
+              </div>
+            )}
+
+            {/* Time per bank — correct vs wrong */}
+            {a.timeAnalysis.timePerBank.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
+                {a.timeAnalysis.timePerBank.reduce((s, b) => s + b.count, 0) >= 5 ? (
+                  <div className="space-y-3">
+                    {a.timeAnalysis.timePerBank.map((b) => {
+                      const maxVal = Math.max(b.avgCorrectTime, b.avgWrongTime, 1);
+                      return (
+                        <div key={b.questionBankId} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-900 truncate">{b.questionBankName}</span>
+                            <span className="text-xs text-gray-400">{b.count} 題 / 平均 {b.avgTime}s</span>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            {b.avgCorrectTime > 0 && (
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className="text-[10px] text-gray-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
+                                </div>
+                                <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                  <div className="bg-emerald-300 dark:bg-emerald-400/40 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
+                                </div>
+                              </div>
+                            )}
+                            {b.avgWrongTime > 0 && (
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className="text-[10px] text-gray-500 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
+                                </div>
+                                <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                  <div className="bg-red-200 dark:bg-red-400/40 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少完成 5 題模擬考</p>
+                )}
+              </div>
+            )}
           </div>
         );
       })()}
-
-      {/* ── Time Analysis: Speed vs Accuracy ── */}
-      {(a.timeAnalysis.timePerDifficulty.length > 0 || a.timeAnalysis.timePerBank.length > 0) && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">作答時間分析</h2>
-          <p className="text-xs text-gray-400 mb-4">資料來自模擬考模式</p>
-
-          {/* Average time badge */}
-          {a.timeAnalysis.avgTimePerQuestion > 0 && (
-            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <span className="text-2xl font-bold text-gray-700 dark:text-gray-300">{a.timeAnalysis.avgTimePerQuestion}s</span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">平均每題作答時間</span>
-            </div>
-          )}
-
-          {/* Time per difficulty — bar chart */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
-            {a.timeAnalysis.timePerDifficulty.length >= 2 ? (
-              <div className="flex items-end justify-center gap-3 h-32">
-                {a.timeAnalysis.timePerDifficulty.map((d) => {
-                  const maxTime = Math.max(...a.timeAnalysis.timePerDifficulty.map((x) => x.avgTime));
-                  const pct = maxTime > 0 ? (d.avgTime / maxTime) * 100 : 0;
-                  return (
-                    <div key={d.difficulty} className="flex flex-col items-center gap-1" style={{ width: `${Math.min(100 / Math.max(a.timeAnalysis.timePerDifficulty.length, 3), 33)}%` }}>
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{d.avgTime}s</span>
-                      <div className="w-full rounded-t-lg bg-gradient-to-t from-purple-300 to-purple-200 dark:from-purple-400/40 dark:to-purple-300/30 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
-                      <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
-                      <span className="text-[10px] text-gray-400">{d.count}題</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少涵蓋 2 種難度</p>
-            )}
-          </div>
-
-          {/* Time per bank — correct vs wrong side-by-side */}
-          {a.timeAnalysis.timePerBank.length > 0 && a.timeAnalysis.timePerBank.reduce((s, b) => s + b.count, 0) >= 5 ? (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
-              <div className="space-y-3">
-                {a.timeAnalysis.timePerBank.map((b) => {
-                  const maxVal = Math.max(b.avgCorrectTime, b.avgWrongTime, 1);
-                  return (
-                    <div key={b.questionBankId} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-900 truncate">{b.questionBankName}</span>
-                        <span className="text-xs text-gray-400">{b.count} 題 / 平均 {b.avgTime}s</span>
-                      </div>
-                      <div className="flex gap-2 items-center">
-                        {b.avgCorrectTime > 0 && (
-                          <div className="flex-1">
-                            <div className="flex items-center gap-1 mb-1">
-                              <span className="text-[10px] text-gray-600 font-medium">✓ 答對 {b.avgCorrectTime}s</span>
-                            </div>
-                            <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-emerald-300 dark:bg-emerald-400/40 h-2 rounded-full" style={{ width: `${(b.avgCorrectTime / maxVal) * 100}%` }} />
-                            </div>
-                          </div>
-                        )}
-                        {b.avgWrongTime > 0 && (
-                          <div className="flex-1">
-                            <div className="flex items-center gap-1 mb-1">
-                              <span className="text-[10px] text-gray-500 font-medium">✗ 答錯 {b.avgWrongTime}s</span>
-                            </div>
-                            <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                              <div className="bg-red-200 dark:bg-red-400/40 h-2 rounded-full" style={{ width: `${(b.avgWrongTime / maxVal) * 100}%` }} />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
-              <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少完成 5 題模擬考</p>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── Difficulty Accuracy ── */}
       {a.difficultyDistribution.length > 0 && (
