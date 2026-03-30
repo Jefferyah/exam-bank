@@ -886,9 +886,9 @@ function DashboardTab({
           )}
 
           {/* Time per difficulty — bar chart */}
-          {a.timeAnalysis.timePerDifficulty.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
+            {a.timeAnalysis.timePerDifficulty.length >= 2 ? (
               <div className="flex items-end justify-center gap-3 h-32">
                 {a.timeAnalysis.timePerDifficulty.map((d) => {
                   const maxTime = Math.max(...a.timeAnalysis.timePerDifficulty.map((x) => x.avgTime));
@@ -903,11 +903,13 @@ function DashboardTab({
                   );
                 })}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少涵蓋 2 種難度</p>
+            )}
+          </div>
 
           {/* Time per bank — correct vs wrong side-by-side */}
-          {a.timeAnalysis.timePerBank.length > 0 && (
+          {a.timeAnalysis.timePerBank.length > 0 && a.timeAnalysis.timePerBank.reduce((s, b) => s + b.count, 0) >= 5 ? (
             <div>
               <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
               <div className="space-y-3">
@@ -945,6 +947,11 @@ function DashboardTab({
                   );
                 })}
               </div>
+            </div>
+          ) : (
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">各題庫答題速度 — 答對 vs 答錯</h3>
+              <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少完成 5 題模擬考</p>
             </div>
           )}
         </div>
