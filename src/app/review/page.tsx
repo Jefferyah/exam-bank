@@ -566,7 +566,7 @@ function DashboardTab({
 
       {/* ── Date Range Filter ── */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-500">📅 統計範圍</span>
+        <span className="text-xs text-gray-400">統計範圍</span>
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
           {[
             { value: "all", label: "全部" },
