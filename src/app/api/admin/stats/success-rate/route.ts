@@ -23,7 +23,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
+    const category = req.nextUrl.searchParams.get("category");
     const result = await calculateSuccessRate(userId);
+
+    // If category filter is active, only return that category
+    if (category && result.categories.length > 0) {
+      const filtered = result.categories.filter((c) => c.category === category);
+      if (filtered.length > 0) {
+        return NextResponse.json({
+          categories: filtered,
+          overallScore: filtered[0].score,
+        });
+      }
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error("GET /api/admin/stats/success-rate error:", error);

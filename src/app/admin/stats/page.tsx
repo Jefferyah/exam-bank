@@ -138,7 +138,8 @@ export default function AdminStatsPage() {
     setSuccessRateData(null);
     setLoadingRate(true);
     try {
-      const res = await fetch(`/api/admin/stats/success-rate?userId=${userId}`);
+      const categoryParam = filterCategory !== "ALL" ? `&category=${encodeURIComponent(filterCategory)}` : "";
+      const res = await fetch(`/api/admin/stats/success-rate?userId=${userId}${categoryParam}`);
       if (res.ok) {
         const data = await res.json();
         setSuccessRateData(data);
@@ -161,6 +162,18 @@ export default function AdminStatsPage() {
       });
       if (res.ok) {
         setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+        // Update summary to reflect deletion
+        setSummary((prev) => {
+          if (!prev) return prev;
+          const deleted = deleteTarget;
+          return {
+            ...prev,
+            totalUsers: prev.totalUsers - 1,
+            totalAnswered: prev.totalAnswered - (deleted.totalAnswered || 0),
+            totalCorrect: prev.totalCorrect - (deleted.totalCorrect || 0),
+            totalPracticeHours: prev.totalPracticeHours - ((deleted.practiceMinutes || 0) / 60),
+          };
+        });
         if (expandedUserId === deleteTarget.id) {
           setExpandedUserId(null);
           setSuccessRateData(null);

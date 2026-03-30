@@ -542,7 +542,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <p className="text-3xl font-bold text-blue-500">{stats?.totalQuestions || 0}</p>
-              <p className="text-sm text-gray-600 mt-1">題目總數</p>
+              <p className="text-sm text-gray-600 mt-1">{role === "ADMIN" ? "題目總數" : "可見題目數"}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
               <p className="text-3xl font-bold text-emerald-500">{unusedCodes.length}</p>
@@ -556,20 +556,24 @@ export default function AdminPage() {
 
           {/* Quick links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link
-              href="/admin/stats"
-              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
-            >
-              <h3 className="font-semibold text-purple-500">學員總覽</h3>
-              <p className="text-sm text-gray-600 mt-1">練習時數、做題數、答對率</p>
-            </Link>
-            <Link
-              href="/admin/users"
-              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
-            >
-              <h3 className="font-semibold text-blue-500">使用者管理</h3>
-              <p className="text-sm text-gray-600 mt-1">管理帳號與角色</p>
-            </Link>
+            {role === "ADMIN" && (
+              <Link
+                href="/admin/stats"
+                className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
+              >
+                <h3 className="font-semibold text-purple-500">學員總覽</h3>
+                <p className="text-sm text-gray-600 mt-1">練習時數、做題數、答對率</p>
+              </Link>
+            )}
+            {role === "ADMIN" && (
+              <Link
+                href="/admin/users"
+                className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
+              >
+                <h3 className="font-semibold text-blue-500">使用者管理</h3>
+                <p className="text-sm text-gray-600 mt-1">管理帳號與角色</p>
+              </Link>
+            )}
             <Link
               href="/questions"
               className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 rounded-2xl p-5 transition-all"
