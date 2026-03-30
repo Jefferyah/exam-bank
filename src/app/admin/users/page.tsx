@@ -27,8 +27,11 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
+  const role = (session?.user as { role?: string } | undefined)?.role;
+
   useEffect(() => {
-    if (status !== "authenticated" || !session?.user) {
+    if (status !== "authenticated" || !session?.user || role !== "ADMIN") {
+      if (status !== "loading") setLoading(false);
       return;
     }
 
@@ -51,7 +54,7 @@ export default function AdminUsersPage() {
     }
 
     fetchUsers();
-  }, [session, status]);
+  }, [session, status, role]);
 
   async function handleRoleChange(userId: string, newRole: string) {
     try {
@@ -73,8 +76,6 @@ export default function AdminUsersPage() {
       console.error(err);
     }
   }
-
-  const role = (session?.user as { role?: string } | undefined)?.role;
 
   if (status === "loading") {
     return (

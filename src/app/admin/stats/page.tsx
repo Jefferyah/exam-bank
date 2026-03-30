@@ -166,11 +166,16 @@ export default function AdminStatsPage() {
         setSummary((prev) => {
           if (!prev) return prev;
           const deleted = deleteTarget;
+          const newAnswered = prev.totalAnswered - (deleted.totalAnswered || 0);
+          const newCorrect = prev.totalCorrect - (deleted.totalCorrect || 0);
           return {
             ...prev,
             totalUsers: prev.totalUsers - 1,
-            totalAnswered: prev.totalAnswered - (deleted.totalAnswered || 0),
-            totalCorrect: prev.totalCorrect - (deleted.totalCorrect || 0),
+            totalExams: prev.totalExams - (deleted.totalExams || 0),
+            activeToday: prev.activeToday - (deleted.activeToday ? 1 : 0),
+            totalAnswered: newAnswered,
+            totalCorrect: newCorrect,
+            globalAccuracy: newAnswered > 0 ? Math.round((newCorrect / newAnswered) * 100) : 0,
             totalPracticeHours: prev.totalPracticeHours - ((deleted.practiceMinutes || 0) / 60),
           };
         });
