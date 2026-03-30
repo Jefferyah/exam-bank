@@ -821,13 +821,13 @@ function DashboardTab({
           {a.timeAnalysis.timePerDifficulty.length > 0 && (
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-500 mb-3">各難度平均秒數</h3>
-              <div className="flex items-end gap-3 h-32">
+              <div className="flex items-end justify-center gap-3 h-32">
                 {a.timeAnalysis.timePerDifficulty.map((d) => {
                   const maxTime = Math.max(...a.timeAnalysis.timePerDifficulty.map((x) => x.avgTime));
                   const pct = maxTime > 0 ? (d.avgTime / maxTime) * 100 : 0;
                   return (
-                    <div key={d.difficulty} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-xs font-bold text-gray-700">{d.avgTime}s</span>
+                    <div key={d.difficulty} className="flex flex-col items-center gap-1" style={{ width: `${Math.min(100 / Math.max(a.timeAnalysis.timePerDifficulty.length, 3), 33)}%` }}>
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{d.avgTime}s</span>
                       <div className="w-full rounded-t-lg bg-gradient-to-t from-purple-300 to-purple-200 dark:from-purple-400/40 dark:to-purple-300/30 transition-all" style={{ height: `${Math.max(12, pct)}%` }} />
                       <span className="text-[10px] text-gray-500">Lv.{d.difficulty}</span>
                       <span className="text-[10px] text-gray-400">{d.count}題</span>
