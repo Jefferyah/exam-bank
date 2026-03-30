@@ -867,18 +867,7 @@ export default function KnowledgeEntryPage() {
           )}
           {/* File upload + AI tools */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* File upload button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 border border-gray-100 dark:border-gray-600 hover:border-purple-200 dark:hover:border-purple-700 rounded-full text-[11px] font-medium transition-all"
-              title="上傳檔案"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-              <span className="hidden sm:inline">附件</span>
-            </button>
+            {/* Hidden file input for toolbar attachment command */}
             <input
               ref={fileInputRef}
               type="file"
@@ -903,12 +892,6 @@ export default function KnowledgeEntryPage() {
                 e.target.value = "";
               }}
             />
-            {fileCount > 0 && (
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">
-                {fileCount}/20 檔案
-              </span>
-            )}
-            <span className="text-gray-200 dark:text-gray-600">|</span>
             {(() => {
               const urls = getAiWebUrls(buildKnowledgeAiPrompt(tag, content, customKnowledgePrompt));
               return (
@@ -986,7 +969,22 @@ export default function KnowledgeEntryPage() {
                     cmds.divider,
                     cmds.hr, cmds.title, cmds.divider,
                     cmds.link, cmds.quote, cmds.code, cmds.codeBlock, cmds.comment,
-                    cmds.image, cmds.table, cmds.divider,
+                    cmds.image,
+                    // Attachment upload command
+                    {
+                      name: "attachment",
+                      keyCommand: "attachment",
+                      buttonProps: { "aria-label": "上傳附件", title: `上傳附件${fileCount > 0 ? ` (${fileCount}/20)` : ""}` },
+                      icon: (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                      ),
+                      execute: () => {
+                        fileInputRef.current?.click();
+                      },
+                    },
+                    cmds.table, cmds.divider,
                     cmds.unorderedListCommand, cmds.orderedListCommand, cmds.checkedListCommand,
                     cmds.divider, cmds.help,
                   ];
