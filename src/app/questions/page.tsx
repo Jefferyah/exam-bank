@@ -89,9 +89,12 @@ function QuestionsPageInner() {
         const data = await res.json();
         const banks = Array.isArray(data) ? data : data.questionBanks || [];
         setQuestionBanks(banks);
-        // Default all categories collapsed
-        const cats = groupBanksByCategory(banks).map((g) => g.category);
-        setCollapsedCategories(new Set(cats));
+        // Default all categories collapsed — only on first load
+        setCollapsedCategories((prev) => {
+          if (prev.size > 0) return prev; // preserve user's expand/collapse state
+          const cats = groupBanksByCategory(banks).map((g) => g.category);
+          return new Set(cats);
+        });
       }
     } catch (err) {
       console.error("Failed to fetch question banks:", err);
@@ -198,6 +201,12 @@ function QuestionsPageInner() {
         }
         if (impact.wrongRecordCount > 0) {
           lines.push(`  - ${impact.wrongRecordCount} 筆錯題記錄`);
+        }
+        if (impact.reviewCardCount > 0) {
+          lines.push(`  - ${impact.reviewCardCount} 張複習卡`);
+        }
+        if (impact.tagOverrideCount > 0) {
+          lines.push(`  - ${impact.tagOverrideCount} 筆自訂標籤`);
         }
         const confirmed = window.confirm(lines.join("\n"));
         if (!confirmed) return;

@@ -38,7 +38,7 @@ function CreateQuestionContent() {
   useEffect(() => {
     if (status === "loading") return;
     const role = (session?.user as { role?: string } | undefined)?.role;
-    if (!session || role !== "ADMIN") {
+    if (!session || (role !== "ADMIN" && role !== "TEACHER")) {
       router.replace("/questions");
     }
   }, [session, status, router]);
