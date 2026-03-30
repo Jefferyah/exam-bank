@@ -948,7 +948,11 @@ function DashboardTab({
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
           <h2 className="text-base font-semibold text-gray-900 mb-4">各標籤正確率</h2>
           <div className="space-y-2">
-            {a.tagAccuracy.slice(0, 15).map((t) => (
+            {[...a.tagAccuracy]
+              .filter((t) => t.total > 0)
+              .sort((a, b) => a.accuracy - b.accuracy)
+              .slice(0, 15)
+              .map((t) => (
               <div key={t.tag} className="flex items-center gap-3 p-2">
                 <span className="px-2.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full flex-shrink-0 max-w-[120px] truncate">
                   {t.tag}
