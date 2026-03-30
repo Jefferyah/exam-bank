@@ -13,12 +13,20 @@ export async function GET(req: NextRequest) {
 
     const userId = session.user.id;
 
-    // Check if user has a stats reset date
-    const userForReset = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { statsResetAt: true },
-    });
-    const statsResetAt = userForReset?.statsResetAt ?? null;
+    // Date filter: prefer ?since= query param, fallback to DB statsResetAt
+    const sinceParam = req.nextUrl.searchParams.get("since");
+    let statsResetAt: Date | null = null;
+    if (sinceParam) {
+      const parsed = new Date(sinceParam);
+      if (!isNaN(parsed.getTime())) statsResetAt = parsed;
+    }
+    if (!statsResetAt) {
+      const userForReset = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { statsResetAt: true },
+      });
+      statsResetAt = userForReset?.statsResetAt ?? null;
+    }
     const examDateFilter = statsResetAt ? { gte: statsResetAt } : undefined;
 
     // Fetch data in parallel — only completed exams for stats, reduced field selection

@@ -184,6 +184,10 @@ export default function ReviewPage() {
   const [savingGoal, setSavingGoal] = useState(false);
   const [dailyGoal, setDailyGoal] = useState<number | null>(null);
 
+  // Date range filter
+  const [dateRange, setDateRange] = useState<string>("all");
+  const [customDate, setCustomDate] = useState<string>("");
+
   useEffect(() => {
     if (!session) { setLoading(false); return; }
 
@@ -193,47 +197,68 @@ export default function ReviewPage() {
       if (stored) setMastered(new Set(JSON.parse(stored)));
     } catch { /* ignore */ }
 
-    async function fetchData() {
-      try {
-        const [analyticsRes, favRes, notesRes, srsRes, successRateRes] = await Promise.all([
-          fetch("/api/analytics"),
-          fetch("/api/favorites?limit=500"),
-          fetch("/api/notes?limit=500"),
-          fetch("/api/review-cards?stats=true"),
-          fetch("/api/success-rate"),
-        ]);
-
-        if (analyticsRes.ok) {
-          const data: AnalyticsData = await analyticsRes.json();
-          setAnalytics(data);
-          setWrongQuestions(data.allWrongQuestions || data.mostWrongQuestions || []);
-          setDailyGoal(data.dailyGoal);
-          setGoalDraft(data.dailyGoal?.toString() || "");
-        }
-        if (favRes.ok) {
-          const data = await favRes.json();
-          setFavorites(data.favorites || []);
-        }
-        if (notesRes.ok) {
-          const data = await notesRes.json();
-          setNotedQuestions(data.notes || []);
-        }
-        if (srsRes.ok) {
-          const data = await srsRes.json();
-          setSrsStats(data.stats || null);
-        }
-        if (successRateRes.ok) {
-          const data = await successRateRes.json();
-          setSuccessRate(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
   }, [session]);
+
+  // Compute since date from dateRange
+  const sinceDate = useMemo(() => {
+    if (dateRange === "all") return null;
+    if (dateRange === "custom") return customDate || null;
+    const now = new Date();
+    if (dateRange === "7d") now.setDate(now.getDate() - 7);
+    else if (dateRange === "30d") now.setDate(now.getDate() - 30);
+    else if (dateRange === "90d") now.setDate(now.getDate() - 90);
+    return now.toISOString().split("T")[0];
+  }, [dateRange, customDate]);
+
+  async function fetchData() {
+    try {
+      const analyticsUrl = sinceDate ? `/api/analytics?since=${sinceDate}` : "/api/analytics";
+      const [analyticsRes, favRes, notesRes, srsRes, successRateRes] = await Promise.all([
+        fetch(analyticsUrl),
+        fetch("/api/favorites?limit=500"),
+        fetch("/api/notes?limit=500"),
+        fetch("/api/review-cards?stats=true"),
+        fetch("/api/success-rate"),
+      ]);
+
+      if (analyticsRes.ok) {
+        const data: AnalyticsData = await analyticsRes.json();
+        setAnalytics(data);
+        setWrongQuestions(data.allWrongQuestions || data.mostWrongQuestions || []);
+        setDailyGoal(data.dailyGoal);
+        setGoalDraft(data.dailyGoal?.toString() || "");
+      }
+      if (favRes.ok) {
+        const data = await favRes.json();
+        setFavorites(data.favorites || []);
+      }
+      if (notesRes.ok) {
+        const data = await notesRes.json();
+        setNotedQuestions(data.notes || []);
+      }
+      if (srsRes.ok) {
+        const data = await srsRes.json();
+        setSrsStats(data.stats || null);
+      }
+      if (successRateRes.ok) {
+        const data = await successRateRes.json();
+        setSuccessRate(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Re-fetch when date range changes
+  useEffect(() => {
+    if (!session) return;
+    setLoading(true);
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sinceDate]);
 
   /* ── Actions ── */
   async function handleRemoveFavorite(questionId: string) {
@@ -429,6 +454,10 @@ export default function ReviewPage() {
           mastered={mastered}
           handlePracticeBank={handlePracticeBank}
           successRate={successRate}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          customDate={customDate}
+          setCustomDate={setCustomDate}
         />
       ) : tab === "srs" ? (
         <SrsTab stats={srsStats} />
@@ -480,6 +509,10 @@ function DashboardTab({
   mastered,
   handlePracticeBank,
   successRate,
+  dateRange,
+  setDateRange,
+  customDate,
+  setCustomDate,
 }: {
   analytics: AnalyticsData | null;
   dailyGoal: number | null;
@@ -492,6 +525,10 @@ function DashboardTab({
   mastered: Set<string>;
   handlePracticeBank: (bankId: string, bankName: string) => void;
   successRate: SuccessRateData | null;
+  dateRange: string;
+  setDateRange: (v: string) => void;
+  customDate: string;
+  setCustomDate: (v: string) => void;
 }) {
   if (!analytics) {
     return <div className="text-center py-12 text-gray-400">尚無分析資料，完成一次考試後即可查看</div>;
@@ -524,63 +561,43 @@ function DashboardTab({
     ? [...a.difficultyDistribution].sort((x, y) => x.accuracy - y.accuracy)[0]
     : null;
 
-  const [resetting, setResetting] = useState(false);
-
-  const handleResetStats = async () => {
-    if (!confirm("確定要重置統計起始日？重置後統計資料將只計算從現在開始的資料。（舊資料不會刪除，取消重置即可恢復）")) return;
-    setResetting(true);
-    try {
-      await fetch("/api/user-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statsResetAt: new Date().toISOString() }),
-      });
-      window.location.reload();
-    } catch {
-      alert("重置失敗");
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  const handleClearReset = async () => {
-    setResetting(true);
-    try {
-      await fetch("/api/user-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statsResetAt: null }),
-      });
-      window.location.reload();
-    } catch {
-      alert("操作失敗");
-    } finally {
-      setResetting(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
 
-      {/* ── Stats Reset Banner ── */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        {a.statsResetAt ? (
-          <span>
-            統計起始日：{new Date(a.statsResetAt).toLocaleDateString("zh-TW")}
-            <button onClick={handleClearReset} disabled={resetting} className="ml-2 text-purple-500 hover:text-purple-700 underline">
-              取消重置
+      {/* ── Date Range Filter ── */}
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-gray-500">📅 統計範圍</span>
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
+          {[
+            { value: "all", label: "全部" },
+            { value: "7d", label: "7天" },
+            { value: "30d", label: "30天" },
+            { value: "90d", label: "3個月" },
+            { value: "custom", label: "自訂" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setDateRange(opt.value)}
+              className={cn(
+                "px-3 py-1 rounded-md text-xs font-medium transition-colors",
+                dateRange === opt.value
+                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              {opt.label}
             </button>
-          </span>
-        ) : (
-          <span />
+          ))}
+        </div>
+        {dateRange === "custom" && (
+          <input
+            type="date"
+            value={customDate}
+            onChange={(e) => setCustomDate(e.target.value)}
+            max={new Date().toISOString().split("T")[0]}
+            className="ml-1 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
         )}
-        <button
-          onClick={handleResetStats}
-          disabled={resetting}
-          className="text-gray-400 hover:text-red-500 transition-colors"
-        >
-          重置統計
-        </button>
       </div>
 
       {/* ── Success Rate ── */}
