@@ -136,6 +136,27 @@ export default function ExamSetupPage() {
       return;
     }
 
+    // Validate inputs before sending
+    const parsedCount = parseInt(count);
+    if (!parsedCount || parsedCount < 1) {
+      setError("請輸入有效的題數（至少 1 題）");
+      setCreating(false);
+      return;
+    }
+    if (parsedCount > 200) {
+      setError("題數上限為 200 題");
+      setCreating(false);
+      return;
+    }
+    if (mode === "MOCK") {
+      const parsedTime = parseInt(timeLimit);
+      if (!parsedTime || parsedTime < 1) {
+        setError("請輸入有效的考試時間（至少 1 分鐘）");
+        setCreating(false);
+        return;
+      }
+    }
+
     setCreating(true);
     setError("");
 
@@ -145,9 +166,9 @@ export default function ExamSetupPage() {
         note: note.trim() || undefined,
         questionBankIds: selectedBankIds.length > 0 ? selectedBankIds : undefined,
         difficulty: difficultyRange.length > 0 && difficultyRange.length < 5 ? difficultyRange : undefined,
-        count: parseInt(count) || 20,
+        count: parsedCount,
         mode,
-        timeLimit: mode === "MOCK" ? (parseInt(timeLimit) || 60) * 60 : undefined,
+        timeLimit: mode === "MOCK" ? parseInt(timeLimit) * 60 : undefined,
         wrongOnly,
         favoriteOnly,
         notedOnly,

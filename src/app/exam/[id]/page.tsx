@@ -72,6 +72,7 @@ export default function ExamTakingPage() {
   // Scroll refs
   const questionTopRef = useRef<HTMLDivElement>(null);
   const checkAnswerRef = useRef<HTMLButtonElement>(null);
+  const clearedAnswerIds = useRef<Set<string>>(new Set()); // track answers cleared by multi-select uncheck-all
 
   useEffect(() => {
     async function fetchExam() {
@@ -204,6 +205,7 @@ export default function ExamTakingPage() {
         }
         // Remove key entirely when all options are unchecked
         if (!newAnswer) {
+          clearedAnswerIds.current.add(questionId);
           const { [questionId]: _, ...rest } = prev;
           return rest;
         }
@@ -308,12 +310,19 @@ export default function ExamTakingPage() {
       flagged: flagged.has(questionId),
       timeSpent: latestTime[questionId] || 0,
     }));
+    // Include cleared answers (multi-select uncheck-all) so server clears them too
+    for (const qId of clearedAnswerIds.current) {
+      if (!userAnswers[qId]) {
+        answers.push({ questionId: qId, userAnswer: "", flagged: flagged.has(qId), timeSpent: latestTime[qId] || 0 });
+      }
+    }
     try {
       await fetch(`/api/exams/${exam.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
       });
+      clearedAnswerIds.current.clear(); // successfully synced
     } catch (err) {
       console.error(err);
     }
