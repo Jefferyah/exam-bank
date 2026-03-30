@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { DIFFICULTY_LABELS } from "@/lib/utils";
 import { ArrowLeft } from "@/components/icons";
@@ -29,8 +30,18 @@ export default function CreateQuestionPage() {
 
 function CreateQuestionContent() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (status === "loading") return;
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session || role !== "ADMIN") {
+      router.replace("/questions");
+    }
+  }, [session, status, router]);
 
   const [stem, setStem] = useState("");
   const [type, setType] = useState<"SINGLE" | "MULTI" | "SCENARIO">("SINGLE");

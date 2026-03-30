@@ -49,7 +49,7 @@ export async function GET(
     }
 
     // Count all affected data in parallel
-    const [examAnswerCount, noteCount, favoriteCount, wrongRecordCount] =
+    const [examAnswerCount, noteCount, favoriteCount, wrongRecordCount, reviewCardCount, tagOverrideCount] =
       await Promise.all([
         prisma.examAnswer.count({
           where: { questionId: { in: questionIds } },
@@ -61,6 +61,12 @@ export async function GET(
           where: { questionId: { in: questionIds } },
         }),
         prisma.wrongRecord.count({
+          where: { questionId: { in: questionIds } },
+        }),
+        prisma.reviewCard.count({
+          where: { questionId: { in: questionIds } },
+        }),
+        prisma.userTagOverride.count({
           where: { questionId: { in: questionIds } },
         }),
       ]);
@@ -83,6 +89,8 @@ export async function GET(
       noteCount,
       favoriteCount,
       wrongRecordCount,
+      reviewCardCount,
+      tagOverrideCount,
     });
   } catch (error) {
     console.error("GET /api/question-banks/[id]/impact error:", error);

@@ -59,8 +59,10 @@ export async function GET(req: NextRequest) {
     if (type) {
       where.type = type;
     }
-    if (tags && !searchParams.get("tagExact")) {
-      where.tags = { contains: tags };
+    if (tags) {
+      // Exact tag match: search for "tagname" in the JSON array string
+      // This prevents "AI" from matching "RAID" or "OpenAI"
+      where.tags = { contains: `"${tags}"` };
     }
     if (category) {
       where.category = { contains: category };
@@ -70,7 +72,7 @@ export async function GET(req: NextRequest) {
     // This handles the case where effective tags differ from DB tags
     if (tags) {
       const tagOverrides = await prisma.userTagOverride.findMany({
-        where: { userId: session.user.id, tags: { contains: tags } },
+        where: { userId: session.user.id, tags: { contains: `"${tags}"` } },
         select: { questionId: true },
       });
       if (tagOverrides.length > 0) {
@@ -81,7 +83,7 @@ export async function GET(req: NextRequest) {
         where = {
           ...existingWhere,
           OR: [
-            { tags: { contains: tags } },
+            { tags: { contains: `"${tags}"` } },
             { id: { in: overrideIds } },
           ],
         };

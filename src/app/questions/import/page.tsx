@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft } from "@/components/icons";
 import { groupBanksByCategory } from "@/lib/group-banks";
@@ -82,6 +84,18 @@ function detectFormat(q: PreviewQuestion): string {
 }
 
 export default function ImportPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (status === "loading") return;
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session || role !== "ADMIN") {
+      router.replace("/questions");
+    }
+  }, [session, status, router]);
+
   const [fileContent, setFileContent] = useState("");
   const [importMode, setImportMode] = useState<"new" | "existing">("new");
   const [bankName, setBankName] = useState("");

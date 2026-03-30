@@ -44,15 +44,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify question bank exists
+    // Verify question bank exists AND user has access to it
+    const isAdmin = (session.user as { role?: string }).role === "ADMIN";
     const bank = await prisma.questionBank.findUnique({
       where: { id: questionBankId },
-      select: { id: true },
+      select: { id: true, isPublic: true, createdById: true },
     });
     if (!bank) {
       return NextResponse.json(
         { error: "Question bank not found" },
         { status: 404 }
+      );
+    }
+    // Non-admin can only hide banks they own or that are public
+    if (!isAdmin && !bank.isPublic && bank.createdById !== session.user.id) {
+      return NextResponse.json(
+        { error: "無權操作此題庫" },
+        { status: 403 }
       );
     }
 

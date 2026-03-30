@@ -283,6 +283,7 @@ function QuestionsPageInner() {
       });
       if (res.ok) {
         await fetchBanks();
+        fetchQuestions(1);
         setEditingBankId(null);
         setEditingName("");
         setEditingCategory("");
