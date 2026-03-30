@@ -124,6 +124,23 @@ export default function ReviewSessionPage() {
             },
           ]);
 
+          // Update stats locally to reflect the rating just submitted
+          if (data.card?.status && stats) {
+            setStats((prev) => {
+              if (!prev) return prev;
+              const updated = { ...prev, byStatus: { ...prev.byStatus } };
+              const oldStatus = currentCard.status;
+              const newStatus = data.card.status;
+              if (updated.byStatus[oldStatus] > 0) updated.byStatus[oldStatus]--;
+              updated.byStatus[newStatus] = (updated.byStatus[newStatus] || 0) + 1;
+              if (updated.dueToday > 0) updated.dueToday--;
+              updated.masteryRate = updated.totalCards > 0
+                ? Math.round((updated.byStatus.MASTERED / updated.totalCards) * 100 * 100) / 100
+                : 0;
+              return updated;
+            });
+          }
+
           // Move to next card or finish
           if (currentIndex + 1 < cards.length) {
             setCurrentIndex((i) => i + 1);

@@ -171,8 +171,8 @@ export async function calculateSuccessRate(
           ea."questionId",
           ea."isCorrect",
           ea."timeSpent",
-          e."startedAt" AS "examStartedAt",
-          ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY e."startedAt", ea."createdAt") AS rn
+          ea."updatedAt" AS "answeredAt",
+          ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY ea."updatedAt") AS rn
         FROM "ExamAnswer" ea
         JOIN "Exam" e ON ea."examId" = e.id
         JOIN "Question" q ON ea."questionId" = q.id
@@ -187,8 +187,8 @@ export async function calculateSuccessRate(
         COUNT(CASE WHEN rn >= 2 THEN 1 END)::int AS "secondPlusTotal",
         BOOL_OR("isCorrect" = false) AS "everWrong",
         BOOL_OR(
-          "isCorrect" = true AND "examStartedAt" > (
-            SELECT MIN(n2."examStartedAt") FROM numbered n2
+          "isCorrect" = true AND "answeredAt" > (
+            SELECT MIN(n2."answeredAt") FROM numbered n2
             WHERE n2."questionId" = numbered."questionId" AND n2."isCorrect" = false
           )
         ) AS "laterCorrect",
@@ -234,7 +234,7 @@ export async function calculateSuccessRate(
       indicator4 = (corrected / everWrongQuestions.length) * 100;
     }
 
-    // Indicator 5: 15-day trend
+    // Indicator 5: 15-day trend — only count days with actual answers
     const recentActivity = await prisma.$queryRaw<{ dayDate: string }[]>`
       SELECT DISTINCT DATE(e."startedAt" AT TIME ZONE 'Asia/Taipei') AS "dayDate"
       FROM "ExamAnswer" ea
@@ -243,6 +243,7 @@ export async function calculateSuccessRate(
       WHERE e."userId" = ${userId}
         AND q."questionBankId" = ANY(${bankIds})
         AND e."startedAt" >= ${fifteenDaysAgo}
+        AND ea."userAnswer" IS NOT NULL
     `;
 
     const activeDays = recentActivity.map((r) => {

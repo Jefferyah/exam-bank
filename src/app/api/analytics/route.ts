@@ -193,7 +193,12 @@ export async function GET(req: NextRequest) {
     const recentExamIds = recentExams.map((e) => e.id);
     const recentExamAnswers = recentExamIds.length > 0
       ? await prisma.examAnswer.findMany({
-          where: { examId: { in: recentExamIds } },
+          where: {
+            examId: { in: recentExamIds },
+            ...(hiddenBankIds.size > 0
+              ? { question: { questionBankId: { notIn: [...hiddenBankIds] } } }
+              : {}),
+          },
           select: { examId: true, question: { select: { questionBankId: true } } },
         })
       : [];
@@ -368,6 +373,21 @@ export async function GET(req: NextRequest) {
       const finished = examFinishMap.get(a.examId);
       if (!finished) continue;
       const key = toLocalDateKey(new Date(finished));
+      if (dailyActivity[key]) dailyActivity[key].questions++;
+    }
+
+    // Also count in-progress exam answers (use updatedAt for actual answer time)
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000);
+    const inProgressAnswers = await prisma.examAnswer.findMany({
+      where: {
+        exam: { userId, status: "IN_PROGRESS" },
+        userAnswer: { not: null },
+        updatedAt: { gte: thirtyDaysAgo },
+      },
+      select: { updatedAt: true },
+    });
+    for (const a of inProgressAnswers) {
+      const key = toLocalDateKey(new Date(a.updatedAt));
       if (dailyActivity[key]) dailyActivity[key].questions++;
     }
     const dailyActivityArray = Object.entries(dailyActivity)
