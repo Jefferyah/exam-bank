@@ -215,8 +215,9 @@ export default function ExamTakingPage() {
     setShowExplanation(false);
     // Save this answer to server immediately (fire-and-forget)
     // Use setTimeout to ensure newAnswer is set after setState
+    // Send empty string when all options unchecked to clear server-side answer
     setTimeout(() => {
-      if (newAnswer) saveOneAnswer(questionId, newAnswer);
+      saveOneAnswer(questionId, newAnswer ?? "");
     }, 0);
     // Auto-scroll to "查看答案" button after selecting (single choice)
     if (!isMulti) {

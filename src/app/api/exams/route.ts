@@ -116,11 +116,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate count is a positive integer
+    // Validate count is a positive integer with server-side upper limit
+    const MAX_EXAM_COUNT = 200;
     const parsedCount = Number(count);
     if (!Number.isFinite(parsedCount) || parsedCount < 1) {
       return NextResponse.json(
         { error: "count must be a positive integer" },
+        { status: 400 }
+      );
+    }
+    if (parsedCount > MAX_EXAM_COUNT) {
+      return NextResponse.json(
+        { error: `題數上限為 ${MAX_EXAM_COUNT} 題` },
         { status: 400 }
       );
     }
@@ -158,7 +165,15 @@ export async function POST(req: NextRequest) {
           );
         }
       }
-      questionWhere.questionBankId = { in: questionBankIds };
+      // Also exclude hidden banks from explicitly specified list
+      const filteredBankIds = questionBankIds.filter((id: string) => !hiddenBankIds.has(id));
+      if (filteredBankIds.length === 0) {
+        return NextResponse.json(
+          { error: "所選題庫皆已隱藏" },
+          { status: 400 }
+        );
+      }
+      questionWhere.questionBankId = { in: filteredBankIds };
     } else if (!isAdmin) {
       // No specific banks requested — limit to accessible, non-hidden banks
       questionWhere.questionBank = {
@@ -195,14 +210,15 @@ export async function POST(req: NextRequest) {
         .filter((o) => {
           const overrideTags: string[] = safeJsonParse(o.tags, []);
           return filterTags.every((tag: string) =>
-            overrideTags.some((t: string) => t.includes(tag))
+            overrideTags.some((t: string) => t === tag)
           );
         })
         .map((o) => o.questionId);
 
+      // Exact tag match: wrap in quotes to match JSON array element
       questionWhere.AND = filterTags.map((tag: string) => ({
         OR: [
-          { tags: { contains: tag } },
+          { tags: { contains: `"${tag}"` } },
           ...(overrideMatchIds.length > 0 ? [{ id: { in: overrideMatchIds } }] : []),
         ],
       }));

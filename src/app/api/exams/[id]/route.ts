@@ -206,8 +206,15 @@ export async function PUT(
 
         const data: Record<string, unknown> = {};
         if (userAnswer != null) {
-          data.userAnswer = userAnswer.toString();
-          data.isCorrect = isAnswerCorrect(userAnswer.toString(), question.answer);
+          const ansStr = userAnswer.toString();
+          if (ansStr === "") {
+            // Clear answer (e.g. multi-select unchecked all options)
+            data.userAnswer = null;
+            data.isCorrect = null;
+          } else {
+            data.userAnswer = ansStr;
+            data.isCorrect = isAnswerCorrect(ansStr, question.answer);
+          }
         }
         if (timeSpent != null) data.timeSpent = timeSpent;
         if (flagged != null) data.flagged = flagged;
