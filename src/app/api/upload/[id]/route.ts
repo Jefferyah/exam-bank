@@ -31,9 +31,10 @@ export async function GET(
 
     return new NextResponse(Buffer.from(body), { headers });
   } catch (err) {
-    console.error("File fetch error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("File fetch error:", message, err);
     return NextResponse.json(
-      { error: "無法取得檔案" },
+      { error: "無法取得檔案", detail: message },
       { status: 500 }
     );
   }
