@@ -16,26 +16,26 @@ export async function GET(
     const { tag } = await params;
     const decodedTag = decodeURIComponent(tag);
 
-    // Fetch entry + backlinks in parallel
+    // Case-insensitive lookup — find the actual stored tag
     const [entry, allEntries] = await Promise.all([
-      prisma.knowledgeEntry.findUnique({
+      prisma.knowledgeEntry.findFirst({
         where: {
-          userId_tag: {
-            userId: session.user.id,
-            tag: decodedTag,
-          },
+          userId: session.user.id,
+          tag: { equals: decodedTag, mode: "insensitive" },
         },
       }),
-      // Phase 3: find all entries that might contain [[decodedTag]] (with possible whitespace)
       prisma.knowledgeEntry.findMany({
         where: {
           userId: session.user.id,
-          content: { contains: decodedTag },
-          NOT: { tag: decodedTag }, // exclude self
+          content: { contains: decodedTag, mode: "insensitive" },
+          NOT: { tag: { equals: decodedTag, mode: "insensitive" } },
         },
         select: { tag: true, content: true },
       }),
     ]);
+
+    // Use the actual stored tag name (preserves original casing)
+    const resolvedTag = entry?.tag || decodedTag;
 
     // Parse wiki-links and trim to match consistently with the graph API
     const wikiLinkRegex = /\[\[([^\]]+)\]\]/g;
@@ -44,14 +44,14 @@ export async function GET(
         wikiLinkRegex.lastIndex = 0;
         let match: RegExpExecArray | null;
         while ((match = wikiLinkRegex.exec(e.content)) !== null) {
-          if (match[1].trim() === decodedTag) return true;
+          if (match[1].trim().toLowerCase() === resolvedTag.toLowerCase()) return true;
         }
         return false;
       })
       .map((e) => e.tag);
 
     return NextResponse.json({
-      tag: decodedTag,
+      tag: resolvedTag,
       content: entry?.content || "",
       updatedAt: entry?.updatedAt?.toISOString() || null,
       backlinks,
@@ -87,16 +87,26 @@ export async function PUT(
       );
     }
 
+    // Case-insensitive: find existing entry to use its stored tag
+    const existing = await prisma.knowledgeEntry.findFirst({
+      where: {
+        userId: session.user.id,
+        tag: { equals: decodedTag, mode: "insensitive" },
+      },
+      select: { tag: true },
+    });
+    const resolvedTag = existing?.tag || decodedTag;
+
     const entry = await prisma.knowledgeEntry.upsert({
       where: {
         userId_tag: {
           userId: session.user.id,
-          tag: decodedTag,
+          tag: resolvedTag,
         },
       },
       create: {
         userId: session.user.id,
-        tag: decodedTag,
+        tag: resolvedTag,
         content,
       },
       update: { content },
@@ -129,19 +139,26 @@ export async function DELETE(
     const { tag } = await params;
     const decodedTag = decodeURIComponent(tag);
 
+    // Case-insensitive: resolve actual stored tag
+    const entry = await prisma.knowledgeEntry.findFirst({
+      where: { userId: session.user.id, tag: { equals: decodedTag, mode: "insensitive" } },
+      select: { tag: true },
+    });
+    const resolvedTag = entry?.tag || decodedTag;
+
     // Find orphan attachments before deleting
     const attachments = await prisma.uploadedImage.findMany({
-      where: { userId: session.user.id, tag: decodedTag },
+      where: { userId: session.user.id, tag: resolvedTag },
       select: { id: true, r2Key: true },
     });
 
     // Delete entry + attachment records in transaction
     await prisma.$transaction([
       prisma.knowledgeEntry.deleteMany({
-        where: { userId: session.user.id, tag: decodedTag },
+        where: { userId: session.user.id, tag: resolvedTag },
       }),
       prisma.uploadedImage.deleteMany({
-        where: { userId: session.user.id, tag: decodedTag },
+        where: { userId: session.user.id, tag: resolvedTag },
       }),
     ]);
 
@@ -181,9 +198,13 @@ export async function PATCH(
 
     const trimmedNew = newTag.trim();
 
-    // Check if target tag already exists
-    const existing = await prisma.knowledgeEntry.findUnique({
-      where: { userId_tag: { userId: session.user.id, tag: trimmedNew } },
+    // Case-insensitive duplicate check
+    const existing = await prisma.knowledgeEntry.findFirst({
+      where: {
+        userId: session.user.id,
+        tag: { equals: trimmedNew, mode: "insensitive" },
+        NOT: { tag: decodedTag },
+      },
     });
     if (existing) {
       return NextResponse.json({ error: "該知識點名稱已存在" }, { status: 409 });
