@@ -843,34 +843,6 @@ function DashboardTab({
         );
       })()}
 
-      {/* ── Difficulty Accuracy ── */}
-      {a.difficultyDistribution.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">各難度正確率</h2>
-          <div className="space-y-3">
-            {a.difficultyDistribution.map((d) => (
-              <div key={d.difficulty} className="flex items-center gap-3">
-                <div className="flex-shrink-0 w-20 sm:w-24">
-                  <DifficultyStars value={d.difficulty} />
-                </div>
-                <div className="flex-1 min-w-0 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-4 rounded-full transition-all",
-                      d.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : d.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
-                    )}
-                    style={{ width: `${Math.max(d.accuracy, 3)}%` }}
-                  />
-                </div>
-                <span className="flex-shrink-0 text-right text-xs text-gray-600 whitespace-nowrap">
-                  {Math.round(d.accuracy)}% ({d.correct}/{d.total})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── Time Analysis: Speed vs Accuracy ── */}
       {(a.timeAnalysis.timePerDifficulty.length > 0 || a.timeAnalysis.timePerBank.length > 0) && (
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
@@ -954,6 +926,34 @@ function DashboardTab({
               <p className="text-xs text-gray-400 py-4 text-center">資料不足，需至少完成 5 題模擬考</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Difficulty Accuracy ── */}
+      {a.difficultyDistribution.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">各難度正確率</h2>
+          <div className="space-y-3">
+            {a.difficultyDistribution.map((d) => (
+              <div key={d.difficulty} className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-20 sm:w-24">
+                  <DifficultyStars value={d.difficulty} />
+                </div>
+                <div className="flex-1 min-w-0 bg-gray-100 dark:bg-gray-700 rounded-full h-4 relative overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-4 rounded-full transition-all",
+                      d.accuracy >= 80 ? "bg-emerald-300 dark:bg-emerald-400/40" : d.accuracy >= 60 ? "bg-amber-200 dark:bg-amber-400/40" : "bg-red-200 dark:bg-red-400/40"
+                    )}
+                    style={{ width: `${Math.max(d.accuracy, 3)}%` }}
+                  />
+                </div>
+                <span className="flex-shrink-0 text-right text-xs text-gray-600 whitespace-nowrap">
+                  {Math.round(d.accuracy)}% ({d.correct}/{d.total})
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
