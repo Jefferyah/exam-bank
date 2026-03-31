@@ -48,20 +48,18 @@ export async function GET(req: NextRequest) {
         _sum: { score: true },
       }),
 
-      // Users active today
-      prisma.exam.findMany({
-        where: {
-          startedAt: {
-            gte: (() => {
-              const now = new Date();
-              const todayKey = now.toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
-              return new Date(todayKey + "T00:00:00+08:00");
-            })(),
-          },
-        },
-        select: { userId: true },
-        distinct: ["userId"],
-      }),
+      // Users active today — require at least one actual answer, not just opening an exam
+      prisma.$queryRaw<{ userId: string }[]>`
+        SELECT DISTINCT e."userId"
+        FROM "ExamAnswer" ea
+        JOIN "Exam" e ON ea."examId" = e.id
+        WHERE ea."updatedAt" >= ${(() => {
+          const now = new Date();
+          const todayKey = now.toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
+          return new Date(todayKey + "T00:00:00+08:00");
+        })()}
+          AND ea."userAnswer" IS NOT NULL
+      `,
     ]);
 
     // Build per-user answer stats with raw queries for better performance

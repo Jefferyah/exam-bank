@@ -219,7 +219,7 @@ export default function ReviewPage() {
         fetch("/api/favorites?limit=500"),
         fetch("/api/notes?limit=500"),
         fetch("/api/review-cards?stats=true"),
-        fetch("/api/success-rate"),
+        fetch(sinceDate ? `/api/success-rate?since=${sinceDate}` : "/api/success-rate"),
       ]);
 
       if (analyticsRes.ok) {

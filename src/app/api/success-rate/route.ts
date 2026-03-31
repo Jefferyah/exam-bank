@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { calculateSuccessRate } from "@/lib/success-rate";
 
 /**
- * GET /api/success-rate
+ * GET /api/success-rate?since=2024-01-01
  * Calculate per-category success rate for the currently logged-in user.
  * Automatically excludes hidden banks.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -22,7 +22,9 @@ export async function GET() {
     });
     const hiddenBankIds = hiddenBanks.map((h) => h.questionBankId);
 
-    const result = await calculateSuccessRate(session.user.id, hiddenBankIds);
+    const since = req.nextUrl.searchParams.get("since") || undefined;
+
+    const result = await calculateSuccessRate(session.user.id, hiddenBankIds, since);
     return NextResponse.json(result);
   } catch (error) {
     console.error("GET /api/success-rate error:", error);

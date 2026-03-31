@@ -72,36 +72,68 @@ export interface SuccessRateResult {
  * Calculate per-category success rate for a given user.
  * Only categories the user has touched are included.
  * @param excludeBankIds - Bank IDs to exclude (e.g. hidden banks)
+ * @param since - Optional date string (YYYY-MM-DD) to filter answers from this date onward
  */
 export async function calculateSuccessRate(
   userId: string,
   excludeBankIds: string[] = [],
+  since?: string,
 ): Promise<SuccessRateResult> {
+  // If since is provided, convert to a Date for SQL filtering
+  const sinceDate = since ? new Date(since + "T00:00:00+08:00") : null;
+
   // Get all question banks grouped by category that user has actually answered (excluding hidden banks)
   const touchedBanks = excludeBankIds.length > 0
-    ? await prisma.$queryRaw<
-        { questionBankId: string; category: string; bankName: string }[]
-      >`
-        SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
-        FROM "ExamAnswer" ea
-        JOIN "Exam" e ON ea."examId" = e.id
-        JOIN "Question" q ON ea."questionId" = q.id
-        JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
-        WHERE e."userId" = ${userId}
-          AND ea."userAnswer" IS NOT NULL
-          AND qb.id != ALL(${excludeBankIds})
-      `
-    : await prisma.$queryRaw<
-        { questionBankId: string; category: string; bankName: string }[]
-      >`
-        SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
-        FROM "ExamAnswer" ea
-        JOIN "Exam" e ON ea."examId" = e.id
-        JOIN "Question" q ON ea."questionId" = q.id
-        JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
-        WHERE e."userId" = ${userId}
-          AND ea."userAnswer" IS NOT NULL
-      `;
+    ? sinceDate
+      ? await prisma.$queryRaw<
+          { questionBankId: string; category: string; bankName: string }[]
+        >`
+          SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+          FROM "ExamAnswer" ea
+          JOIN "Exam" e ON ea."examId" = e.id
+          JOIN "Question" q ON ea."questionId" = q.id
+          JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+          WHERE e."userId" = ${userId}
+            AND ea."userAnswer" IS NOT NULL
+            AND ea."updatedAt" >= ${sinceDate}
+            AND qb.id != ALL(${excludeBankIds})
+        `
+      : await prisma.$queryRaw<
+          { questionBankId: string; category: string; bankName: string }[]
+        >`
+          SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+          FROM "ExamAnswer" ea
+          JOIN "Exam" e ON ea."examId" = e.id
+          JOIN "Question" q ON ea."questionId" = q.id
+          JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+          WHERE e."userId" = ${userId}
+            AND ea."userAnswer" IS NOT NULL
+            AND qb.id != ALL(${excludeBankIds})
+        `
+    : sinceDate
+      ? await prisma.$queryRaw<
+          { questionBankId: string; category: string; bankName: string }[]
+        >`
+          SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+          FROM "ExamAnswer" ea
+          JOIN "Exam" e ON ea."examId" = e.id
+          JOIN "Question" q ON ea."questionId" = q.id
+          JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+          WHERE e."userId" = ${userId}
+            AND ea."userAnswer" IS NOT NULL
+            AND ea."updatedAt" >= ${sinceDate}
+        `
+      : await prisma.$queryRaw<
+          { questionBankId: string; category: string; bankName: string }[]
+        >`
+          SELECT DISTINCT qb.id AS "questionBankId", COALESCE(qb.category, '未分類') AS category, qb.name AS "bankName"
+          FROM "ExamAnswer" ea
+          JOIN "Exam" e ON ea."examId" = e.id
+          JOIN "Question" q ON ea."questionId" = q.id
+          JOIN "QuestionBank" qb ON q."questionBankId" = qb.id
+          WHERE e."userId" = ${userId}
+            AND ea."userAnswer" IS NOT NULL
+        `;
 
   if (touchedBanks.length === 0) {
     return { categories: [], overallScore: 0 };
@@ -155,47 +187,90 @@ export async function calculateSuccessRate(
     });
     if (totalQuestions === 0) continue;
 
-    const questionAttempts = await prisma.$queryRaw<
-      {
-        questionId: string;
-        attemptCount: number;
-        secondPlusCorrect: number;
-        secondPlusTotal: number;
-        everWrong: boolean;
-        laterCorrect: boolean;
-        totalTimeSpent: number;
-      }[]
-    >`
-      WITH numbered AS (
-        SELECT
-          ea."questionId",
-          ea."isCorrect",
-          ea."timeSpent",
-          ea."updatedAt" AS "answeredAt",
-          ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY ea."updatedAt") AS rn
-        FROM "ExamAnswer" ea
-        JOIN "Exam" e ON ea."examId" = e.id
-        JOIN "Question" q ON ea."questionId" = q.id
-        WHERE e."userId" = ${userId}
-          AND q."questionBankId" = ANY(${bankIds})
-          AND ea."isCorrect" IS NOT NULL
-      )
-      SELECT
-        "questionId",
-        COUNT(*)::int AS "attemptCount",
-        COUNT(CASE WHEN rn >= 2 AND "isCorrect" = true THEN 1 END)::int AS "secondPlusCorrect",
-        COUNT(CASE WHEN rn >= 2 THEN 1 END)::int AS "secondPlusTotal",
-        BOOL_OR("isCorrect" = false) AS "everWrong",
-        BOOL_OR(
-          "isCorrect" = true AND "answeredAt" > (
-            SELECT MIN(n2."answeredAt") FROM numbered n2
-            WHERE n2."questionId" = numbered."questionId" AND n2."isCorrect" = false
+    const questionAttempts = sinceDate
+      ? await prisma.$queryRaw<
+          {
+            questionId: string;
+            attemptCount: number;
+            secondPlusCorrect: number;
+            secondPlusTotal: number;
+            everWrong: boolean;
+            laterCorrect: boolean;
+            totalTimeSpent: number;
+          }[]
+        >`
+          WITH numbered AS (
+            SELECT
+              ea."questionId",
+              ea."isCorrect",
+              ea."timeSpent",
+              ea."updatedAt" AS "answeredAt",
+              ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY ea."updatedAt") AS rn
+            FROM "ExamAnswer" ea
+            JOIN "Exam" e ON ea."examId" = e.id
+            JOIN "Question" q ON ea."questionId" = q.id
+            WHERE e."userId" = ${userId}
+              AND q."questionBankId" = ANY(${bankIds})
+              AND ea."isCorrect" IS NOT NULL
+              AND ea."updatedAt" >= ${sinceDate}
           )
-        ) AS "laterCorrect",
-        COALESCE(SUM("timeSpent"), 0)::int AS "totalTimeSpent"
-      FROM numbered
-      GROUP BY "questionId"
-    `;
+          SELECT
+            "questionId",
+            COUNT(*)::int AS "attemptCount",
+            COUNT(CASE WHEN rn >= 2 AND "isCorrect" = true THEN 1 END)::int AS "secondPlusCorrect",
+            COUNT(CASE WHEN rn >= 2 THEN 1 END)::int AS "secondPlusTotal",
+            BOOL_OR("isCorrect" = false) AS "everWrong",
+            BOOL_OR(
+              "isCorrect" = true AND "answeredAt" > (
+                SELECT MIN(n2."answeredAt") FROM numbered n2
+                WHERE n2."questionId" = numbered."questionId" AND n2."isCorrect" = false
+              )
+            ) AS "laterCorrect",
+            COALESCE(SUM("timeSpent"), 0)::int AS "totalTimeSpent"
+          FROM numbered
+          GROUP BY "questionId"
+        `
+      : await prisma.$queryRaw<
+          {
+            questionId: string;
+            attemptCount: number;
+            secondPlusCorrect: number;
+            secondPlusTotal: number;
+            everWrong: boolean;
+            laterCorrect: boolean;
+            totalTimeSpent: number;
+          }[]
+        >`
+          WITH numbered AS (
+            SELECT
+              ea."questionId",
+              ea."isCorrect",
+              ea."timeSpent",
+              ea."updatedAt" AS "answeredAt",
+              ROW_NUMBER() OVER (PARTITION BY ea."questionId" ORDER BY ea."updatedAt") AS rn
+            FROM "ExamAnswer" ea
+            JOIN "Exam" e ON ea."examId" = e.id
+            JOIN "Question" q ON ea."questionId" = q.id
+            WHERE e."userId" = ${userId}
+              AND q."questionBankId" = ANY(${bankIds})
+              AND ea."isCorrect" IS NOT NULL
+          )
+          SELECT
+            "questionId",
+            COUNT(*)::int AS "attemptCount",
+            COUNT(CASE WHEN rn >= 2 AND "isCorrect" = true THEN 1 END)::int AS "secondPlusCorrect",
+            COUNT(CASE WHEN rn >= 2 THEN 1 END)::int AS "secondPlusTotal",
+            BOOL_OR("isCorrect" = false) AS "everWrong",
+            BOOL_OR(
+              "isCorrect" = true AND "answeredAt" > (
+                SELECT MIN(n2."answeredAt") FROM numbered n2
+                WHERE n2."questionId" = numbered."questionId" AND n2."isCorrect" = false
+              )
+            ) AS "laterCorrect",
+            COALESCE(SUM("timeSpent"), 0)::int AS "totalTimeSpent"
+          FROM numbered
+          GROUP BY "questionId"
+        `;
 
     // Indicator 1: Coverage
     let coverageSum = 0;
@@ -234,15 +309,15 @@ export async function calculateSuccessRate(
       indicator4 = (corrected / everWrongQuestions.length) * 100;
     }
 
-    // Indicator 5: 15-day trend — only count days with actual answers
+    // Indicator 5: 15-day trend — use answer time (updatedAt), not exam start time
     const recentActivity = await prisma.$queryRaw<{ dayDate: string }[]>`
-      SELECT DISTINCT DATE(e."startedAt" AT TIME ZONE 'Asia/Taipei') AS "dayDate"
+      SELECT DISTINCT DATE(ea."updatedAt" AT TIME ZONE 'Asia/Taipei') AS "dayDate"
       FROM "ExamAnswer" ea
       JOIN "Exam" e ON ea."examId" = e.id
       JOIN "Question" q ON ea."questionId" = q.id
       WHERE e."userId" = ${userId}
         AND q."questionBankId" = ANY(${bankIds})
-        AND e."startedAt" >= ${fifteenDaysAgo}
+        AND ea."updatedAt" >= ${fifteenDaysAgo}
         AND ea."userAnswer" IS NOT NULL
     `;
 
