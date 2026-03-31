@@ -1391,7 +1391,7 @@ const INDICATOR_DESCRIPTIONS: Record<string, string> = {
   coverage: "題目覆蓋率：做過的題目佔該分類總題數的比例。做 1 次得 50%、2 次 85%、3 次以上 100%。",
   mastery: "精熟度：第 2 次以上作答的正確率 × 題目覆蓋率，反映理解程度與廣度。正確率 85% 以上且覆蓋全部題目才能滿分。",
   time: "投入時間：實際花費時間與目標時間（每題 4 分鐘）的比例。時間投入越接近目標分數越高。",
-  correction: "訂正率：同時看答錯後改對的成功率，以及已訂正題目占該分類總題數的覆蓋度。系統用 √(訂正成功率 × 訂正覆蓋度) 計分，避免只訂正少數題目就拿高分。",
+  correction: "訂正率分兩種情況：若有錯題，系統用 √(訂正成功率 × 訂正覆蓋度) 計分；若目前從未答錯，則用 √題目覆蓋率 × 100 計分，避免只做少量題目就直接滿分。",
   trend: "近期趨勢：過去 15 天的練習頻率。最近 5 天權重最高，持續練習分數越高。",
 };
 
@@ -1498,7 +1498,7 @@ function SuccessRateSection({ data, cumulative }: { data: SuccessRateData; cumul
             time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
             correction: rv
               ? (rv.wrongCount === 0
-                  ? "從未答錯，本項視為滿分"
+                  ? `從未答錯；依覆蓋度計分（已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題）`
                   : `訂正成功率 ${rv.correctionRate}%（${rv.correctedCount}/${rv.wrongCount}） · 覆蓋總題數 ${rv.correctionCoverage}%`)
               : "",
             trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",

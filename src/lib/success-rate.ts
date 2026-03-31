@@ -34,6 +34,12 @@ export function correctionScore(successRate: number, correctedCount: number, tot
   return Math.min(100, Math.sqrt(successRate * correctionDepth) * 100);
 }
 
+export function noWrongCorrectionScore(questionsAttempted: number, totalQuestions: number): number {
+  if (totalQuestions <= 0 || questionsAttempted <= 0) return 0;
+  const coverageRatio = questionsAttempted / totalQuestions;
+  return Math.min(100, Math.sqrt(coverageRatio) * 100);
+}
+
 export function trendScore(activeDays: { daysAgo: number }[]): number {
   let score = 0;
   const daySet = new Set(activeDays.map((d) => d.daysAgo));
@@ -310,7 +316,7 @@ export async function calculateSuccessRate(
     if (questionAttempts.length === 0) {
       indicator4 = 0;
     } else if (everWrongQuestions.length === 0) {
-      indicator4 = 100;
+      indicator4 = noWrongCorrectionScore(questionAttempts.length, totalQuestions);
     } else {
       const correctionRate = correctedCount / everWrongQuestions.length;
       indicator4 = correctionScore(correctionRate, correctedCount, totalQuestions);
