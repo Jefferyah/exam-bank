@@ -62,6 +62,8 @@ interface CategoryScore {
     activeDays: number;
     correctedCount: number;
     wrongCount: number;
+    correctionRate: number;
+    correctionCoverage: number;
   };
   score: number;
 }
@@ -317,8 +319,8 @@ export default function AdminStatsPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">4. 訂正率（15%）</p>
-              <p>答錯過的題目後來有答對的比例。從未答錯也算滿分。未做過任何題目則為 0 分。</p>
-              <p>分段線性：訂正率 &lt;40% → 0~20 分、40~60% → 20~50 分、60~80% → 50~85 分、≥80% → 85~100 分。</p>
+              <p>同時看答錯後改對的成功率，以及已訂正題目占該分類總題數的覆蓋度。從未答錯且已有作答紀錄者，本項視為滿分。</p>
+              <p>公式：√(訂正成功率 × 訂正覆蓋度) × 100。可避免只訂正少量題目就拿到過高分數。</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">5. 近期趨勢（15%）</p>
@@ -550,7 +552,11 @@ export default function AdminStatsPage() {
                                       coverage: `已做 ${cat.questionsAttempted} / ${cat.totalQuestions} 題`,
                                       mastery: rv ? `第2次以上正確率 ${rv.masteryAccuracy}% × 覆蓋 ${cat.questionsAttempted}/${cat.totalQuestions} 題` : "",
                                       time: rv ? `已投入 ${rv.timeMinutes} 分 / 目標 ${rv.targetMinutes} 分` : "",
-                                      correction: rv ? (rv.wrongCount === 0 ? "從未答錯" : `已訂正 ${rv.correctedCount} / ${rv.wrongCount} 題`) : "",
+                                      correction: rv
+                                        ? (rv.wrongCount === 0
+                                            ? "從未答錯，本項視為滿分"
+                                            : `訂正成功率 ${rv.correctionRate}%（${rv.correctedCount}/${rv.wrongCount}） · 覆蓋總題數 ${rv.correctionCoverage}%`)
+                                        : "",
                                       trend: rv ? `近 15 天有 ${rv.activeDays} 天練習` : "",
                                     };
                                     return (
