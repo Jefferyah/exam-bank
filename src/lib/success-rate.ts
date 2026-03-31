@@ -28,6 +28,13 @@ export function timeScore(ratio: number): number {
   return (ratio / 0.2) * 15;
 }
 
+export function correctionScore(rate: number): number {
+  if (rate >= 80) return 85 + ((rate - 80) / 20) * 15;
+  if (rate >= 60) return 50 + ((rate - 60) / 20) * 35;
+  if (rate >= 40) return 20 + ((rate - 40) / 20) * 30;
+  return (rate / 40) * 20;
+}
+
 export function trendScore(activeDays: { daysAgo: number }[]): number {
   let score = 0;
   const daySet = new Set(activeDays.map((d) => d.daysAgo));
@@ -295,18 +302,17 @@ export async function calculateSuccessRate(
     const actualMinutes = totalTimeSeconds / 60;
     const indicator3 = timeScore(actualMinutes / targetMinutes);
 
-    // Indicator 4: Correction rate
+    // Indicator 4: Correction rate (with thresholds like mastery)
     const everWrongQuestions = questionAttempts.filter((q) => q.everWrong);
     let indicator4: number;
     if (questionAttempts.length === 0) {
-      // No questions attempted at all → 0%
       indicator4 = 0;
     } else if (everWrongQuestions.length === 0) {
-      // Attempted questions but never wrong → 100%
       indicator4 = 100;
     } else {
       const corrected = everWrongQuestions.filter((q) => q.laterCorrect).length;
-      indicator4 = (corrected / everWrongQuestions.length) * 100;
+      const rawRate = (corrected / everWrongQuestions.length) * 100;
+      indicator4 = correctionScore(rawRate);
     }
 
     // Indicator 5: 15-day trend — use answer time (updatedAt), not exam start time

@@ -317,7 +317,8 @@ export default function AdminStatsPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">4. 訂正率（15%）</p>
-              <p>答錯過的題目後來有答對的比例。全部訂正 = 滿分，從未答錯也算滿分。未做過任何題目則為 0 分。</p>
+              <p>答錯過的題目後來有答對的比例。從未答錯也算滿分。未做過任何題目則為 0 分。</p>
+              <p>分段線性：訂正率 &lt;40% → 0~20 分、40~60% → 20~50 分、60~80% → 50~85 分、≥80% → 85~100 分。</p>
             </div>
             <div>
               <p className="font-semibold text-gray-700 dark:text-gray-300">5. 近期趨勢（15%）</p>
