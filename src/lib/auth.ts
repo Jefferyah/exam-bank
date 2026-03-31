@@ -34,13 +34,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (existingUser) {
           // Verify password
           if (!existingUser.password) {
-            // Legacy user without password — force them to set one via migration
-            // For now, allow login and set the password
-            const hashed = await bcrypt.hash(password, 10);
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: { password: hashed },
-            });
+            // Account exists but has no password — reject login to prevent takeover
+            throw new Error("INVALID_CREDENTIALS");
           } else {
             const valid = await bcrypt.compare(password, existingUser.password);
             if (!valid) {
