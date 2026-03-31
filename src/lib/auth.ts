@@ -43,13 +43,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           }
 
-          if (existingUser.email.toLowerCase() === "jeffer@gmail.com" && existingUser.role !== "ADMIN") {
-            return prisma.user.update({
-              where: { id: existingUser.id },
-              data: { role: "ADMIN" },
-            });
-          }
-
           return existingUser;
         }
 
